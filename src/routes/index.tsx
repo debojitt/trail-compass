@@ -491,7 +491,7 @@ function BuildView() {
         </div>
 
         {/* Live Basket */}
-        <div className="fixed bottom-[120px] left-1/2 z-40 -translate-x-1/2" style={{ width: 358 }}>
+        <div className="absolute bottom-[116px] left-4 right-4 z-40">
           <div
             className="rounded-3xl border p-4"
             style={{
