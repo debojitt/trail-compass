@@ -414,10 +414,10 @@ function BuildView() {
           background: `radial-gradient(120% 60% at 50% 0%, hsl(${bgHue}, 60%, 25%) 0%, #0a0a0a 60%)`,
         }}
       />
-      <div className="relative">
+      <div className="relative min-h-full pb-6">
         {/* Progress meter */}
-        <div className="px-5 pt-14">
-          <div className="flex items-center justify-between">
+        <div className="px-5 pt-14 md:px-8 lg:px-10">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
             <p className="text-[12px] uppercase tracking-widest text-white/50">Step 2 of 4</p>
             <p className="text-[12px] text-white/60">Mood &amp; Pace</p>
           </div>
@@ -426,9 +426,9 @@ function BuildView() {
           </div>
         </div>
 
-        <div className="px-5 pt-6">
+        <div className="px-5 pt-6 md:px-8 lg:px-10">
           <h1
-            className="text-[26px] font-bold leading-tight"
+            className="text-[26px] font-bold leading-tight md:text-[36px] lg:text-[44px]"
             style={{ fontFamily: '"SF Pro Display", -apple-system, sans-serif' }}
           >
             Shape your nest.
@@ -439,7 +439,7 @@ function BuildView() {
         </div>
 
         {/* Sliders */}
-        <div className="mt-6 space-y-6 px-5">
+        <div className="mt-6 grid gap-6 px-5 md:px-8 lg:grid-cols-3 lg:px-10">
           <SliderRow
             label="Pace"
             left="Cultural Leisure"
@@ -463,11 +463,11 @@ function BuildView() {
           />
         </div>
 
-        {/* Preview stack */}
-        <div className="mt-6 px-4">
+        {/* Preview stack + Live Basket */}
+        <div className="mt-6 grid gap-4 px-4 md:px-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start lg:px-10">
           <div className="overflow-hidden rounded-2xl border border-white/10">
             <div
-              className="h-40 bg-cover bg-center transition-all"
+              className="h-40 bg-cover bg-center transition-all md:h-64 lg:h-[360px]"
               style={{
                 backgroundImage:
                   vibe > 50
@@ -483,12 +483,10 @@ function BuildView() {
               </p>
             </div>
           </div>
-        </div>
 
-        {/* Live Basket */}
-        <div className="absolute bottom-[116px] left-4 right-4 z-40">
+          {/* Live Basket */}
           <div
-            className="rounded-3xl border p-4"
+            className="rounded-3xl border p-4 lg:sticky lg:top-6"
             style={{
               background: "rgba(26,26,26,0.7)",
               backdropFilter: "blur(30px) saturate(200%)",
@@ -496,8 +494,8 @@ function BuildView() {
               boxShadow: "0 20px 40px rgba(0,0,0,0.6)",
             }}
           >
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
+              <div className="min-w-0">
                 <p className="text-[11px] uppercase tracking-wider text-white/50">Your nest</p>
                 <p className="text-[15px] font-semibold">
                   {dayCount} days · 2 permits · Meghalaya + Nagaland
@@ -519,7 +517,7 @@ function BuildView() {
           </div>
         </div>
 
-        <div className="h-64" />
+        <div className="h-6" />
       </div>
     </div>
   );
@@ -553,9 +551,9 @@ function SliderRow({
           className="glass-slider w-full"
         />
       </div>
-      <div className="mt-2 flex justify-between text-[11px] text-white/50">
-        <span>{left}</span>
-        <span>{right}</span>
+      <div className="mt-2 grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-2 text-[11px] text-white/50">
+        <span className="min-w-0">{left}</span>
+        <span className="min-w-0 text-right">{right}</span>
       </div>
       <style>{`
         .glass-slider {
@@ -620,15 +618,15 @@ function RoutesView() {
 
   return (
     <div className="pt-12">
-      <div className="px-5">
+      <div className="px-5 md:px-8 lg:px-10">
         <p className="text-[12px] uppercase tracking-widest text-white/50">Tactical dashboard</p>
-        <h1 className="mt-1 text-[24px] font-bold">Arunachal Alpine Circuit</h1>
+        <h1 className="mt-1 text-[24px] font-bold md:text-[36px] lg:text-[44px]">Arunachal Alpine Circuit</h1>
       </div>
 
       {/* Elevation map */}
-      <div className="mx-4 mt-4 overflow-hidden rounded-3xl border border-white/10">
+      <div className="mx-4 mt-4 overflow-hidden rounded-3xl border border-white/10 md:mx-8 lg:mx-10">
         <div
-          className="relative h-56"
+          className="relative h-56 md:h-72 lg:h-[360px]"
           style={{
             background:
               "linear-gradient(180deg, rgba(0,0,0,0.2), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1519681393784-d120267933ba?w=600') center/cover",
@@ -642,14 +640,13 @@ function RoutesView() {
       </div>
 
       {/* Day cards */}
-      <div className="mt-5 flex gap-3 overflow-x-auto px-4 pb-2" style={{ scrollSnapType: "x mandatory" }}>
+      <div className="mt-5 flex gap-3 overflow-x-auto px-4 pb-2 md:grid md:grid-cols-2 md:overflow-visible md:px-8 lg:grid-cols-3 lg:px-10" style={{ scrollSnapType: "x mandatory" }}>
         {days.map((d, i) => (
           <button
             key={d.day}
             onClick={() => setDayIdx(i)}
-            className="shrink-0 overflow-hidden rounded-3xl border text-left"
+            className="w-[min(340px,88vw)] shrink-0 overflow-hidden rounded-3xl border text-left md:w-auto md:shrink"
             style={{
-              width: "min(340px, 88vw)",
               scrollSnapAlign: "center",
               background: i === dayIdx ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.02)",
               borderColor: i === dayIdx ? "rgba(0,140,255,0.4)" : "rgba(255,255,255,0.08)",
@@ -657,7 +654,7 @@ function RoutesView() {
           >
             <div className="relative p-4">
               <div className="flex items-start justify-between">
-                <div>
+                <div className="min-w-0 pr-3">
                   <p className="text-[11px] uppercase tracking-widest text-[#008CFF]">{d.day}</p>
                   <p className="mt-1 text-[16px] font-semibold leading-snug">{d.title}</p>
                   <p className="text-[12px] text-white/60">{d.dist}</p>
@@ -679,7 +676,7 @@ function RoutesView() {
 
       {/* Deadzone alert */}
       {active.deadzone && (
-        <div className="mx-4 mt-4 overflow-hidden rounded-3xl border border-amber-500/30 bg-amber-500/[0.08] p-4">
+        <div className="mx-4 mt-4 overflow-hidden rounded-3xl border border-amber-500/30 bg-amber-500/[0.08] p-4 md:mx-8 lg:mx-10">
           <div className="flex items-start gap-3">
             <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-amber-500/20">
               <WifiOff size={18} className="text-amber-300" />
