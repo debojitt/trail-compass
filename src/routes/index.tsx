@@ -654,7 +654,7 @@ function RoutesView() {
             onClick={() => setDayIdx(i)}
             className="shrink-0 overflow-hidden rounded-3xl border text-left"
             style={{
-              width: 340,
+              width: "min(340px, 88vw)",
               scrollSnapAlign: "center",
               background: i === dayIdx ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.02)",
               borderColor: i === dayIdx ? "rgba(0,140,255,0.4)" : "rgba(255,255,255,0.08)",
