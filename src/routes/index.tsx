@@ -43,14 +43,35 @@ function Index() {
   const [view, setView] = useState<ViewId>("explore");
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-neutral-950 p-4 font-sans">
+    <div
+      className="flex min-h-[100dvh] w-full items-stretch justify-center bg-neutral-950 font-sans md:items-center md:p-6 lg:p-10"
+      style={{
+        backgroundImage:
+          "radial-gradient(1200px 600px at 15% -10%, rgba(0,140,255,0.15), transparent 60%), radial-gradient(900px 500px at 110% 20%, rgba(255,56,92,0.15), transparent 60%)",
+      }}
+    >
+      {/* Optional desktop side info */}
+      <aside className="hidden xl:mr-10 xl:flex xl:w-[320px] xl:flex-col xl:justify-center">
+        <p className="text-[11px] uppercase tracking-[0.3em] text-white/40">NORTHNEST</p>
+        <h2
+          className="mt-3 text-4xl font-bold leading-tight text-white"
+          style={{ fontFamily: '"SF Pro Display", -apple-system, sans-serif' }}
+        >
+          Northeast India,
+          <br />
+          <span style={{ color: "#FF385C" }}>unfiltered.</span>
+        </h2>
+        <p className="mt-4 text-sm leading-relaxed text-white/60">
+          A mobile-first companion for eight states — true-cost pricing, offline permit wallet,
+          immersive POV previews, and an SOS net that works past the last cell tower.
+        </p>
+      </aside>
+
       <div
-        className="relative overflow-hidden bg-black shadow-[0_24px_80px_rgba(0,0,0,0.8)]"
+        className="relative w-full overflow-hidden bg-black shadow-[0_24px_80px_rgba(0,0,0,0.8)] md:w-[420px] md:rounded-[44px] md:border-[6px] md:border-neutral-800 lg:w-[440px]"
         style={{
-          width: 390,
-          height: 844,
-          borderRadius: 40,
-          border: "4px solid #333",
+          height: "100dvh",
+          maxHeight: "100dvh",
         }}
       >
         <div className="absolute inset-0 overflow-y-auto pb-[120px] text-white">
@@ -62,9 +83,41 @@ function Index() {
 
         <DockNav view={view} setView={setView} />
       </div>
+
+      <aside className="hidden xl:ml-10 xl:flex xl:w-[280px] xl:flex-col xl:justify-center xl:gap-4">
+        <DesktopInfoCard
+          title="Live true-cost"
+          body="Prices already include Inner Line Permits, state entry fees and local guide floors."
+        />
+        <DesktopInfoCard
+          title="Works past signal"
+          body="Cache maps, permits and QR codes to device storage before you cross into a deadzone."
+        />
+        <DesktopInfoCard
+          title="Echo SOS"
+          body="Swipe-to-broadcast pushes your coordinates to the nearest ground team."
+        />
+      </aside>
     </div>
   );
 }
+
+function DesktopInfoCard({ title, body }: { title: string; body: string }) {
+  return (
+    <div
+      className="rounded-2xl border p-4 text-white"
+      style={{
+        background: "rgba(255,255,255,0.04)",
+        borderColor: "rgba(255,255,255,0.08)",
+        backdropFilter: "blur(12px)",
+      }}
+    >
+      <p className="text-[13px] font-semibold">{title}</p>
+      <p className="mt-1 text-[12px] leading-relaxed text-white/60">{body}</p>
+    </div>
+  );
+}
+
 
 /* ============ DOCK NAV ============ */
 
