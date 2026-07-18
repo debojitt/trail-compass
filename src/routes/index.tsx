@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type PointerEvent } from "react";
 import {
   Compass,
   Sparkles,
@@ -813,12 +813,12 @@ function NestView() {
     }
   }, [openPermit]);
 
-  const startSwipe = (e: React.PointerEvent) => {
+  const startSwipe = (e: PointerEvent) => {
     const track = e.currentTarget as HTMLElement;
     dragRef.current = { start: e.clientX, width: track.clientWidth - 56 };
     track.setPointerCapture(e.pointerId);
   };
-  const moveSwipe = (e: React.PointerEvent) => {
+  const moveSwipe = (e: PointerEvent) => {
     if (!dragRef.current) return;
     const dx = e.clientX - dragRef.current.start;
     const pct = Math.max(0, Math.min(100, (dx / dragRef.current.width) * 100));
@@ -852,23 +852,23 @@ function NestView() {
 
   return (
     <div className="pt-12">
-      <div className="px-5">
+      <div className="px-5 md:px-8 lg:px-10">
         <p className="text-[12px] uppercase tracking-widest text-white/50">My nest</p>
-        <h1 className="mt-1 text-[24px] font-bold">Command hub</h1>
+        <h1 className="mt-1 text-[24px] font-bold md:text-[36px] lg:text-[44px]">Command hub</h1>
       </div>
 
       {/* Permit wallet */}
-      <div className="mt-5 px-5">
-        <div className="mb-2 flex items-center justify-between">
+      <div className="mt-5 px-5 md:px-8 lg:px-10">
+        <div className="mb-2 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
           <p className="text-[13px] font-semibold">Digital Checkgate Pass</p>
           <span className="text-[11px] text-white/50">{permits.length} active</span>
         </div>
-        <div className="space-y-2">
+        <div className="grid gap-2 md:grid-cols-3">
           {permits.map((p) => (
             <button
               key={p.code}
               onClick={() => setOpenPermit(p.code)}
-              className="flex w-full items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] p-3 text-left"
+              className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3 text-left"
             >
               <div className="min-w-0">
                 <p className="truncate text-[14px] font-semibold">{p.state}</p>
@@ -888,16 +888,16 @@ function NestView() {
       </div>
 
       {/* Language matrix */}
-      <div className="mt-6 px-5">
+      <div className="mt-6 px-5 md:px-8 lg:px-10">
         <div className="mb-2 flex items-center gap-2">
           <Languages size={14} className="text-[#008CFF]" />
           <p className="text-[13px] font-semibold">Regional Language Matrix</p>
         </div>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
           {phrases.map((p) => (
             <button
               key={p.lang}
-              className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] p-3 text-left"
+              className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3 text-left"
             >
               <div className="min-w-0">
                 <p className="truncate text-[13px] font-semibold">{p.text}</p>
@@ -910,7 +910,7 @@ function NestView() {
       </div>
 
       {/* SOS */}
-      <div className="mt-6 px-4">
+      <div className="mt-6 px-4 md:px-8 lg:px-10">
         <div
           className="overflow-hidden rounded-3xl border p-4"
           style={{
