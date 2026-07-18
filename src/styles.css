@@ -198,12 +198,12 @@
 /* See-through text — the hero image clips into the letters */
 .nn-knockout {
   background-size: cover;
-  background-position: center 45%;
+  background-position: center 24%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
-  filter: brightness(1.35) contrast(1.05);
+  filter: brightness(1.2) saturate(1.15) contrast(1.05);
 }
 
 /* Letter-by-letter heading reveal (parent gets .nn-in via IntersectionObserver) */

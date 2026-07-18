@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Home,
   Plane,
@@ -19,28 +19,22 @@ import {
   Wallet,
   Compass,
   ChevronDown,
-  ChevronLeft,
   ChevronRight,
   BadgePercent,
   Quote,
   Menu,
-  Play,
-  Facebook,
-  Instagram,
-  Twitter,
-  Linkedin,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "northnest — Northeast India Escapes" },
+      { title: "NORTHNEST — Travel Northeast India" },
       {
         name: "description",
         content:
           "Book homestays, flights, trains, cabs and permit-ready packages across the eight states of Northeast India.",
       },
-      { property: "og:title", content: "northnest — Northeast India Escapes" },
+      { property: "og:title", content: "NORTHNEST — Travel Northeast India" },
       {
         property: "og:description",
         content:
@@ -48,8 +42,9 @@ export const Route = createFileRoute("/")({
       },
     ],
     links: [
-      /* hero assets fetched immediately so the valley never pops in late */
-      { rel: "preload", as: "image", href: "/elements/green-valley-hero.png" },
+      /* hero assets fetched immediately so the sunrise never pops in late */
+      { rel: "preload", as: "image", href: "/elements/mountains.png" },
+      { rel: "preload", as: "image", href: "/elements/real-sunrise.png" },
       { rel: "preload", as: "image", href: "/elements/cloud-1.png" },
       { rel: "preload", as: "image", href: "/elements/cloud-2.png" },
     ],
@@ -57,30 +52,29 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-/* Brand palette — pulled from the northnest logo (deep forest on cream) */
-const FOREST = "#2E4B34";
-const FOREST_DARK = "#223928";
-const OLIVE = "#7E9F1F";
-const OLIVE_DARK = "#69851A";
-const CREAM = "#EAE4D2";
-const GREEN_LIGHT = "#EFF4E0";
+/* Brand palette */
+const RED = "#E23744";
+const RED_DARK = "#C5303C";
+const GREEN = "#24963F";
+const GREEN_LIGHT = "#E8F5EC";
 
-const HERO_IMG = "/elements/green-valley-hero.png";
+/* Real sunrise photo — fills the see-through hero letters */
+const SUNRISE_IMG = "/elements/real-sunrise.png";
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const clamp01 = (n: number) => Math.max(0, Math.min(1, n));
 
 function Index() {
-  /* p: 0 → 1 hero progress. Tracks the scroll position almost 1:1 —
+  /* p: 0 → 1 sunrise progress. Tracks the scroll position almost 1:1 —
      a light chase factor keeps it buttery without ever feeling laggy. */
   const [p, setP] = useState(0);
 
   useEffect(() => {
     let raf = 0;
-    let current = clamp01(window.scrollY / (window.innerHeight * 1.15));
+    let current = clamp01(window.scrollY / (window.innerHeight * 1.6));
     let target = current;
     const onScroll = () => {
-      target = clamp01(window.scrollY / (window.innerHeight * 1.15));
+      target = clamp01(window.scrollY / (window.innerHeight * 1.6));
     };
     const tick = () => {
       current += (target - current) * 0.22;
@@ -99,10 +93,10 @@ function Index() {
   return (
     <div className="min-h-screen bg-white font-sans text-neutral-900 antialiased">
       <ScrollProgress />
-      <TopNav solid={p > 0.9} />
-      <ValleyHero p={p} />
+      <TopNav solid={p > 0.85} />
+      <SunriseHero p={p} />
 
-      {/* Content emerges as the valley fades away */}
+      {/* Content emerges as the sky fades away */}
       <main className="relative z-10 mx-auto max-w-[1200px] px-4 md:px-6">
         <SearchHub />
         <OffersRow />
@@ -118,7 +112,7 @@ function Index() {
   );
 }
 
-/* ============ MOTION PRIMITIVES ============ */
+/* ============ MOTION PRIMITIVES (tile.pt-style) ============ */
 
 /* Page-wide scroll progress bar — mapped 1:1 to scroll position */
 function ScrollProgress() {
@@ -139,7 +133,7 @@ function ScrollProgress() {
       <div
         ref={ref}
         className="h-full w-full origin-left"
-        style={{ background: `linear-gradient(90deg, ${OLIVE}, ${FOREST})`, transform: "scaleX(0)" }}
+        style={{ background: `linear-gradient(90deg, ${RED}, ${GREEN})`, transform: "scaleX(0)" }}
       />
     </div>
   );
@@ -244,7 +238,7 @@ function Marquee({ text, duration = 30 }: { text: string; duration?: number }) {
             className="whitespace-nowrap px-5 text-[56px] font-bold uppercase leading-none tracking-tight md:text-[96px]"
             style={{
               color: "transparent",
-              WebkitTextStroke: "1.5px rgba(46,75,52,0.16)",
+              WebkitTextStroke: "1.5px rgba(0,0,0,0.12)",
             }}
           >
             {text}
@@ -255,59 +249,56 @@ function Marquee({ text, duration = 30 }: { text: string; duration?: number }) {
   );
 }
 
-/* See-through text — the hero valley shows through the letters */
+/* See-through text — the real sunrise photo shows through the letters */
 function Knockout({ text }: { text: string }) {
   return (
     <span className="relative inline-block align-baseline">
-      <span className="nn-knockout" style={{ backgroundImage: `url(${HERO_IMG})` }}>
+      <span className="nn-knockout" style={{ backgroundImage: `url(${SUNRISE_IMG})` }}>
         {text}
       </span>
-      {/* darkening pass so the glass letters read against the mist */}
-      <span aria-hidden className="absolute inset-0 select-none" style={{ color: "rgba(12,24,14,0.32)" }}>
+      {/* soft edge pass so the glass letters read against the dawn sky */}
+      <span aria-hidden className="absolute inset-0 select-none" style={{ color: "rgba(40,12,8,0.18)" }}>
         {text}
       </span>
     </span>
   );
 }
 
-/* ============ TOP NAV ============ */
+/* ============ TOP NAV (Apple-style translucent) ============ */
 
 function TopNav({ solid }: { solid: boolean }) {
-  const links = ["Home", "Explore", "Trips", "Culture", "Contact"];
+  const links = ["Stays", "Flights", "Packages", "Permits", "Offers"];
   return (
     <header
       className="fixed inset-x-0 top-0 z-50 transition-all duration-500"
       style={{
-        background: solid ? "rgba(255,255,255,0.82)" : "transparent",
+        background: solid ? "rgba(255,255,255,0.8)" : "transparent",
         backdropFilter: solid ? "blur(20px) saturate(180%)" : "none",
         borderBottom: solid ? "1px solid rgba(0,0,0,0.06)" : "1px solid transparent",
       }}
     >
-      <div className="mx-auto flex h-16 max-w-[1240px] items-center justify-between px-5 md:px-10">
-        <a href="/" className="flex items-center gap-2.5">
+      <div className="mx-auto flex h-14 max-w-[1200px] items-center justify-between px-4 md:px-6">
+        <a href="/" className="flex items-center gap-2">
           <img
             src="/elements/northnest-logo.png"
             alt="northnest"
-            className="h-9 w-9 rounded-full object-cover shadow-sm"
+            className="h-8 w-8 rounded-full object-cover shadow-sm"
             draggable={false}
           />
-          <span className="text-[19px] font-bold tracking-tight">
-            <span
-              className="transition-colors duration-500"
-              style={{ color: solid ? FOREST : "#fff" }}
-            >
-              north
-            </span>
-            <span style={{ color: OLIVE }}>nest</span>
+          <span
+            className="text-[17px] font-bold tracking-tight transition-colors duration-500"
+            style={{ color: solid ? RED : "#fff" }}
+          >
+            NORTHNEST
           </span>
         </a>
-        <nav className="hidden items-center gap-8 md:flex">
+        <nav className="hidden items-center gap-7 md:flex">
           {links.map((l) => (
             <a
               key={l}
               href="#"
-              className="nn-link text-[13.5px] font-medium transition-colors duration-500"
-              style={{ color: solid ? "#374151" : "rgba(255,255,255,0.92)" }}
+              className="nn-link text-[13px] font-medium transition-colors duration-500"
+              style={{ color: solid ? "#374151" : "rgba(255,255,255,0.9)" }}
             >
               {l}
             </a>
@@ -315,173 +306,166 @@ function TopNav({ solid }: { solid: boolean }) {
         </nav>
         <div className="flex items-center gap-3">
           <button
-            className="rounded-xl px-5 py-2 text-[13px] font-bold text-white shadow-md transition-all hover:scale-[1.04] hover:shadow-lg"
-            style={{ background: `linear-gradient(135deg, ${OLIVE}, ${OLIVE_DARK})` }}
+            className="rounded-full px-4 py-1.5 text-[13px] font-semibold text-white transition-transform hover:scale-[1.03]"
+            style={{ background: RED }}
           >
-            Book Now
+            Sign in
           </button>
-          <Menu size={20} className="md:hidden" style={{ color: solid ? "#374151" : "#fff" }} />
+          <Menu
+            size={20}
+            className="md:hidden"
+            style={{ color: solid ? "#374151" : "#fff" }}
+          />
         </div>
       </div>
     </header>
   );
 }
 
-/* ============ VALLEY HERO (scroll-linked, GreenHaven-style) ============ */
+/* ============ SUNRISE HERO (scroll-driven) ============ */
 
-function ValleyHero({ p }: { p: number }) {
-  /* everything below is driven directly by scroll — realtime, reversible */
-  const bgScale = lerp(1, 1.16, p);
-  const bgRise = p * -40;
-  const mistShift = p * 220;
-  const titleFade = 1 - clamp01(p / 0.5);
-  const titleRise = p * -110;
-  const deckSlide = p * 120;
-  const deckFade = 1 - clamp01(p / 0.6);
+function SunriseHero({ p }: { p: number }) {
+  /* sun rises from below the hills to high in the sky */
+  const sunBottom = lerp(-12, 58, p);
+  const sunScale = lerp(1, 1.35, p);
+  /* clouds drift apart and thin out */
+  const cloudShift = p * 260;
+  const cloudFade = 1 - clamp01((p - 0.45) / 0.45);
+  /* the whole scene dissolves to white at the end */
   const whiteOut = clamp01((p - 0.72) / 0.28);
+  const titleFade = 1 - clamp01(p / 0.5);
 
   return (
-    <section className="relative h-[215vh]">
-      <div className="sticky top-0 h-screen overflow-hidden bg-black">
-        {/* Green valley backdrop */}
-        <img
-          src={HERO_IMG}
-          alt=""
-          draggable={false}
-          className="absolute inset-0 h-full w-full select-none object-cover"
-          style={{
-            transform: `scale(${bgScale}) translateY(${bgRise}px)`,
-            transformOrigin: "center 40%",
-            willChange: "transform",
-          }}
-        />
-        {/* Green grade so the whites never blow out */}
+    <section className="relative h-[260vh]">
+      <div className="sticky top-0 h-screen overflow-hidden">
+        {/* Night → dawn sky (fades out) */}
         <div
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(180deg, rgba(20,35,22,0.42) 0%, rgba(20,35,22,0.08) 38%, rgba(16,30,18,0.25) 78%, rgba(10,22,12,0.55) 100%)",
+              "linear-gradient(180deg, #201c45 0%, #4a2b63 38%, #b0486b 62%, #ff8e56 82%, #ffc98f 100%)",
+            opacity: 1 - p,
+          }}
+        />
+        {/* Morning sky (fades in) */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(180deg, #9fd4ff 0%, #d4ecff 55%, #ffffff 100%)",
+            opacity: p,
           }}
         />
 
-        {/* Drifting mist — parts as you scroll */}
+        {/* Stars, only pre-dawn */}
+        <div
+          className="absolute inset-x-0 top-0 h-1/2"
+          style={{
+            opacity: Math.max(0, 1 - p * 2.4),
+            backgroundImage:
+              "radial-gradient(1.5px 1.5px at 12% 22%, #fff, transparent), radial-gradient(1px 1px at 28% 12%, #fff, transparent), radial-gradient(1.5px 1.5px at 44% 30%, #fff, transparent), radial-gradient(1px 1px at 61% 15%, #fff, transparent), radial-gradient(1.5px 1.5px at 76% 25%, #fff, transparent), radial-gradient(1px 1px at 89% 10%, #fff, transparent), radial-gradient(1px 1px at 52% 8%, #fff, transparent)",
+          }}
+        />
+
+        {/* Sun */}
+        <div
+          className="absolute left-1/2 h-40 w-40 -translate-x-1/2 rounded-full md:h-56 md:w-56"
+          style={{
+            bottom: `${sunBottom}%`,
+            transform: `translateX(-50%) scale(${sunScale})`,
+            background: `radial-gradient(circle, ${p > 0.5 ? "#fff6d8" : "#ffd27a"} 0%, ${p > 0.5 ? "#ffe08a" : "#ff9e4d"} 55%, transparent 72%)`,
+            filter: "blur(2px)",
+            boxShadow: `0 0 ${lerp(80, 180, p)}px ${lerp(40, 90, p)}px rgba(255, ${Math.round(lerp(150, 210, p))}, 110, 0.35)`,
+          }}
+        />
+
+        {/* Realistic mountain range — rises slightly and dissolves with the scene */}
+        <img
+          src="/elements/mountains.png"
+          alt=""
+          draggable={false}
+          className="absolute bottom-[-6%] left-1/2 w-[160%] max-w-none -translate-x-1/2 select-none md:w-[110%]"
+          style={{
+            transform: `translateX(-50%) translateY(${p * 40}px)`,
+            mixBlendMode: "multiply",
+            willChange: "transform, opacity, filter",
+            opacity: lerp(0.85, 1, p) * (1 - whiteOut),
+            filter: `brightness(${lerp(0.88, 1.02, p)}) saturate(${lerp(0.75, 1, p)})`,
+            maskImage:
+              "linear-gradient(180deg, transparent 0%, black 22%, black 82%, transparent 100%)",
+            WebkitMaskImage:
+              "linear-gradient(180deg, transparent 0%, black 22%, black 82%, transparent 100%)",
+          }}
+        />
+
+        {/* Realistic clouds (transparent PNGs) — drift apart as the sun rises */}
         <Cloud
-          src="/elements/cloud-2.png"
-          style={{ top: "12%", left: "-10%", width: "58%", opacity: 0.5, transform: `translateX(${-mistShift}px)` }}
+          src="/elements/cloud-1.png"
+          style={{ top: "20%", left: "-4%", width: "46%", transform: `translateX(${-cloudShift}px)`, opacity: 0.95 * cloudFade }}
         />
         <Cloud
           src="/elements/cloud-1.png"
-          style={{ top: "26%", right: "-12%", width: "60%", opacity: 0.42, transform: `translateX(${mistShift}px) scaleX(-1)` }}
+          style={{ top: "10%", right: "-6%", width: "52%", transform: `translateX(${cloudShift}px) scaleX(-1)`, opacity: 0.85 * cloudFade }}
         />
         <Cloud
           src="/elements/cloud-2.png"
-          style={{ bottom: "6%", left: "6%", width: "64%", opacity: 0.45, transform: `translateX(${-mistShift * 0.6}px)` }}
+          style={{ top: "40%", left: "12%", width: "42%", transform: `translateX(${-cloudShift * 1.6}px)`, opacity: 0.8 * cloudFade }}
+        />
+        <Cloud
+          src="/elements/cloud-2.png"
+          style={{ top: "32%", right: "14%", width: "38%", transform: `translateX(${cloudShift * 1.4}px) scaleX(-1)`, opacity: 0.8 * cloudFade }}
+        />
+        <Cloud
+          src="/elements/cloud-1.png"
+          style={{ bottom: "8%", left: "28%", width: "58%", transform: `translateX(${cloudShift * 0.7}px)`, opacity: 0.7 * cloudFade }}
+        />
+        {/* Low mist hugging the mountains */}
+        <Cloud
+          src="/elements/cloud-2.png"
+          style={{ bottom: "0%", left: "-8%", width: "70%", transform: `translateX(${-cloudShift * 0.4}px)`, opacity: 0.9 * cloudFade }}
         />
 
-        {/* Inset frame — the signature GreenHaven border */}
+        {/* Hero copy — the big words are glass: a real sunrise burns through them */}
         <div
-          className="pointer-events-none absolute inset-3 rounded-[28px] border md:inset-6"
-          style={{ borderColor: "rgba(255,255,255,0.65)", opacity: 1 - whiteOut }}
-        />
-
-        {/* Right-edge diamond rail */}
-        <div
-          className="absolute right-10 top-1/2 hidden -translate-y-1/2 flex-col items-center gap-4 lg:flex"
-          style={{ opacity: titleFade }}
+          className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center"
+          style={{ opacity: titleFade, transform: `translateY(${p * -80}px)`, willChange: "opacity, transform" }}
         >
-          <span className="h-16 w-px bg-white/50" />
-          <span className="h-2.5 w-2.5 rotate-45 bg-white" />
-          <span className="h-2.5 w-2.5 rotate-45 border border-white/80" />
-          <span className="h-2.5 w-2.5 rotate-45 bg-white" />
-          <span className="h-16 w-px bg-white/50" />
-        </div>
-
-        {/* Hero layout: copy left, swipeable deck right */}
-        <div className="absolute inset-0 mx-auto grid max-w-[1240px] grid-cols-1 items-center gap-10 px-8 pt-16 md:px-14 lg:grid-cols-[1.15fr_0.85fr]">
-          <div
-            style={{ opacity: titleFade, transform: `translateY(${titleRise}px)`, willChange: "opacity, transform" }}
+          <p
+            className="nn-hero-line text-[12px] font-semibold uppercase tracking-[0.35em] text-white/80"
+            style={{ "--nn-delay": "150ms" } as React.CSSProperties}
           >
-            <p
-              className="nn-hero-line text-[11px] font-bold uppercase tracking-[0.4em] text-white/85"
-              style={{ "--nn-delay": "150ms" } as React.CSSProperties}
-            >
-              northnest · eight sister states
-            </p>
-            <h1
-              className="mt-5 select-none text-[15vw] font-extrabold uppercase leading-[0.98] tracking-[0.06em] text-white md:text-[92px]"
-              style={{ fontStretch: "expanded" }}
-            >
-              <span className="nn-hero-line block" style={{ "--nn-delay": "350ms" } as React.CSSProperties}>
-                <Knockout text="NORTH" />
-                <span style={{ textShadow: "0 4px 30px rgba(0,0,0,0.35)" }}>EAST</span>
-              </span>
-              <span className="nn-hero-line block" style={{ "--nn-delay": "550ms" } as React.CSSProperties}>
-                <Knockout text="ESCAPE" />
-              </span>
-            </h1>
-            <p
-              className="nn-hero-line mt-6 max-w-[440px] text-[15px] leading-relaxed text-white/85 md:text-[17px]"
-              style={{ "--nn-delay": "780ms" } as React.CSSProperties}
-            >
-              Living root bridges, cloud monasteries and the greenest valleys
-              in India — with every permit handled.
-            </p>
-
-            <div
-              className="nn-hero-line mt-8 flex flex-wrap items-center gap-5"
-              style={{ "--nn-delay": "950ms" } as React.CSSProperties}
-            >
-              <button
-                className="rounded-xl px-8 py-3.5 text-[14px] font-bold text-white shadow-xl transition-all hover:scale-[1.04]"
-                style={{ background: `linear-gradient(135deg, ${OLIVE}, ${OLIVE_DARK})`, boxShadow: "0 14px 34px rgba(126,159,31,0.4)" }}
-              >
-                Explore Trips
-              </button>
-              <button className="group flex items-center gap-3 text-[14px] font-semibold text-white">
-                <span className="grid h-11 w-11 place-items-center rounded-full border border-white/60 bg-white/10 backdrop-blur transition-transform group-hover:scale-110">
-                  <Play size={15} fill="white" className="ml-0.5" />
-                </span>
-                Watch Video
-              </button>
-            </div>
-
-            <div
-              className="nn-hero-line mt-9 flex items-center gap-3"
-              style={{ "--nn-delay": "1100ms" } as React.CSSProperties}
-            >
-              {[Facebook, Instagram, Twitter, Linkedin].map((Icon, i) => (
-                <a
-                  key={i}
-                  href="#"
-                  className="grid h-9 w-9 place-items-center rounded-lg bg-white/12 text-white backdrop-blur transition-all hover:scale-110 hover:bg-white/25"
-                >
-                  <Icon size={15} />
-                </a>
-              ))}
-            </div>
-          </div>
-
-          {/* Swipeable destination deck */}
-          <div
-            className="hidden justify-center lg:flex"
-            style={{ opacity: deckFade, transform: `translateX(${deckSlide}px)`, willChange: "opacity, transform" }}
+            Northeast India
+          </p>
+          <h1 className="mt-5 max-w-[900px] select-none text-[13vw] font-extrabold uppercase leading-[1.02] tracking-[0.04em] text-white md:text-[88px]">
+            <span className="nn-hero-line block" style={{ "--nn-delay": "350ms" } as React.CSSProperties}>
+              <span style={{ textShadow: "0 6px 40px rgba(0,0,0,0.35)" }}>FIRST&nbsp;</span>
+              <Knockout text="SUNRISE" />
+            </span>
+            <span className="nn-hero-line block" style={{ "--nn-delay": "550ms" } as React.CSSProperties}>
+              <Knockout text="OF INDIA" />
+            </span>
+          </h1>
+          <p
+            className="nn-hero-line mt-6 max-w-[520px] text-[15px] leading-relaxed text-white/80 md:text-[17px]"
+            style={{ "--nn-delay": "800ms" } as React.CSSProperties}
           >
-            <HeroDeck />
-          </div>
+            Eight sister states. A hundred living cultures.
+            Homestays, festivals, permits and journeys — one nest.
+          </p>
         </div>
 
         {/* Scroll hint */}
         <div
-          className="absolute bottom-9 left-1/2 -translate-x-1/2 text-center"
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 text-center"
           style={{ opacity: Math.max(0, 1 - p * 6) }}
         >
-          <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-white/75">
-            Scroll to descend
+          <p className="text-[11px] font-medium uppercase tracking-[0.3em] text-white/70">
+            Scroll for sunrise
           </p>
-          <ChevronDown size={18} className="mx-auto mt-1 animate-bounce text-white/75" />
+          <ChevronDown size={18} className="mx-auto mt-1 animate-bounce text-white/70" />
         </div>
 
-        {/* Final dissolve to white — content takes over */}
+        {/* Final dissolve to white — the background "removes itself" */}
         <div className="absolute inset-0 bg-white" style={{ opacity: whiteOut, pointerEvents: "none" }} />
       </div>
     </section>
@@ -501,159 +485,7 @@ function Cloud({ src, style }: { src: string; style: React.CSSProperties }) {
   );
 }
 
-/* ============ SWIPEABLE HERO DECK ============ */
-
-const deckCards = [
-  {
-    name: "Nohkalikai Falls",
-    place: "Meghalaya",
-    img: "https://images.unsplash.com/photo-1571089336682-9f8d6c1671da?q=80&w=520&h=760&fit=crop",
-  },
-  {
-    name: "Tawang Monastery",
-    place: "Arunachal Pradesh",
-    img: "https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?q=80&w=520&h=760&fit=crop",
-  },
-  {
-    name: "Kanchenjunga",
-    place: "Sikkim",
-    img: "https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=520&h=760&fit=crop",
-  },
-  {
-    name: "Dzükou Valley",
-    place: "Nagaland",
-    img: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=520&h=760&fit=crop",
-  },
-];
-
-function HeroDeck() {
-  const [index, setIndex] = useState(0);
-  const [drag, setDrag] = useState(0);
-  const dragging = useRef(false);
-  const startX = useRef(0);
-  const n = deckCards.length;
-
-  const next = useCallback(() => setIndex((i) => (i + 1) % n), [n]);
-  const prev = useCallback(() => setIndex((i) => (i - 1 + n) % n), [n]);
-
-  /* gentle auto-advance, resets whenever the user interacts */
-  useEffect(() => {
-    const t = setInterval(next, 5200);
-    return () => clearInterval(t);
-  }, [index, next]);
-
-  const onPointerDown = (e: React.PointerEvent) => {
-    dragging.current = true;
-    startX.current = e.clientX;
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-  };
-  const onPointerMove = (e: React.PointerEvent) => {
-    if (!dragging.current) return;
-    setDrag(e.clientX - startX.current);
-  };
-  const endDrag = () => {
-    if (!dragging.current) return;
-    dragging.current = false;
-    if (drag < -55) next();
-    else if (drag > 55) prev();
-    setDrag(0);
-  };
-
-  return (
-    <div className="relative">
-      <div
-        className="relative h-[400px] w-[250px] cursor-grab select-none active:cursor-grabbing xl:h-[440px] xl:w-[280px]"
-        style={{ touchAction: "pan-y" }}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={endDrag}
-        onPointerLeave={endDrag}
-        onPointerCancel={endDrag}
-      >
-        {deckCards.map((c, i) => {
-          const pos = (i - index + n) % n;
-          const front = pos === 0;
-          const x = pos * 46 + (front ? drag : drag * 0.25);
-          const y = pos * 10;
-          const rot = pos * 3.5 + (front ? drag * 0.045 : 0);
-          const scale = 1 - pos * 0.055;
-          return (
-            <figure
-              key={c.name}
-              className="absolute inset-0 overflow-hidden rounded-2xl shadow-2xl"
-              style={{
-                transform: `translate(${x}px, ${y}px) rotate(${rot}deg) scale(${scale})`,
-                zIndex: n - pos,
-                opacity: pos > 2 ? 0 : 1,
-                transition: dragging.current
-                  ? "none"
-                  : "transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease",
-                border: "3px solid rgba(255,255,255,0.85)",
-                willChange: "transform",
-              }}
-            >
-              <img
-                src={c.img}
-                alt={c.name}
-                draggable={false}
-                loading={pos === 0 ? "eager" : "lazy"}
-                decoding="async"
-                className="h-full w-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-              <figcaption
-                className="absolute inset-x-0 bottom-0 p-4 transition-opacity duration-300"
-                style={{ opacity: front ? 1 : 0 }}
-              >
-                <p className="text-[16px] font-bold text-white">{c.name}</p>
-                <p className="flex items-center gap-1 text-[11px] font-medium" style={{ color: "#c9e77a" }}>
-                  <MapPin size={11} /> {c.place}
-                </p>
-              </figcaption>
-            </figure>
-          );
-        })}
-      </div>
-
-      {/* Controls */}
-      <div className="mt-16 flex items-center justify-between xl:mt-14">
-        <div className="flex items-center gap-1.5">
-          {deckCards.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setIndex(i)}
-              aria-label={`Card ${i + 1}`}
-              className="h-1.5 rounded-full transition-all duration-400"
-              style={{
-                width: i === index ? 22 : 8,
-                background: i === index ? OLIVE : "rgba(255,255,255,0.45)",
-              }}
-            />
-          ))}
-        </div>
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={prev}
-            aria-label="Previous"
-            className="grid h-10 w-10 place-items-center rounded-lg border border-white/40 bg-white/10 text-white backdrop-blur transition-all hover:scale-105 hover:bg-white/25"
-          >
-            <ChevronLeft size={17} />
-          </button>
-          <button
-            onClick={next}
-            aria-label="Next"
-            className="grid h-10 w-10 place-items-center rounded-lg text-white shadow-lg transition-all hover:scale-105"
-            style={{ background: `linear-gradient(135deg, ${OLIVE}, ${OLIVE_DARK})` }}
-          >
-            <ChevronRight size={17} />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ============ SEARCH HUB ============ */
+/* ============ SEARCH HUB (MakeMyTrip-style) ============ */
 
 type TabId = "stays" | "flights" | "trains" | "cabs" | "packages" | "permits";
 
@@ -692,9 +524,9 @@ function SearchHub() {
   const toValue = swapped && swappable ? cfg.fromV : cfg.toV;
 
   return (
-    <section className="relative -mt-[24vh] md:-mt-[28vh]">
+    <section className="relative -mt-[22vh] md:-mt-[26vh]">
       <div
-        className="rounded-3xl border bg-white/92 p-4 shadow-[0_24px_70px_rgba(20,40,20,0.14)] md:p-6"
+        className="rounded-3xl border bg-white/90 p-4 shadow-[0_24px_70px_rgba(0,0,0,0.12)] md:p-6"
         style={{ borderColor: "rgba(0,0,0,0.06)", backdropFilter: "blur(20px)" }}
       >
         {/* Tabs */}
@@ -711,9 +543,9 @@ function SearchHub() {
                 }}
                 className="flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-[13px] font-semibold transition-all"
                 style={{
-                  background: active ? "rgba(126,159,31,0.1)" : "transparent",
-                  color: active ? OLIVE_DARK : "#6b7280",
-                  boxShadow: active ? "inset 0 0 0 1.5px rgba(126,159,31,0.45)" : "none",
+                  background: active ? "rgba(226,55,68,0.08)" : "transparent",
+                  color: active ? RED : "#6b7280",
+                  boxShadow: active ? "inset 0 0 0 1.5px rgba(226,55,68,0.35)" : "none",
                 }}
               >
                 <Icon size={16} />
@@ -764,7 +596,7 @@ function SearchHub() {
                 <button
                   onClick={() => setShowPax(false)}
                   className="mt-3 w-full rounded-full py-2 text-[13px] font-semibold text-white"
-                  style={{ background: FOREST }}
+                  style={{ background: GREEN }}
                 >
                   Done
                 </button>
@@ -777,7 +609,7 @@ function SearchHub() {
         <div className="mt-4 flex justify-center">
           <button
             className="flex items-center gap-2 rounded-full px-12 py-3.5 text-[15px] font-bold text-white shadow-lg transition-all hover:scale-[1.02]"
-            style={{ background: `linear-gradient(135deg, ${OLIVE}, ${FOREST})`, boxShadow: "0 12px 30px rgba(126,159,31,0.4)" }}
+            style={{ background: `linear-gradient(135deg, ${RED}, ${RED_DARK})`, boxShadow: "0 12px 30px rgba(226,55,68,0.35)" }}
           >
             <Search size={17} />
             {cfg.cta}
@@ -791,7 +623,7 @@ function SearchHub() {
           <span
             key={c}
             className="rounded-full px-3 py-1 font-medium"
-            style={{ background: GREEN_LIGHT, color: OLIVE_DARK }}
+            style={{ background: GREEN_LIGHT, color: GREEN }}
           >
             ✓ {c}
           </span>
@@ -844,7 +676,7 @@ function PaxRow({
         <button
           onClick={() => setValue(value + 1)}
           className="grid h-7 w-7 place-items-center rounded-full border hover:bg-neutral-50"
-          style={{ borderColor: OLIVE, color: OLIVE_DARK }}
+          style={{ borderColor: GREEN, color: GREEN }}
         >
           <Plus size={13} />
         </button>
@@ -863,7 +695,11 @@ function OffersRow() {
     { tag: "PERMITS", title: "Zero-fee ILP filing", body: "We file your Inner Line Permit free with any package.", code: "AUTO" },
   ];
   return (
-    <Section eyebrow="Offers" title="Deals worth flying for." action="View all offers">
+    <Section
+      eyebrow="Offers"
+      title="Deals worth flying for."
+      action="View all offers"
+    >
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {offers.map((o, i) => (
           <Reveal
@@ -872,8 +708,8 @@ function OffersRow() {
             className="group rounded-3xl border bg-white p-5 transition-all hover:-translate-y-1 hover:shadow-xl"
           >
             <div className="flex items-center gap-2">
-              <BadgePercent size={16} style={{ color: OLIVE_DARK }} />
-              <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: OLIVE_DARK }}>
+              <BadgePercent size={16} style={{ color: RED }} />
+              <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: RED }}>
                 {o.tag}
               </span>
             </div>
@@ -882,7 +718,7 @@ function OffersRow() {
             <div className="mt-4 flex items-center justify-between">
               <span
                 className="rounded-lg border border-dashed px-2.5 py-1 text-[11px] font-bold tracking-wider"
-                style={{ borderColor: OLIVE, color: OLIVE_DARK, background: GREEN_LIGHT }}
+                style={{ borderColor: GREEN, color: GREEN, background: GREEN_LIGHT }}
               >
                 {o.code}
               </span>
@@ -898,7 +734,7 @@ function OffersRow() {
 /* ============ STATEMENT (scroll-linked word reveal) ============ */
 
 function Statement() {
-  const words = ["Eight", "states.", "A", "hundred", "tribes.", "One", "green", "horizon."];
+  const words = ["Eight", "states.", "A", "hundred", "tribes.", "One", "sunrise."];
   const ref = useRef<HTMLElement>(null);
   const [prog, setProg] = useState(0);
 
@@ -918,7 +754,7 @@ function Statement() {
 
   return (
     <section ref={ref} className="py-16 md:py-24">
-      <h2 className="mx-auto max-w-[900px] text-center text-[36px] font-bold leading-[1.12] tracking-tight md:text-[60px]">
+      <h2 className="mx-auto max-w-[880px] text-center text-[36px] font-bold leading-[1.12] tracking-tight md:text-[60px]">
         {words.map((w, i) => {
           const on = prog * words.length > i;
           return (
@@ -928,7 +764,7 @@ function Statement() {
               style={{
                 opacity: on ? 1 : 0.12,
                 transform: on ? "translateY(0)" : "translateY(10px)",
-                color: on ? (i === 4 ? OLIVE_DARK : i === 6 ? FOREST : undefined) : undefined,
+                color: on ? (i === 4 ? GREEN : i === 6 ? RED : undefined) : undefined,
               }}
             >
               {w}
@@ -947,7 +783,7 @@ function Statement() {
   );
 }
 
-/* ============ NORTHNEST CULTURE (horizontal strip) ============ */
+/* ============ NORTHNEST CULTURE (horizontal, tile.pt project-strip style) ============ */
 
 function CultureStrip() {
   const culture = [
@@ -1017,7 +853,7 @@ function CultureStrip() {
       <Reveal>
         <div className="mb-8 flex items-end justify-between gap-6">
           <div>
-            <p className="text-[12px] font-semibold uppercase tracking-[0.25em]" style={{ color: OLIVE_DARK }}>
+            <p className="text-[12px] font-semibold uppercase tracking-[0.25em]" style={{ color: RED }}>
               The northnest culture
             </p>
             <h2 className="mt-2 text-[26px] font-bold leading-tight tracking-tight md:text-[36px]">
@@ -1027,14 +863,14 @@ function CultureStrip() {
           <a
             href="#"
             className="nn-link hidden shrink-0 items-center gap-1 text-[13px] font-semibold md:flex"
-            style={{ color: FOREST }}
+            style={{ color: RED }}
           >
             Full culture calendar <ChevronRight size={15} />
           </a>
         </div>
       </Reveal>
 
-      {/* Horizontal strip — drag/scroll sideways */}
+      {/* Horizontal strip — drag/scroll sideways like tile.pt's project row */}
       <div
         className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 md:-mx-6 md:px-6"
         style={{ scrollbarWidth: "none" }}
@@ -1056,13 +892,13 @@ function CultureStrip() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
               <span
                 className="absolute left-4 top-4 rounded-full px-2.5 py-1 text-[10px] font-bold tracking-widest text-white"
-                style={{ background: OLIVE }}
+                style={{ background: GREEN }}
               >
                 {c.month}
               </span>
               <div className="absolute inset-x-0 bottom-0 p-5">
                 <p className="text-[18px] font-bold tracking-tight text-white">{c.name}</p>
-                <p className="text-[11px] font-medium" style={{ color: "#c9e77a" }}>
+                <p className="text-[11px] font-medium" style={{ color: "#7fe39a" }}>
                   {c.place}
                 </p>
                 <p className="mt-2 text-[12px] leading-relaxed text-white/75 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
@@ -1118,7 +954,7 @@ function StatesGrid() {
                 <p className="text-[11px] text-white/75">{s.tag}</p>
                 <span
                   className="mt-2 inline-block rounded-full px-2 py-0.5 text-[10px] font-bold text-white"
-                  style={{ background: OLIVE }}
+                  style={{ background: GREEN }}
                 >
                   {s.stays}
                 </span>
@@ -1198,8 +1034,8 @@ function PackagesSection() {
                 <Heart
                   size={16}
                   style={{
-                    color: liked[pk.title] ? "#e0245e" : "#9ca3af",
-                    fill: liked[pk.title] ? "#e0245e" : "none",
+                    color: liked[pk.title] ? RED : "#9ca3af",
+                    fill: liked[pk.title] ? RED : "none",
                   }}
                 />
               </button>
@@ -1212,7 +1048,7 @@ function PackagesSection() {
                 <p className="text-[16px] font-bold leading-snug tracking-tight">{pk.title}</p>
                 <span
                   className="flex shrink-0 items-center gap-1 rounded-lg px-1.5 py-0.5 text-[11px] font-bold text-white"
-                  style={{ background: OLIVE }}
+                  style={{ background: GREEN }}
                 >
                   {pk.rating} <Star size={9} fill="white" />
                 </span>
@@ -1221,7 +1057,7 @@ function PackagesSection() {
               <ul className="mt-3 space-y-1">
                 {pk.perks.map((perk) => (
                   <li key={perk} className="flex items-center gap-2 text-[12px] text-neutral-600">
-                    <span className="h-1 w-1 rounded-full" style={{ background: OLIVE }} />
+                    <span className="h-1 w-1 rounded-full" style={{ background: GREEN }} />
                     {perk}
                   </li>
                 ))}
@@ -1229,14 +1065,14 @@ function PackagesSection() {
               <div className="mt-4 flex items-end justify-between">
                 <div>
                   <p className="text-[11px] text-neutral-400 line-through">{pk.oldPrice}</p>
-                  <p className="text-[20px] font-bold tracking-tight" style={{ color: FOREST }}>
+                  <p className="text-[20px] font-bold tracking-tight" style={{ color: RED }}>
                     {pk.price}
                     <span className="ml-1 text-[11px] font-medium text-neutral-400">/ person</span>
                   </p>
                 </div>
                 <button
                   className="rounded-full px-5 py-2 text-[13px] font-bold text-white transition-transform hover:scale-105"
-                  style={{ background: `linear-gradient(135deg, ${OLIVE}, ${OLIVE_DARK})` }}
+                  style={{ background: RED }}
                 >
                   Book
                 </button>
@@ -1259,7 +1095,7 @@ function FeatureStrip() {
     { icon: ShieldCheck, title: "Echo SOS net", body: "One swipe broadcasts your location to the nearest ground team, even on low bandwidth." },
   ];
   return (
-    <Section eyebrow="Why northnest" title="Built for the Northeast. Not adapted to it.">
+    <Section eyebrow="Why NORTHNEST" title="Built for the Northeast. Not adapted to it.">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {feats.map((f, i) => {
           const Icon = f.icon;
@@ -1269,7 +1105,7 @@ function FeatureStrip() {
                 className="grid h-11 w-11 place-items-center rounded-2xl"
                 style={{ background: GREEN_LIGHT }}
               >
-                <Icon size={20} style={{ color: OLIVE_DARK }} />
+                <Icon size={20} style={{ color: GREEN }} />
               </div>
               <p className="mt-4 text-[15px] font-bold tracking-tight">{f.title}</p>
               <p className="mt-1.5 text-[13px] leading-relaxed text-neutral-500">{f.body}</p>
@@ -1298,13 +1134,13 @@ function Testimonials() {
               className="h-full rounded-3xl border bg-white p-6"
               style={{ borderColor: "rgba(0,0,0,0.07)" }}
             >
-              <Quote size={18} style={{ color: OLIVE_DARK }} />
+              <Quote size={18} style={{ color: RED }} />
               <blockquote className="mt-3 text-[14px] leading-relaxed text-neutral-700">
                 {q.text}
               </blockquote>
               <figcaption className="mt-4">
                 <p className="text-[13px] font-bold">{q.name}</p>
-                <p className="text-[11px]" style={{ color: OLIVE_DARK }}>
+                <p className="text-[11px]" style={{ color: GREEN }}>
                   ✓ Verified · {q.trip}
                 </p>
               </figcaption>
@@ -1341,7 +1177,7 @@ function Section({
       <Reveal>
         <div className="mb-8 flex items-end justify-between gap-6">
           <div>
-            <p className="text-[12px] font-semibold uppercase tracking-[0.25em]" style={{ color: OLIVE_DARK }}>
+            <p className="text-[12px] font-semibold uppercase tracking-[0.25em]" style={{ color: RED }}>
               {eyebrow}
             </p>
             <h2 className="mt-2 text-[26px] font-bold leading-tight tracking-tight md:text-[36px]">
@@ -1352,7 +1188,7 @@ function Section({
             <a
               href="#"
               className="nn-link hidden shrink-0 items-center gap-1 text-[13px] font-semibold md:flex"
-              style={{ color: FOREST }}
+              style={{ color: RED }}
             >
               {action} <ChevronRight size={15} />
             </a>
@@ -1374,47 +1210,34 @@ function Footer() {
     { h: "Company", items: ["About", "Ground teams", "Careers", "Support 24×7"] },
   ];
   return (
-    <footer className="relative z-10 mt-10" style={{ background: FOREST_DARK }}>
+    <footer className="relative z-10 mt-10 border-t bg-neutral-50" style={{ borderColor: "rgba(0,0,0,0.06)" }}>
       <div className="mx-auto grid max-w-[1200px] gap-10 px-4 py-14 md:grid-cols-[1.4fr_1fr_1fr_1fr_1fr] md:px-6">
         <div>
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             <img
               src="/elements/northnest-logo.png"
               alt="northnest"
-              className="h-11 w-11 rounded-full object-cover"
+              className="h-9 w-9 rounded-full object-cover"
               draggable={false}
             />
-            <p className="text-[19px] font-bold tracking-tight text-white">
-              north<span style={{ color: "#b7d34e" }}>nest</span>
+            <p className="text-[17px] font-bold tracking-tight" style={{ color: RED }}>
+              NORTHNEST
             </p>
           </div>
-          <p className="mt-3 max-w-[260px] text-[13px] leading-relaxed" style={{ color: CREAM + "cc" }}>
+          <p className="mt-3 max-w-[260px] text-[13px] leading-relaxed text-neutral-500">
             The travel platform built for the eight sister states of Northeast India.
           </p>
-          <div className="mt-4 flex items-center gap-2 text-[12px] font-semibold" style={{ color: "#b7d34e" }}>
+          <div className="mt-4 flex items-center gap-2 text-[12px] font-semibold" style={{ color: GREEN }}>
             <Compass size={14} /> Guwahati · Shillong · Itanagar
-          </div>
-          <div className="mt-5 flex items-center gap-2.5">
-            {[Facebook, Instagram, Twitter, Linkedin].map((Icon, i) => (
-              <a
-                key={i}
-                href="#"
-                className="grid h-8 w-8 place-items-center rounded-lg bg-white/10 text-white transition-all hover:scale-110 hover:bg-white/20"
-              >
-                <Icon size={14} />
-              </a>
-            ))}
           </div>
         </div>
         {cols.map((c) => (
           <div key={c.h}>
-            <p className="text-[12px] font-bold uppercase tracking-wider" style={{ color: "rgba(234,228,210,0.5)" }}>
-              {c.h}
-            </p>
+            <p className="text-[12px] font-bold uppercase tracking-wider text-neutral-400">{c.h}</p>
             <ul className="mt-3 space-y-2">
               {c.items.map((i) => (
                 <li key={i}>
-                  <a href="#" className="nn-link text-[13px] text-white/70 hover:text-white">
+                  <a href="#" className="nn-link text-[13px] text-neutral-600 hover:text-neutral-900">
                     {i}
                   </a>
                 </li>
@@ -1423,9 +1246,9 @@ function Footer() {
           </div>
         ))}
       </div>
-      <div className="border-t py-5 text-center text-[12px]" style={{ borderColor: "rgba(255,255,255,0.1)", color: "rgba(234,228,210,0.55)" }}>
-        © 2026 northnest · Northeast India, unfiltered.
-        <MapPin size={12} className="ml-1 inline" style={{ color: "#b7d34e" }} />
+      <div className="border-t py-5 text-center text-[12px] text-neutral-400" style={{ borderColor: "rgba(0,0,0,0.06)" }}>
+        © 2026 NORTHNEST · Northeast India, unfiltered.
+        <MapPin size={12} className="ml-1 inline" style={{ color: RED }} />
       </div>
     </footer>
   );
