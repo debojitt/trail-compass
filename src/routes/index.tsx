@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import {
   Home,
@@ -24,6 +24,7 @@ import {
   Quote,
   Menu,
 } from "lucide-react";
+import { destinations } from "@/data/destinations";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -267,7 +268,14 @@ function Knockout({ text }: { text: string }) {
 /* ============ TOP NAV (Apple-style translucent) ============ */
 
 function TopNav({ solid }: { solid: boolean }) {
-  const links = ["Stays", "Flights", "Packages", "Permits", "Offers"];
+  const links: { label: string; explore?: boolean }[] = [
+    { label: "Explore", explore: true },
+    { label: "Stays" },
+    { label: "Flights" },
+    { label: "Packages" },
+    { label: "Permits" },
+    { label: "Offers" },
+  ];
   return (
     <header
       className="fixed inset-x-0 top-0 z-50 transition-all duration-500"
@@ -293,16 +301,28 @@ function TopNav({ solid }: { solid: boolean }) {
           </span>
         </a>
         <nav className="hidden items-center gap-7 md:flex">
-          {links.map((l) => (
-            <a
-              key={l}
-              href="#"
-              className="nn-link text-[13px] font-medium transition-colors duration-500"
-              style={{ color: solid ? "#374151" : "rgba(255,255,255,0.9)" }}
-            >
-              {l}
-            </a>
-          ))}
+          {links.map((l) =>
+            l.explore ? (
+              <Link
+                key={l.label}
+                to="/explore/$slug"
+                params={{ slug: "meghalaya" }}
+                className="nn-link text-[13px] font-medium transition-colors duration-500"
+                style={{ color: solid ? "#374151" : "rgba(255,255,255,0.9)" }}
+              >
+                {l.label}
+              </Link>
+            ) : (
+              <a
+                key={l.label}
+                href="#"
+                className="nn-link text-[13px] font-medium transition-colors duration-500"
+                style={{ color: solid ? "#374151" : "rgba(255,255,255,0.9)" }}
+              >
+                {l.label}
+              </a>
+            ),
+          )}
         </nav>
         <div className="flex items-center gap-3">
           <button
@@ -916,33 +936,25 @@ function CultureStrip() {
 /* ============ DESTINATIONS: 8 SISTER STATES ============ */
 
 function StatesGrid() {
-  const states = [
-    { name: "Meghalaya", tag: "Living root bridges", img: "https://images.unsplash.com/photo-1571089336682-9f8d6c1671da?w=700", stays: "480+ stays" },
-    { name: "Arunachal Pradesh", tag: "Tawang & Sela Pass", img: "https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=700", stays: "310+ stays" },
-    { name: "Sikkim", tag: "Kanchenjunga views", img: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=700", stays: "520+ stays" },
-    { name: "Nagaland", tag: "Hornbill Festival", img: "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=700", stays: "190+ stays" },
-    { name: "Assam", tag: "Kaziranga safaris", img: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=700", stays: "640+ stays" },
-    { name: "Manipur", tag: "Loktak floating lake", img: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=700", stays: "140+ stays" },
-    { name: "Mizoram", tag: "Blue mountain trails", img: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=700", stays: "120+ stays" },
-    { name: "Tripura", tag: "Ujjayanta palaces", img: "https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5?w=700", stays: "110+ stays" },
-  ];
   return (
     <Section
       eyebrow="Destinations"
       title="Eight sisters. Pick your first."
       action="Open the map"
+      actionExplore
       marquee="eight sisters ·"
     >
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        {states.map((s, i) => (
-          <Reveal key={s.name} delay={(i % 4) * 90}>
-            <a
-              href="#"
+        {destinations.map((s, i) => (
+          <Reveal key={s.slug} delay={(i % 4) * 90}>
+            <Link
+              to="/explore/$slug"
+              params={{ slug: s.slug }}
               className="group relative block overflow-hidden rounded-3xl"
               style={{ aspectRatio: "4/5" }}
             >
               <img
-                src={s.img}
+                src={s.heroImg}
                 alt={s.name}
                 loading="lazy"
                 decoding="async"
@@ -952,14 +964,19 @@ function StatesGrid() {
               <div className="absolute inset-x-0 bottom-0 p-4">
                 <p className="text-[16px] font-bold tracking-tight text-white">{s.name}</p>
                 <p className="text-[11px] text-white/75">{s.tag}</p>
-                <span
-                  className="mt-2 inline-block rounded-full px-2 py-0.5 text-[10px] font-bold text-white"
-                  style={{ background: GREEN }}
-                >
-                  {s.stays}
-                </span>
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  <span
+                    className="inline-block rounded-full px-2 py-0.5 text-[10px] font-bold text-white"
+                    style={{ background: GREEN }}
+                  >
+                    {s.stays}
+                  </span>
+                  <span className="inline-block rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur">
+                    360° look
+                  </span>
+                </div>
               </div>
-            </a>
+            </Link>
           </Reveal>
         ))}
       </div>
@@ -1158,12 +1175,14 @@ function Section({
   eyebrow,
   title,
   action,
+  actionExplore,
   marquee,
   children,
 }: {
   eyebrow: string;
   title: string;
   action?: string;
+  actionExplore?: boolean;
   marquee?: string;
   children: React.ReactNode;
 }) {
@@ -1184,15 +1203,25 @@ function Section({
               <SplitHead text={title} />
             </h2>
           </div>
-          {action && (
-            <a
-              href="#"
-              className="nn-link hidden shrink-0 items-center gap-1 text-[13px] font-semibold md:flex"
-              style={{ color: RED }}
-            >
-              {action} <ChevronRight size={15} />
-            </a>
-          )}
+          {action &&
+            (actionExplore ? (
+              <Link
+                to="/explore/$slug"
+                params={{ slug: "meghalaya" }}
+                className="nn-link hidden shrink-0 items-center gap-1 text-[13px] font-semibold md:flex"
+                style={{ color: RED }}
+              >
+                {action} <ChevronRight size={15} />
+              </Link>
+            ) : (
+              <a
+                href="#"
+                className="nn-link hidden shrink-0 items-center gap-1 text-[13px] font-semibold md:flex"
+                style={{ color: RED }}
+              >
+                {action} <ChevronRight size={15} />
+              </a>
+            ))}
         </div>
       </Reveal>
       {children}
