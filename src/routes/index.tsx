@@ -44,60 +44,56 @@ function Index() {
 
   return (
     <div
-      className="flex min-h-[100dvh] w-full items-stretch justify-center bg-neutral-950 font-sans md:items-center md:p-6 lg:p-10"
+      className="h-[100dvh] w-full overflow-hidden bg-neutral-950 p-0 font-sans md:p-4 lg:p-6"
       style={{
         backgroundImage:
           "radial-gradient(1200px 600px at 15% -10%, rgba(0,140,255,0.15), transparent 60%), radial-gradient(900px 500px at 110% 20%, rgba(255,56,92,0.15), transparent 60%)",
       }}
     >
-      {/* Optional desktop side info */}
-      <aside className="hidden xl:mr-10 xl:flex xl:w-[320px] xl:flex-col xl:justify-center">
-        <p className="text-[11px] uppercase tracking-[0.3em] text-white/40">NORTHNEST</p>
-        <h2
-          className="mt-3 text-4xl font-bold leading-tight text-white"
-          style={{ fontFamily: '"SF Pro Display", -apple-system, sans-serif' }}
-        >
-          Northeast India,
-          <br />
-          <span style={{ color: "#FF385C" }}>unfiltered.</span>
-        </h2>
-        <p className="mt-4 text-sm leading-relaxed text-white/60">
-          A mobile-first companion for eight states — true-cost pricing, offline permit wallet,
-          immersive POV previews, and an SOS net that works past the last cell tower.
-        </p>
-      </aside>
+      <div className="mx-auto grid h-full w-full max-w-[1600px] grid-cols-1 items-stretch gap-6 2xl:grid-cols-[300px_minmax(0,1fr)_280px]">
+        {/* Optional desktop side info */}
+        <aside className="hidden 2xl:flex 2xl:flex-col 2xl:justify-center">
+          <p className="text-[11px] uppercase tracking-[0.3em] text-white/40">NORTHNEST</p>
+          <h2
+            className="mt-3 text-4xl font-bold leading-tight text-white"
+            style={{ fontFamily: '"SF Pro Display", -apple-system, sans-serif' }}
+          >
+            Northeast India,
+            <br />
+            <span style={{ color: "#FF385C" }}>unfiltered.</span>
+          </h2>
+          <p className="mt-4 text-sm leading-relaxed text-white/60">
+            A mobile-first companion for eight states — true-cost pricing, offline permit wallet,
+            immersive POV previews, and an SOS net that works past the last cell tower.
+          </p>
+        </aside>
 
-      <div
-        className="relative w-full overflow-hidden bg-black shadow-[0_24px_80px_rgba(0,0,0,0.8)] md:w-[420px] md:rounded-[44px] md:border-[6px] md:border-neutral-800 lg:w-[440px]"
-        style={{
-          height: "100dvh",
-          maxHeight: "100dvh",
-        }}
-      >
-        <div className="absolute inset-0 overflow-y-auto pb-[120px] text-white">
-          {view === "explore" && <ExploreView />}
-          {view === "build" && <BuildView />}
-          {view === "routes" && <RoutesView />}
-          {view === "nest" && <NestView />}
-        </div>
+        <main className="relative h-full min-w-0 overflow-hidden bg-black shadow-[0_24px_80px_rgba(0,0,0,0.8)] md:rounded-[32px] md:border md:border-white/10">
+          <div className="absolute inset-0 overflow-y-auto pb-[112px] text-white lg:left-[104px] lg:pb-0">
+            {view === "explore" && <ExploreView />}
+            {view === "build" && <BuildView />}
+            {view === "routes" && <RoutesView />}
+            {view === "nest" && <NestView />}
+          </div>
 
-        <DockNav view={view} setView={setView} />
+          <DockNav view={view} setView={setView} />
+        </main>
+
+        <aside className="hidden 2xl:flex 2xl:flex-col 2xl:justify-center 2xl:gap-4">
+          <DesktopInfoCard
+            title="Live true-cost"
+            body="Prices already include Inner Line Permits, state entry fees and local guide floors."
+          />
+          <DesktopInfoCard
+            title="Works past signal"
+            body="Cache maps, permits and QR codes to device storage before you cross into a deadzone."
+          />
+          <DesktopInfoCard
+            title="Echo SOS"
+            body="Swipe-to-broadcast pushes your coordinates to the nearest ground team."
+          />
+        </aside>
       </div>
-
-      <aside className="hidden xl:ml-10 xl:flex xl:w-[280px] xl:flex-col xl:justify-center xl:gap-4">
-        <DesktopInfoCard
-          title="Live true-cost"
-          body="Prices already include Inner Line Permits, state entry fees and local guide floors."
-        />
-        <DesktopInfoCard
-          title="Works past signal"
-          body="Cache maps, permits and QR codes to device storage before you cross into a deadzone."
-        />
-        <DesktopInfoCard
-          title="Echo SOS"
-          body="Swipe-to-broadcast pushes your coordinates to the nearest ground team."
-        />
-      </aside>
     </div>
   );
 }
@@ -130,7 +126,7 @@ function DockNav({ view, setView }: { view: ViewId; setView: (v: ViewId) => void
   ];
   return (
     <nav
-      className="absolute bottom-6 left-4 right-4 z-50 flex h-[76px] items-center justify-around rounded-[38px] border px-2"
+      className="absolute bottom-5 left-4 right-4 z-50 flex h-[76px] items-center justify-around rounded-[38px] border px-2 lg:bottom-auto lg:left-5 lg:right-auto lg:top-1/2 lg:h-auto lg:w-[72px] lg:-translate-y-1/2 lg:flex-col lg:gap-2 lg:px-0 lg:py-3"
       style={{
         background: "rgba(26,26,26,0.7)",
         backdropFilter: "blur(30px) saturate(210%)",
@@ -145,7 +141,7 @@ function DockNav({ view, setView }: { view: ViewId; setView: (v: ViewId) => void
           <button
             key={t.id}
             onClick={() => setView(t.id)}
-            className="flex flex-col items-center gap-1 px-3 py-2 transition-colors"
+            className="flex min-w-0 flex-col items-center gap-1 px-2 py-2 transition-colors lg:w-full"
             style={{ color: active ? "#008CFF" : "rgba(255,255,255,0.45)" }}
           >
             <Icon size={22} strokeWidth={active ? 2.5 : 2} />
@@ -176,17 +172,17 @@ function ExploreView() {
   }, []);
 
   return (
-    <div>
+    <div className="min-h-full">
       {/* HERO */}
-      <div className="relative" style={{ height: 400 }}>
+      <div className="relative h-[400px] md:h-[460px] lg:h-[500px]">
         <div
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.55) 60%, #000 100%), url('https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?w=800') center/cover",
+              "linear-gradient(180deg, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.48) 58%, #000 100%), url('https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?w=1600') center/cover",
           }}
         />
-        <div className="absolute left-5 right-5 top-16">
+        <div className="absolute left-5 right-5 top-16 md:left-8 md:top-20 lg:left-10">
           <p
             className="text-[13px] font-semibold uppercase tracking-[0.2em]"
             style={{ color: "#FF385C", textShadow: "0 2px 12px rgba(0,0,0,0.6)" }}
@@ -194,7 +190,7 @@ function ExploreView() {
             Northeast India
           </p>
           <h1
-            className="mt-2 text-[32px] font-bold leading-[1.05]"
+            className="mt-2 max-w-[720px] text-[32px] font-bold leading-[1.05] md:text-[46px] lg:text-[56px]"
             style={{
               fontFamily: '"SF Pro Display", -apple-system, sans-serif',
               textShadow: "0 4px 24px rgba(0,0,0,0.7)",
@@ -208,9 +204,9 @@ function ExploreView() {
 
         {/* Sticky search matrix */}
         <div
-          className="absolute left-4 right-4 flex items-center gap-3 rounded-full border px-5 py-3.5"
+          className="absolute left-4 right-4 flex items-center gap-3 rounded-full border px-5 py-3.5 md:left-8 md:right-auto md:w-[620px] md:max-w-[calc(100%-4rem)]"
           style={{
-            top: 320,
+            top: "min(320px, calc(100% - 80px))",
             background: "rgba(26,26,26,0.55)",
             backdropFilter: "blur(24px) saturate(180%)",
             borderColor: "rgba(255,255,255,0.15)",
@@ -229,8 +225,8 @@ function ExploreView() {
       </div>
 
       {/* TRUE-COST TOGGLE */}
-      <div className="mx-4 -mt-2 flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3">
-        <div className="pr-3">
+      <div className="mx-4 -mt-2 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 md:mx-8 lg:mx-10">
+        <div className="min-w-0 pr-3">
           <p className="text-[13px] font-semibold leading-tight">Show Ultimate Net Prices</p>
           <p className="text-[11px] text-white/50">All permits &amp; local taxes included</p>
         </div>
@@ -247,7 +243,7 @@ function ExploreView() {
       </div>
 
       {/* SECTION TITLE */}
-      <div className="mt-6 flex items-end justify-between px-5">
+      <div className="mt-6 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4 px-5 md:px-8 lg:px-10">
         <div>
           <h2 className="text-[20px] font-bold">Traveler Lens</h2>
           <p className="text-[12px] text-white/50">Unfiltered clips. Long-press to peek.</p>
@@ -259,11 +255,11 @@ function ExploreView() {
       <LensRow />
 
       {/* CURATED PICKS */}
-      <div className="mt-6 px-5">
+      <div className="mt-6 px-5 md:px-8 lg:px-10">
         <h2 className="text-[20px] font-bold">Curated for October</h2>
         <p className="text-[12px] text-white/50">Real prices. Real weather. Real permits.</p>
       </div>
-      <div className="mt-3 space-y-3 px-4 pb-6">
+      <div className="mt-3 grid gap-3 px-4 pb-6 md:grid-cols-2 md:px-8 lg:grid-cols-3 lg:px-10">
         <PickCard
           title="Ziro Music Festival"
           state="Arunachal Pradesh"
@@ -316,7 +312,7 @@ function LensRow() {
   };
 
   return (
-    <div className="mt-3 flex gap-3 overflow-x-auto px-4 pb-2" style={{ scrollbarWidth: "none" }}>
+    <div className="mt-3 grid auto-cols-[110px] grid-flow-col gap-3 overflow-x-auto px-4 pb-2 md:auto-cols-fr md:grid-flow-row md:grid-cols-4 md:px-8 lg:px-10" style={{ scrollbarWidth: "none" }}>
       {clips.map((c, i) => (
         <div
           key={c.loc}
@@ -325,8 +321,7 @@ function LensRow() {
           onMouseLeave={end}
           onTouchStart={() => start(i)}
           onTouchEnd={end}
-          className="relative shrink-0 overflow-hidden rounded-2xl"
-          style={{ width: 110, height: 160 }}
+          className="relative h-[160px] w-[110px] shrink-0 overflow-hidden rounded-2xl md:h-[220px] md:w-full"
         >
           <div
             className="absolute inset-0"
