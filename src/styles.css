@@ -64,24 +64,24 @@
 :root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
+  --foreground: oklch(0.216 0.006 56.043);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
+  --card-foreground: oklch(0.216 0.006 56.043);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
+  --popover-foreground: oklch(0.216 0.006 56.043);
+  --primary: oklch(0.577 0.215 27.325);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.216 0.006 56.043);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.553 0.013 58.071);
+  --accent: oklch(0.627 0.17 149.214);
+  --accent-foreground: oklch(1 0 0);
   --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.923 0.003 48.717);
+  --input: oklch(0.923 0.003 48.717);
+  --ring: oklch(0.577 0.215 27.325);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -140,5 +140,127 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+  }
+}
+
+/* ============ NORTHNEST motion system (tile.pt-inspired) ============ */
+
+/* Staggered rise reveal — hero lines and scroll-triggered elements */
+@keyframes nn-rise {
+  from {
+    opacity: 0;
+    transform: translateY(34px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.nn-hero-line {
+  opacity: 0;
+  animation: nn-rise 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: var(--nn-delay, 0ms);
+}
+
+/* Infinite marquee for section titles */
+@keyframes nn-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.nn-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: nn-marquee var(--nn-marquee-dur, 30s) linear infinite;
+}
+
+/* Scroll-triggered reveal (toggled by IntersectionObserver) */
+.nn-reveal {
+  opacity: 0;
+  transform: translateY(36px);
+  transition:
+    opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--nn-delay, 0ms);
+  will-change: opacity, transform;
+}
+
+.nn-reveal.nn-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* See-through text — the hero image clips into the letters */
+.nn-knockout {
+  background-size: cover;
+  background-position: center 45%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  filter: brightness(1.35) contrast(1.05);
+}
+
+/* Letter-by-letter heading reveal (parent gets .nn-in via IntersectionObserver) */
+.nn-letter {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(0.55em) rotate(4deg);
+  transition:
+    opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--nn-delay, 0ms);
+  will-change: opacity, transform;
+}
+
+.nn-in .nn-letter {
+  opacity: 1;
+  transform: translateY(0) rotate(0deg);
+}
+
+/* Underline-draw hover for links */
+.nn-link {
+  position: relative;
+}
+
+.nn-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -3px;
+  height: 1.5px;
+  width: 100%;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.nn-link:hover::after {
+  transform: scaleX(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nn-marquee-track {
+    animation: none;
+  }
+  .nn-hero-line {
+    animation: none;
+    opacity: 1;
+  }
+  .nn-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .nn-letter {
+    opacity: 1;
+    transform: none;
+    transition: none;
   }
 }
