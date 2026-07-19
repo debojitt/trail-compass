@@ -142,7 +142,7 @@ export function SiteFooter() {
     {
       h: "Explore 360°",
       items: [
-        { label: "Nohkalikai Falls", explore: "meghalaya" },
+        { label: "Meghalaya wonders", explore: "meghalaya" },
         { label: "Tawang Monastery", explore: "arunachal-pradesh" },
         { label: "MG Marg, Gangtok", explore: "sikkim" },
         { label: "Kisama Village", explore: "nagaland" },

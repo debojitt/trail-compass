@@ -988,10 +988,10 @@ function VirtualToursSection() {
   const tours = [
     {
       slug: "meghalaya",
-      title: "Nohkalikai Falls POV walk",
-      note: "Step viewpoint to viewpoint above India's tallest plunge waterfall.",
-      img: "/panoramas/nohkalikai-railing.jpg",
-      badge: "4 viewpoints",
+      title: "Meghalaya wonders virtual trip",
+      note: "Nohkalikai, root bridges, Dawki, Mawsmai Cave and Laitlum — with rare views people can't normally reach.",
+      img: "/elements/meghalaya-cover-ai.jpg",
+      badge: "5 places · 15 views",
     },
     {
       slug: "arunachal-pradesh",

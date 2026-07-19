@@ -224,6 +224,13 @@
 }
 
 /* In-scene POV hotspot arrows (photo-sphere-viewer markers) */
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
 .nn-hotspot {
   display: grid;
   place-items: center;
