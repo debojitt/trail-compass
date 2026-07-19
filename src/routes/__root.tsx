@@ -83,6 +83,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "NORTHNEST — Northeast India, Unfiltered" },
       { property: "og:description", content: "Plan Northeast India with true-cost pricing, offline permit wallet and immersive POV previews." },
       { property: "og:type", content: "website" },
+      { property: "og:image", content: "/elements/real-sunrise.png" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
     ],

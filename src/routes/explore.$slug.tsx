@@ -9,6 +9,10 @@ export const Route = createFileRoute("/explore/$slug")({
     const title = dest
       ? `${dest.name} — Virtual look-around · NORTHNEST`
       : "Explore · NORTHNEST";
+    /* Preload the panorama shown first so the sphere appears immediately */
+    const startPano =
+      dest?.nodes?.find((n) => n.id === (dest.startNodeId ?? dest.nodes?.[0]?.id))
+        ?.panoSrc ?? dest?.panoSrc;
     return {
       meta: [
         { title },
@@ -17,6 +21,7 @@ export const Route = createFileRoute("/explore/$slug")({
           content: dest?.description ?? "Virtual 360° experiences across Northeast India.",
         },
       ],
+      links: startPano ? [{ rel: "preload", as: "image", href: startPano }] : [],
     };
   },
   loader: ({ params }) => {

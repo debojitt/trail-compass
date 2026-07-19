@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { Destination, PovDirection } from "@/data/destinations";
+import type { Destination, PovDirection, PovNode } from "@/data/destinations";
 import { getDestinationNode } from "@/data/destinations";
 import { resolveDestinationCoords } from "@/lib/parseGoogleMapsUrl";
 import { GoogleStreetViewEmbed } from "@/components/GoogleStreetViewEmbed";
-import { OwnPanoramaViewer } from "@/components/OwnPanoramaViewer";
+import { OwnPanoramaViewer, type PanoHotspot } from "@/components/OwnPanoramaViewer";
 import { PovControls } from "@/components/PovControls";
 
 type ActiveSource = "google" | "own" | "empty";
@@ -15,6 +15,13 @@ const YAW_BY_DIR: Record<PovDirection, number> = {
   left: -90,
 };
 
+const DIR_LABEL: Record<PovDirection, string> = {
+  forward: "Move forward",
+  right: "Go right",
+  back: "Go back",
+  left: "Go left",
+};
+
 type Props = {
   destination: Destination;
   className?: string;
@@ -23,32 +30,22 @@ type Props = {
 export function LookAround({ destination, className = "" }: Props) {
   const coords = useMemo(() => resolveDestinationCoords(destination), [destination]);
   const hasNodes = Boolean(destination.nodes?.length);
-  const startId = destination.startNodeId ?? destination.nodes?.[0]?.id;
 
-  const [nodeId, setNodeId] = useState(startId);
+  const [nodeId, setNodeId] = useState(
+    destination.startNodeId ?? destination.nodes?.[0]?.id,
+  );
   const [yaw, setYaw] = useState(0);
   const [transitioning, setTransitioning] = useState(false);
-  const [source, setSource] = useState<ActiveSource>(() => {
-    if (destination.lookSource === "own") return hasNodes || destination.panoSrc ? "own" : "empty";
-    if (destination.lookSource === "google") return coords ? "google" : hasNodes || destination.panoSrc ? "own" : "empty";
-    /* auto */
-    if (coords) return "google";
-    if (hasNodes || destination.panoSrc) return "own";
-    return "empty";
-  });
+  const [source, setSource] = useState<ActiveSource>(() =>
+    initialSource(destination, Boolean(coords)),
+  );
 
   /* Reset when destination changes */
   useEffect(() => {
     setNodeId(destination.startNodeId ?? destination.nodes?.[0]?.id);
     setYaw(0);
     setTransitioning(false);
-    if (destination.lookSource === "own") {
-      setSource(destination.nodes?.length || destination.panoSrc ? "own" : "empty");
-    } else if (destination.lookSource === "google") {
-      setSource(coords ? "google" : destination.nodes?.length || destination.panoSrc ? "own" : "empty");
-    } else {
-      setSource(coords ? "google" : destination.nodes?.length || destination.panoSrc ? "own" : "empty");
-    }
+    setSource(initialSource(destination, Boolean(coords)));
   }, [destination, coords]);
 
   const node = getDestinationNode(destination, nodeId);
@@ -62,19 +59,37 @@ export function LookAround({ destination, className = "" }: Props) {
     }
   }, [destination]);
 
+  const jumpToNode = useCallback(
+    (id: string, stepYaw = 0) => {
+      if (transitioning || id === nodeId) return;
+      setTransitioning(true);
+      setYaw(stepYaw);
+      setNodeId(id);
+    },
+    [transitioning, nodeId],
+  );
+
   const move = useCallback(
     (dir: PovDirection) => {
-      if (!node?.links[dir] || transitioning) return;
-      const nextId = node.links[dir]!;
-      setTransitioning(true);
-      setYaw((y) => y + YAW_BY_DIR[dir]);
-      window.setTimeout(() => {
-        setNodeId(nextId);
-        setTransitioning(false);
-      }, 280);
+      const nextId = node?.links[dir];
+      if (!nextId) return;
+      jumpToNode(nextId, YAW_BY_DIR[dir]);
     },
-    [node, transitioning],
+    [node, jumpToNode],
   );
+
+  const onPanoramaLoaded = useCallback(() => {
+    setTransitioning(false);
+    /* Warm the panoramas one step away so moving feels instant */
+    if (!node || !destination.nodes) return;
+    for (const linkedId of Object.values(node.links)) {
+      const linked = destination.nodes.find((n) => n.id === linkedId);
+      if (linked?.panoSrc) {
+        const img = new Image();
+        img.src = linked.panoSrc;
+      }
+    }
+  }, [node, destination.nodes]);
 
   /* Keyboard WASD / arrows for POV graph */
   useEffect(() => {
@@ -100,6 +115,20 @@ export function LookAround({ destination, className = "" }: Props) {
     return () => window.removeEventListener("keydown", onKey);
   }, [source, node, move]);
 
+  const hotspots: PanoHotspot[] = useMemo(() => {
+    if (!node) return [];
+    return (Object.entries(node.links) as [PovDirection, string][]).map(
+      ([dir, targetId]) => {
+        const target = destination.nodes?.find((n) => n.id === targetId);
+        return {
+          id: dir,
+          yaw: YAW_BY_DIR[dir],
+          label: target ? `${DIR_LABEL[dir]} — ${target.label}` : DIR_LABEL[dir],
+        };
+      },
+    );
+  }, [node, destination.nodes]);
+
   const nodeIndex =
     destination.nodes && node
       ? destination.nodes.findIndex((n) => n.id === node.id) + 1
@@ -120,9 +149,20 @@ export function LookAround({ destination, className = "" }: Props) {
 
       {source === "own" && ownSrc && (
         <>
-          <OwnPanoramaViewer src={ownSrc} yaw={yaw} transitioning={transitioning} />
-          {node && (
-            <PovControls node={node} onMove={move} disabled={transitioning} />
+          <OwnPanoramaViewer
+            src={ownSrc}
+            yaw={yaw}
+            hotspots={node ? hotspots : []}
+            onHotspotClick={(id) => move(id as PovDirection)}
+            onPanoramaLoaded={onPanoramaLoaded}
+          />
+          {node && <PovControls node={node} onMove={move} disabled={transitioning} />}
+          {destination.nodes && destination.nodes.length > 1 && node && (
+            <NodeMiniMap
+              nodes={destination.nodes}
+              currentId={node.id}
+              onSelect={(id) => jumpToNode(id)}
+            />
           )}
         </>
       )}
@@ -164,6 +204,107 @@ export function LookAround({ destination, className = "" }: Props) {
           Drag to look · use Google arrows to move along the road
         </p>
       )}
+    </div>
+  );
+}
+
+function initialSource(destination: Destination, hasCoords: boolean): ActiveSource {
+  const hasOwn = Boolean(destination.nodes?.length || destination.panoSrc);
+  if (destination.lookSource === "own") return hasOwn ? "own" : "empty";
+  /* "google" and "auto" both try Google first, then fall back */
+  if (hasCoords) return "google";
+  return hasOwn ? "own" : "empty";
+}
+
+/* ============ NODE MINI-MAP ============ */
+
+function NodeMiniMap({
+  nodes,
+  currentId,
+  onSelect,
+}: {
+  nodes: PovNode[];
+  currentId: string;
+  onSelect: (id: string) => void;
+}) {
+  const size = 120;
+  const cx = size / 2;
+  const cy = size / 2;
+  const r = nodes.length > 2 ? 40 : 30;
+
+  /* Even circular layout in definition order; stable and readable for 2–5 nodes */
+  const positions = new Map<string, { x: number; y: number }>();
+  nodes.forEach((n, i) => {
+    if (nodes.length === 1) {
+      positions.set(n.id, { x: cx, y: cy });
+    } else {
+      const angle = (i / nodes.length) * Math.PI * 2 - Math.PI / 2;
+      positions.set(n.id, {
+        x: cx + Math.cos(angle) * r,
+        y: cy + Math.sin(angle) * r,
+      });
+    }
+  });
+
+  /* Unique undirected edges */
+  const edges: [string, string][] = [];
+  const seen = new Set<string>();
+  for (const n of nodes) {
+    for (const target of Object.values(n.links)) {
+      const key = [n.id, target].sort().join("|");
+      if (!seen.has(key)) {
+        seen.add(key);
+        edges.push([n.id, target]);
+      }
+    }
+  }
+
+  return (
+    <div className="absolute bottom-6 right-4 z-20 hidden rounded-2xl border border-white/20 bg-black/50 p-2 backdrop-blur-md md:block">
+      <p className="px-1 pb-1 text-center text-[9px] font-semibold uppercase tracking-[0.18em] text-white/50">
+        Area map
+      </p>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        {edges.map(([a, b]) => {
+          const pa = positions.get(a);
+          const pb = positions.get(b);
+          if (!pa || !pb) return null;
+          return (
+            <line
+              key={`${a}-${b}`}
+              x1={pa.x}
+              y1={pa.y}
+              x2={pb.x}
+              y2={pb.y}
+              stroke="rgba(255,255,255,0.3)"
+              strokeWidth={1.5}
+              strokeDasharray="3 3"
+            />
+          );
+        })}
+        {nodes.map((n) => {
+          const p = positions.get(n.id)!;
+          const active = n.id === currentId;
+          return (
+            <g
+              key={n.id}
+              onClick={() => onSelect(n.id)}
+              style={{ cursor: "pointer" }}
+            >
+              <circle
+                cx={p.x}
+                cy={p.y}
+                r={active ? 8 : 6}
+                fill={active ? "#E23744" : "rgba(255,255,255,0.35)"}
+                stroke={active ? "#fff" : "rgba(255,255,255,0.5)"}
+                strokeWidth={active ? 2 : 1}
+              >
+                <title>{n.label}</title>
+              </circle>
+            </g>
+          );
+        })}
+      </svg>
     </div>
   );
 }

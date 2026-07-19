@@ -23,8 +23,17 @@ import {
   BadgePercent,
   Quote,
   Menu,
+  Play,
+  Rotate3d,
 } from "lucide-react";
 import { destinations } from "@/data/destinations";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -66,6 +75,32 @@ const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const clamp01 = (n: number) => Math.max(0, Math.min(1, n));
 
 function Index() {
+  return (
+    <div className="min-h-screen bg-white font-sans text-neutral-900 antialiased">
+      <ScrollProgress />
+      {/* Nav + hero live in their own subtree so the per-frame sunrise
+         animation never re-renders the sections below. */}
+      <HeroAndNav />
+
+      {/* Content emerges as the sky fades away */}
+      <main className="relative z-10 mx-auto max-w-[1200px] px-4 md:px-6">
+        <SearchHub />
+        <OffersRow />
+        <Statement />
+        <StatesGrid />
+        <VirtualToursSection />
+        <CultureStrip />
+        <PackagesSection />
+        <FeatureStrip />
+        <Testimonials />
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
+/* Isolates the 60fps sunrise progress state from the rest of the page */
+function HeroAndNav() {
   /* p: 0 → 1 sunrise progress. Tracks the scroll position almost 1:1 —
      a light chase factor keeps it buttery without ever feeling laggy. */
   const [p, setP] = useState(0);
@@ -80,7 +115,7 @@ function Index() {
     const tick = () => {
       current += (target - current) * 0.22;
       if (Math.abs(target - current) < 0.0004) current = target;
-      setP(current);
+      setP((prev) => (prev === current ? prev : current));
       raf = requestAnimationFrame(tick);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -92,24 +127,10 @@ function Index() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white font-sans text-neutral-900 antialiased">
-      <ScrollProgress />
+    <>
       <TopNav solid={p > 0.85} />
       <SunriseHero p={p} />
-
-      {/* Content emerges as the sky fades away */}
-      <main className="relative z-10 mx-auto max-w-[1200px] px-4 md:px-6">
-        <SearchHub />
-        <OffersRow />
-        <Statement />
-        <StatesGrid />
-        <CultureStrip />
-        <PackagesSection />
-        <FeatureStrip />
-        <Testimonials />
-      </main>
-      <Footer />
-    </div>
+    </>
   );
 }
 
@@ -331,11 +352,72 @@ function TopNav({ solid }: { solid: boolean }) {
           >
             Sign in
           </button>
-          <Menu
-            size={20}
-            className="md:hidden"
-            style={{ color: solid ? "#374151" : "#fff" }}
-          />
+          <Sheet>
+            <SheetTrigger asChild>
+              <button
+                aria-label="Open menu"
+                className="grid h-9 w-9 place-items-center rounded-full transition-colors md:hidden"
+                style={{ color: solid ? "#374151" : "#fff" }}
+              >
+                <Menu size={20} />
+              </button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[300px] p-0">
+              <div className="flex items-center gap-2 border-b border-neutral-100 px-5 py-4">
+                <img
+                  src="/elements/northnest-logo.png"
+                  alt=""
+                  className="h-8 w-8 rounded-full object-cover"
+                  draggable={false}
+                />
+                <SheetTitle className="text-[16px] font-bold" style={{ color: RED }}>
+                  NORTHNEST
+                </SheetTitle>
+              </div>
+              <nav className="flex flex-col px-2 py-3">
+                {links.map((l) =>
+                  l.explore ? (
+                    <SheetClose asChild key={l.label}>
+                      <Link
+                        to="/explore/$slug"
+                        params={{ slug: "meghalaya" }}
+                        className="flex items-center justify-between rounded-xl px-3 py-3 text-[15px] font-medium text-neutral-800 hover:bg-neutral-50"
+                      >
+                        <span className="flex items-center gap-2">
+                          {l.label}
+                          <span
+                            className="rounded-full px-2 py-0.5 text-[10px] font-bold text-white"
+                            style={{ background: RED }}
+                          >
+                            360°
+                          </span>
+                        </span>
+                        <ChevronRight size={16} className="text-neutral-400" />
+                      </Link>
+                    </SheetClose>
+                  ) : (
+                    <SheetClose asChild key={l.label}>
+                      <a
+                        href="#"
+                        className="flex items-center justify-between rounded-xl px-3 py-3 text-[15px] font-medium text-neutral-800 hover:bg-neutral-50"
+                      >
+                        {l.label}
+                        <ChevronRight size={16} className="text-neutral-400" />
+                      </a>
+                    </SheetClose>
+                  ),
+                )}
+              </nav>
+              <div className="px-5 pt-2">
+                <button
+                  className="w-full rounded-full py-2.5 text-[14px] font-semibold text-white"
+                  style={{ background: RED }}
+                >
+                  Sign in
+                </button>
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </header>
@@ -984,6 +1066,90 @@ function StatesGrid() {
   );
 }
 
+/* ============ VIRTUAL TOURS ============ */
+
+function VirtualToursSection() {
+  const tours = [
+    {
+      slug: "meghalaya",
+      title: "Nohkalikai Falls POV walk",
+      note: "Step viewpoint to viewpoint above India's tallest plunge waterfall.",
+      img: "/panoramas/nohkalikai-railing.jpg",
+      badge: "4 viewpoints",
+    },
+    {
+      slug: "arunachal-pradesh",
+      title: "Tawang Monastery tour",
+      note: "Walk the gate, courtyard and valley rim of the 400-year-old gompa.",
+      img: "/panoramas/tawang-courtyard.jpg",
+      badge: "3 viewpoints",
+    },
+    {
+      slug: "sikkim",
+      title: "MG Marg, Gangtok",
+      note: "Real Google Street View of the pedestrian heart of Gangtok.",
+      img: "/panoramas/gangtok-mg-marg.jpg",
+      badge: "Street View",
+    },
+  ];
+  return (
+    <Section
+      eyebrow="Virtual tours"
+      title="Look around before you book."
+      action="All 360° tours"
+      actionExplore
+      marquee="look around ·"
+    >
+      <div className="grid gap-4 md:grid-cols-3">
+        {tours.map((t, i) => (
+          <Reveal key={t.slug} delay={i * 100}>
+            <Link
+              to="/explore/$slug"
+              params={{ slug: t.slug }}
+              className="group relative block overflow-hidden rounded-3xl"
+              style={{ aspectRatio: "16/10" }}
+            >
+              <img
+                src={t.img}
+                alt={t.title}
+                loading="lazy"
+                decoding="async"
+                className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-black/10" />
+
+              {/* Play badge */}
+              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                <span
+                  className="grid h-14 w-14 place-items-center rounded-full border-2 border-white/80 bg-black/40 text-white backdrop-blur transition-transform duration-300 group-hover:scale-110"
+                  style={{ boxShadow: "0 8px 30px rgba(0,0,0,0.4)" }}
+                >
+                  <Play size={22} fill="currentColor" className="ml-0.5" />
+                </span>
+              </div>
+
+              <span
+                className="absolute left-4 top-4 flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold text-white"
+                style={{ background: RED }}
+              >
+                <Rotate3d size={12} /> 360°
+              </span>
+
+              <div className="absolute inset-x-0 bottom-0 p-4">
+                <p className="text-[16px] font-bold tracking-tight text-white">{t.title}</p>
+                <p className="mt-0.5 text-[12px] leading-snug text-white/75">{t.note}</p>
+                <span className="mt-2 inline-block rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur">
+                  {t.badge}
+                </span>
+              </div>
+            </Link>
+          </Reveal>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
 /* ============ PACKAGES ============ */
 
 function PackagesSection() {
@@ -1232,11 +1398,49 @@ function Section({
 /* ============ FOOTER ============ */
 
 function Footer() {
-  const cols = [
-    { h: "Book", items: ["Homestays", "Flights", "Trains", "Cabs", "Packages"] },
-    { h: "Permits", items: ["Inner Line Permit", "Protected Area Permit", "Checkgate map", "Document vault"] },
-    { h: "States", items: ["Meghalaya", "Arunachal", "Sikkim", "Nagaland", "Assam"] },
-    { h: "Company", items: ["About", "Ground teams", "Careers", "Support 24×7"] },
+  const cols: { h: string; items: { label: string; explore?: string }[] }[] = [
+    {
+      h: "Book",
+      items: [
+        { label: "Homestays" },
+        { label: "Flights" },
+        { label: "Trains" },
+        { label: "Cabs" },
+        { label: "Packages" },
+      ],
+    },
+    {
+      h: "Explore 360°",
+      items: [
+        { label: "Nohkalikai Falls", explore: "meghalaya" },
+        { label: "Tawang Monastery", explore: "arunachal-pradesh" },
+        { label: "MG Marg, Gangtok", explore: "sikkim" },
+        { label: "Kisama Village", explore: "nagaland" },
+        { label: "Kaziranga", explore: "assam" },
+      ],
+    },
+    {
+      h: "States",
+      items: [
+        { label: "Meghalaya", explore: "meghalaya" },
+        { label: "Arunachal", explore: "arunachal-pradesh" },
+        { label: "Sikkim", explore: "sikkim" },
+        { label: "Nagaland", explore: "nagaland" },
+        { label: "Assam", explore: "assam" },
+        { label: "Manipur", explore: "manipur" },
+        { label: "Mizoram", explore: "mizoram" },
+        { label: "Tripura", explore: "tripura" },
+      ],
+    },
+    {
+      h: "Company",
+      items: [
+        { label: "About" },
+        { label: "Ground teams" },
+        { label: "Careers" },
+        { label: "Support 24×7" },
+      ],
+    },
   ];
   return (
     <footer className="relative z-10 mt-10 border-t bg-neutral-50" style={{ borderColor: "rgba(0,0,0,0.06)" }}>
@@ -1265,10 +1469,20 @@ function Footer() {
             <p className="text-[12px] font-bold uppercase tracking-wider text-neutral-400">{c.h}</p>
             <ul className="mt-3 space-y-2">
               {c.items.map((i) => (
-                <li key={i}>
-                  <a href="#" className="nn-link text-[13px] text-neutral-600 hover:text-neutral-900">
-                    {i}
-                  </a>
+                <li key={i.label}>
+                  {i.explore ? (
+                    <Link
+                      to="/explore/$slug"
+                      params={{ slug: i.explore }}
+                      className="nn-link text-[13px] text-neutral-600 hover:text-neutral-900"
+                    >
+                      {i.label}
+                    </Link>
+                  ) : (
+                    <a href="#" className="nn-link text-[13px] text-neutral-600 hover:text-neutral-900">
+                      {i.label}
+                    </a>
+                  )}
                 </li>
               ))}
             </ul>
