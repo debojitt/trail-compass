@@ -10,11 +10,53 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CabsRouteImport } from './routes/cabs'
+import { Route as FlightsRouteImport } from './routes/flights'
+import { Route as OffersRouteImport } from './routes/offers'
+import { Route as PackagesRouteImport } from './routes/packages'
+import { Route as PermitsRouteImport } from './routes/permits'
+import { Route as StaysRouteImport } from './routes/stays'
+import { Route as TrainsRouteImport } from './routes/trains'
 import { Route as ExploreSlugRouteImport } from './routes/explore.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CabsRoute = CabsRouteImport.update({
+  id: '/cabs',
+  path: '/cabs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FlightsRoute = FlightsRouteImport.update({
+  id: '/flights',
+  path: '/flights',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OffersRoute = OffersRouteImport.update({
+  id: '/offers',
+  path: '/offers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PackagesRoute = PackagesRouteImport.update({
+  id: '/packages',
+  path: '/packages',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PermitsRoute = PermitsRouteImport.update({
+  id: '/permits',
+  path: '/permits',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StaysRoute = StaysRouteImport.update({
+  id: '/stays',
+  path: '/stays',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrainsRoute = TrainsRouteImport.update({
+  id: '/trains',
+  path: '/trains',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ExploreSlugRoute = ExploreSlugRouteImport.update({
@@ -25,27 +67,83 @@ const ExploreSlugRoute = ExploreSlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/cabs': typeof CabsRoute
+  '/flights': typeof FlightsRoute
+  '/offers': typeof OffersRoute
+  '/packages': typeof PackagesRoute
+  '/permits': typeof PermitsRoute
+  '/stays': typeof StaysRoute
+  '/trains': typeof TrainsRoute
   '/explore/$slug': typeof ExploreSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cabs': typeof CabsRoute
+  '/flights': typeof FlightsRoute
+  '/offers': typeof OffersRoute
+  '/packages': typeof PackagesRoute
+  '/permits': typeof PermitsRoute
+  '/stays': typeof StaysRoute
+  '/trains': typeof TrainsRoute
   '/explore/$slug': typeof ExploreSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/cabs': typeof CabsRoute
+  '/flights': typeof FlightsRoute
+  '/offers': typeof OffersRoute
+  '/packages': typeof PackagesRoute
+  '/permits': typeof PermitsRoute
+  '/stays': typeof StaysRoute
+  '/trains': typeof TrainsRoute
   '/explore/$slug': typeof ExploreSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/explore/$slug'
+  fullPaths:
+    | '/'
+    | '/cabs'
+    | '/flights'
+    | '/offers'
+    | '/packages'
+    | '/permits'
+    | '/stays'
+    | '/trains'
+    | '/explore/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/explore/$slug'
-  id: '__root__' | '/' | '/explore/$slug'
+  to:
+    | '/'
+    | '/cabs'
+    | '/flights'
+    | '/offers'
+    | '/packages'
+    | '/permits'
+    | '/stays'
+    | '/trains'
+    | '/explore/$slug'
+  id:
+    | '__root__'
+    | '/'
+    | '/cabs'
+    | '/flights'
+    | '/offers'
+    | '/packages'
+    | '/permits'
+    | '/stays'
+    | '/trains'
+    | '/explore/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CabsRoute: typeof CabsRoute
+  FlightsRoute: typeof FlightsRoute
+  OffersRoute: typeof OffersRoute
+  PackagesRoute: typeof PackagesRoute
+  PermitsRoute: typeof PermitsRoute
+  StaysRoute: typeof StaysRoute
+  TrainsRoute: typeof TrainsRoute
   ExploreSlugRoute: typeof ExploreSlugRoute
 }
 
@@ -56,6 +154,55 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cabs': {
+      id: '/cabs'
+      path: '/cabs'
+      fullPath: '/cabs'
+      preLoaderRoute: typeof CabsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/flights': {
+      id: '/flights'
+      path: '/flights'
+      fullPath: '/flights'
+      preLoaderRoute: typeof FlightsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/offers': {
+      id: '/offers'
+      path: '/offers'
+      fullPath: '/offers'
+      preLoaderRoute: typeof OffersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/packages': {
+      id: '/packages'
+      path: '/packages'
+      fullPath: '/packages'
+      preLoaderRoute: typeof PackagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/permits': {
+      id: '/permits'
+      path: '/permits'
+      fullPath: '/permits'
+      preLoaderRoute: typeof PermitsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/stays': {
+      id: '/stays'
+      path: '/stays'
+      fullPath: '/stays'
+      preLoaderRoute: typeof StaysRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trains': {
+      id: '/trains'
+      path: '/trains'
+      fullPath: '/trains'
+      preLoaderRoute: typeof TrainsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/explore/$slug': {
@@ -70,6 +217,13 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CabsRoute: CabsRoute,
+  FlightsRoute: FlightsRoute,
+  OffersRoute: OffersRoute,
+  PackagesRoute: PackagesRoute,
+  PermitsRoute: PermitsRoute,
+  StaysRoute: StaysRoute,
+  TrainsRoute: TrainsRoute,
   ExploreSlugRoute: ExploreSlugRoute,
 }
 export const routeTree = rootRouteImport

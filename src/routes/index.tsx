@@ -13,27 +13,19 @@ import {
   Plus,
   Star,
   Heart,
-  MapPin,
   ShieldCheck,
   WifiOff,
   Wallet,
-  Compass,
   ChevronDown,
   ChevronRight,
   BadgePercent,
   Quote,
-  Menu,
   Play,
   Rotate3d,
 } from "lucide-react";
 import { destinations } from "@/data/destinations";
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { MobileMenu, NAV_LINKS, SiteFooter } from "@/components/site/SiteShell";
+import { SignInButton } from "@/components/site/SignInButton";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -94,7 +86,7 @@ function Index() {
         <FeatureStrip />
         <Testimonials />
       </main>
-      <Footer />
+      <SiteFooter />
     </div>
   );
 }
@@ -289,14 +281,6 @@ function Knockout({ text }: { text: string }) {
 /* ============ TOP NAV (Apple-style translucent) ============ */
 
 function TopNav({ solid }: { solid: boolean }) {
-  const links: { label: string; explore?: boolean }[] = [
-    { label: "Explore", explore: true },
-    { label: "Stays" },
-    { label: "Flights" },
-    { label: "Packages" },
-    { label: "Permits" },
-    { label: "Offers" },
-  ];
   return (
     <header
       className="fixed inset-x-0 top-0 z-50 transition-all duration-500"
@@ -321,103 +305,22 @@ function TopNav({ solid }: { solid: boolean }) {
             NORTHNEST
           </span>
         </a>
-        <nav className="hidden items-center gap-7 md:flex">
-          {links.map((l) =>
-            l.explore ? (
-              <Link
-                key={l.label}
-                to="/explore/$slug"
-                params={{ slug: "meghalaya" }}
-                className="nn-link text-[13px] font-medium transition-colors duration-500"
-                style={{ color: solid ? "#374151" : "rgba(255,255,255,0.9)" }}
-              >
-                {l.label}
-              </Link>
-            ) : (
-              <a
-                key={l.label}
-                href="#"
-                className="nn-link text-[13px] font-medium transition-colors duration-500"
-                style={{ color: solid ? "#374151" : "rgba(255,255,255,0.9)" }}
-              >
-                {l.label}
-              </a>
-            ),
-          )}
+        <nav className="hidden items-center gap-6 lg:flex">
+          {NAV_LINKS.map((l) => (
+            <Link
+              key={l.label}
+              to={l.to}
+              params={"params" in l ? l.params : undefined}
+              className="nn-link text-[13px] font-medium transition-colors duration-500"
+              style={{ color: solid ? "#374151" : "rgba(255,255,255,0.9)" }}
+            >
+              {l.label}
+            </Link>
+          ))}
         </nav>
         <div className="flex items-center gap-3">
-          <button
-            className="rounded-full px-4 py-1.5 text-[13px] font-semibold text-white transition-transform hover:scale-[1.03]"
-            style={{ background: RED }}
-          >
-            Sign in
-          </button>
-          <Sheet>
-            <SheetTrigger asChild>
-              <button
-                aria-label="Open menu"
-                className="grid h-9 w-9 place-items-center rounded-full transition-colors md:hidden"
-                style={{ color: solid ? "#374151" : "#fff" }}
-              >
-                <Menu size={20} />
-              </button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-[300px] p-0">
-              <div className="flex items-center gap-2 border-b border-neutral-100 px-5 py-4">
-                <img
-                  src="/elements/northnest-logo.png"
-                  alt=""
-                  className="h-8 w-8 rounded-full object-cover"
-                  draggable={false}
-                />
-                <SheetTitle className="text-[16px] font-bold" style={{ color: RED }}>
-                  NORTHNEST
-                </SheetTitle>
-              </div>
-              <nav className="flex flex-col px-2 py-3">
-                {links.map((l) =>
-                  l.explore ? (
-                    <SheetClose asChild key={l.label}>
-                      <Link
-                        to="/explore/$slug"
-                        params={{ slug: "meghalaya" }}
-                        className="flex items-center justify-between rounded-xl px-3 py-3 text-[15px] font-medium text-neutral-800 hover:bg-neutral-50"
-                      >
-                        <span className="flex items-center gap-2">
-                          {l.label}
-                          <span
-                            className="rounded-full px-2 py-0.5 text-[10px] font-bold text-white"
-                            style={{ background: RED }}
-                          >
-                            360°
-                          </span>
-                        </span>
-                        <ChevronRight size={16} className="text-neutral-400" />
-                      </Link>
-                    </SheetClose>
-                  ) : (
-                    <SheetClose asChild key={l.label}>
-                      <a
-                        href="#"
-                        className="flex items-center justify-between rounded-xl px-3 py-3 text-[15px] font-medium text-neutral-800 hover:bg-neutral-50"
-                      >
-                        {l.label}
-                        <ChevronRight size={16} className="text-neutral-400" />
-                      </a>
-                    </SheetClose>
-                  ),
-                )}
-              </nav>
-              <div className="px-5 pt-2">
-                <button
-                  className="w-full rounded-full py-2.5 text-[14px] font-semibold text-white"
-                  style={{ background: RED }}
-                >
-                  Sign in
-                </button>
-              </div>
-            </SheetContent>
-          </Sheet>
+          <SignInButton />
+          <MobileMenu light={!solid} />
         </div>
       </div>
     </header>
@@ -600,6 +503,15 @@ const tabs: { id: TabId; label: string; icon: typeof Home }[] = [
   { id: "permits", label: "Permits", icon: FileCheck },
 ];
 
+const tabRoute: Record<TabId, string> = {
+  stays: "/stays",
+  flights: "/flights",
+  trains: "/trains",
+  cabs: "/cabs",
+  packages: "/packages",
+  permits: "/permits",
+};
+
 const tabConfig: Record<
   TabId,
   { from: string; fromV: string; to: string; toV: string; cta: string }
@@ -707,15 +619,16 @@ function SearchHub() {
           </div>
         </div>
 
-        {/* CTA */}
+        {/* CTA — routes to the matching demo page */}
         <div className="mt-4 flex justify-center">
-          <button
+          <Link
+            to={tabRoute[tab]}
             className="flex items-center gap-2 rounded-full px-12 py-3.5 text-[15px] font-bold text-white shadow-lg transition-all hover:scale-[1.02]"
             style={{ background: `linear-gradient(135deg, ${RED}, ${RED_DARK})`, boxShadow: "0 12px 30px rgba(226,55,68,0.35)" }}
           >
             <Search size={17} />
             {cfg.cta}
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -801,14 +714,16 @@ function OffersRow() {
       eyebrow="Offers"
       title="Deals worth flying for."
       action="View all offers"
+      actionTo="/offers"
     >
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {offers.map((o, i) => (
           <Reveal
             key={o.title}
             delay={i * 100}
-            className="group rounded-3xl border bg-white p-5 transition-all hover:-translate-y-1 hover:shadow-xl"
+            className="group rounded-3xl border bg-white transition-all hover:-translate-y-1 hover:shadow-xl"
           >
+            <Link to="/offers" className="block p-5">
             <div className="flex items-center gap-2">
               <BadgePercent size={16} style={{ color: RED }} />
               <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: RED }}>
@@ -826,6 +741,7 @@ function OffersRow() {
               </span>
               <ChevronRight size={16} className="text-neutral-300 transition-transform group-hover:translate-x-1" />
             </div>
+            </Link>
           </Reveal>
         ))}
       </div>
@@ -1191,7 +1107,8 @@ function PackagesSection() {
     <Section
       eyebrow="Curated packages"
       title="Everything included. Even the permits."
-      action="All 46 packages"
+      action="All packages"
+      actionTo="/packages"
       marquee="journeys ·"
     >
       <div className="grid gap-5 md:grid-cols-3">
@@ -1253,12 +1170,13 @@ function PackagesSection() {
                     <span className="ml-1 text-[11px] font-medium text-neutral-400">/ person</span>
                   </p>
                 </div>
-                <button
+                <Link
+                  to="/packages"
                   className="rounded-full px-5 py-2 text-[13px] font-bold text-white transition-transform hover:scale-105"
                   style={{ background: RED }}
                 >
                   Book
-                </button>
+                </Link>
               </div>
             </div>
           </Reveal>
@@ -1342,6 +1260,7 @@ function Section({
   title,
   action,
   actionExplore,
+  actionTo,
   marquee,
   children,
 }: {
@@ -1349,6 +1268,7 @@ function Section({
   title: string;
   action?: string;
   actionExplore?: boolean;
+  actionTo?: string;
   marquee?: string;
   children: React.ReactNode;
 }) {
@@ -1379,6 +1299,14 @@ function Section({
               >
                 {action} <ChevronRight size={15} />
               </Link>
+            ) : actionTo ? (
+              <Link
+                to={actionTo}
+                className="nn-link hidden shrink-0 items-center gap-1 text-[13px] font-semibold md:flex"
+                style={{ color: RED }}
+              >
+                {action} <ChevronRight size={15} />
+              </Link>
             ) : (
               <a
                 href="#"
@@ -1395,104 +1323,3 @@ function Section({
   );
 }
 
-/* ============ FOOTER ============ */
-
-function Footer() {
-  const cols: { h: string; items: { label: string; explore?: string }[] }[] = [
-    {
-      h: "Book",
-      items: [
-        { label: "Homestays" },
-        { label: "Flights" },
-        { label: "Trains" },
-        { label: "Cabs" },
-        { label: "Packages" },
-      ],
-    },
-    {
-      h: "Explore 360°",
-      items: [
-        { label: "Nohkalikai Falls", explore: "meghalaya" },
-        { label: "Tawang Monastery", explore: "arunachal-pradesh" },
-        { label: "MG Marg, Gangtok", explore: "sikkim" },
-        { label: "Kisama Village", explore: "nagaland" },
-        { label: "Kaziranga", explore: "assam" },
-      ],
-    },
-    {
-      h: "States",
-      items: [
-        { label: "Meghalaya", explore: "meghalaya" },
-        { label: "Arunachal", explore: "arunachal-pradesh" },
-        { label: "Sikkim", explore: "sikkim" },
-        { label: "Nagaland", explore: "nagaland" },
-        { label: "Assam", explore: "assam" },
-        { label: "Manipur", explore: "manipur" },
-        { label: "Mizoram", explore: "mizoram" },
-        { label: "Tripura", explore: "tripura" },
-      ],
-    },
-    {
-      h: "Company",
-      items: [
-        { label: "About" },
-        { label: "Ground teams" },
-        { label: "Careers" },
-        { label: "Support 24×7" },
-      ],
-    },
-  ];
-  return (
-    <footer className="relative z-10 mt-10 border-t bg-neutral-50" style={{ borderColor: "rgba(0,0,0,0.06)" }}>
-      <div className="mx-auto grid max-w-[1200px] gap-10 px-4 py-14 md:grid-cols-[1.4fr_1fr_1fr_1fr_1fr] md:px-6">
-        <div>
-          <div className="flex items-center gap-2">
-            <img
-              src="/elements/northnest-logo.png"
-              alt="northnest"
-              className="h-9 w-9 rounded-full object-cover"
-              draggable={false}
-            />
-            <p className="text-[17px] font-bold tracking-tight" style={{ color: RED }}>
-              NORTHNEST
-            </p>
-          </div>
-          <p className="mt-3 max-w-[260px] text-[13px] leading-relaxed text-neutral-500">
-            The travel platform built for the eight sister states of Northeast India.
-          </p>
-          <div className="mt-4 flex items-center gap-2 text-[12px] font-semibold" style={{ color: GREEN }}>
-            <Compass size={14} /> Guwahati · Shillong · Itanagar
-          </div>
-        </div>
-        {cols.map((c) => (
-          <div key={c.h}>
-            <p className="text-[12px] font-bold uppercase tracking-wider text-neutral-400">{c.h}</p>
-            <ul className="mt-3 space-y-2">
-              {c.items.map((i) => (
-                <li key={i.label}>
-                  {i.explore ? (
-                    <Link
-                      to="/explore/$slug"
-                      params={{ slug: i.explore }}
-                      className="nn-link text-[13px] text-neutral-600 hover:text-neutral-900"
-                    >
-                      {i.label}
-                    </Link>
-                  ) : (
-                    <a href="#" className="nn-link text-[13px] text-neutral-600 hover:text-neutral-900">
-                      {i.label}
-                    </a>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
-      <div className="border-t py-5 text-center text-[12px] text-neutral-400" style={{ borderColor: "rgba(0,0,0,0.06)" }}>
-        © 2026 NORTHNEST · Northeast India, unfiltered.
-        <MapPin size={12} className="ml-1 inline" style={{ color: RED }} />
-      </div>
-    </footer>
-  );
-}
