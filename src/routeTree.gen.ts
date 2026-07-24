@@ -14,6 +14,7 @@ import { Route as StaysRouteImport } from './routes/stays'
 import { Route as PermitsRouteImport } from './routes/permits'
 import { Route as PackagesRouteImport } from './routes/packages'
 import { Route as OffersRouteImport } from './routes/offers'
+import { Route as LabsRouteImport } from './routes/labs'
 import { Route as FlightsRouteImport } from './routes/flights'
 import { Route as CabsRouteImport } from './routes/cabs'
 import { Route as IndexRouteImport } from './routes/index'
@@ -44,6 +45,11 @@ const OffersRoute = OffersRouteImport.update({
   path: '/offers',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LabsRoute = LabsRouteImport.update({
+  id: '/labs',
+  path: '/labs',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FlightsRoute = FlightsRouteImport.update({
   id: '/flights',
   path: '/flights',
@@ -69,6 +75,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cabs': typeof CabsRoute
   '/flights': typeof FlightsRoute
+  '/labs': typeof LabsRoute
   '/offers': typeof OffersRoute
   '/packages': typeof PackagesRoute
   '/permits': typeof PermitsRoute
@@ -80,6 +87,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cabs': typeof CabsRoute
   '/flights': typeof FlightsRoute
+  '/labs': typeof LabsRoute
   '/offers': typeof OffersRoute
   '/packages': typeof PackagesRoute
   '/permits': typeof PermitsRoute
@@ -92,6 +100,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/cabs': typeof CabsRoute
   '/flights': typeof FlightsRoute
+  '/labs': typeof LabsRoute
   '/offers': typeof OffersRoute
   '/packages': typeof PackagesRoute
   '/permits': typeof PermitsRoute
@@ -105,6 +114,7 @@ export interface FileRouteTypes {
     | '/'
     | '/cabs'
     | '/flights'
+    | '/labs'
     | '/offers'
     | '/packages'
     | '/permits'
@@ -116,6 +126,7 @@ export interface FileRouteTypes {
     | '/'
     | '/cabs'
     | '/flights'
+    | '/labs'
     | '/offers'
     | '/packages'
     | '/permits'
@@ -127,6 +138,7 @@ export interface FileRouteTypes {
     | '/'
     | '/cabs'
     | '/flights'
+    | '/labs'
     | '/offers'
     | '/packages'
     | '/permits'
@@ -139,6 +151,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CabsRoute: typeof CabsRoute
   FlightsRoute: typeof FlightsRoute
+  LabsRoute: typeof LabsRoute
   OffersRoute: typeof OffersRoute
   PackagesRoute: typeof PackagesRoute
   PermitsRoute: typeof PermitsRoute
@@ -184,6 +197,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OffersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/labs': {
+      id: '/labs'
+      path: '/labs'
+      fullPath: '/labs'
+      preLoaderRoute: typeof LabsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/flights': {
       id: '/flights'
       path: '/flights'
@@ -219,6 +239,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CabsRoute: CabsRoute,
   FlightsRoute: FlightsRoute,
+  LabsRoute: LabsRoute,
   OffersRoute: OffersRoute,
   PackagesRoute: PackagesRoute,
   PermitsRoute: PermitsRoute,
@@ -229,3 +250,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
