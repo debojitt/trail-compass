@@ -20,6 +20,7 @@ export type BookingDraft = {
   perPerson?: boolean;
   sourceId?: string;
   publisherId?: string;
+  hostId?: string;
 };
 
 type Props = {
@@ -61,6 +62,7 @@ export function BookingDialog({ draft, onClose }: Props) {
       travellers,
       sourceId: draft.sourceId,
       publisherId: draft.publisherId,
+      hostId: draft.hostId,
     });
     setBusy(false);
     setConfirmed(booking);

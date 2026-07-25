@@ -15,6 +15,8 @@ export type DemoAccount = {
   avatar: string;
   verified?: boolean;
   bio?: string;
+  /** Cover image for Instagram-like profiles */
+  cover?: string;
   /** Host home slug or planner subdomain */
   slug?: string;
   subdomain?: string;
@@ -75,6 +77,9 @@ export type CreatorPlan = {
   rating: number;
   experience: string;
   stops: { place: string; day: number; note: string; img: string }[];
+  /** CMS: visible on public profile when true */
+  published?: boolean;
+  publishCode?: string;
 };
 
 export type HostHome = {
@@ -89,6 +94,10 @@ export type HostHome = {
   photos: string[];
   amenities: string[];
   description: string;
+  /** CMS: appears on public host profile when true */
+  listed?: boolean;
+  /** Demo occupancy / bookings count */
+  bookingsDemo?: number;
 };
 
 export type HostTrip48h = {
@@ -104,6 +113,16 @@ export type HostTrip48h = {
   food: string[];
   cabs: string[];
   description: string;
+};
+
+/** Editable in-city inventory on host dashboards */
+export type HostCityItem = {
+  id: string;
+  hostId: string;
+  kind: "cab" | "place" | "restaurant";
+  name: string;
+  detail: string;
+  priceHint?: number;
 };
 
 export type GroupInvite = {
@@ -136,6 +155,9 @@ export type FreelancePlan = {
   vendorsMaskedUntilHours: number;
   photos: string[];
   stops: { place: string; day: number; note: string; vendorMasked: string; vendorReal: string }[];
+  published?: boolean;
+  /** Client pipeline stage for CMS */
+  pipelineStage?: "lead" | "proposal" | "booked" | "completed";
 };
 
 /* Sample loop videos (public CDN samples) */

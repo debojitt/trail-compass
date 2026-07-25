@@ -1,11 +1,12 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { MapPin, Star } from "lucide-react";
 import { PageHero, SiteShell } from "@/components/site/SiteShell";
 import { BookingDialog, type BookingDraft } from "@/components/site/BookingDialog";
 import { destinations } from "@/data/destinations";
 import { stays as catalogStays } from "@/data/catalog";
-import { formatINR } from "@/lib/demoApi";
+import type { HostHome } from "@/data/demoUniverse";
+import { fetchHostHomes, formatINR, subscribeDemoStore } from "@/lib/demoApi";
 import { GREEN, GREEN_LIGHT, RED } from "@/lib/brand";
 
 export const Route = createFileRoute("/stays")({
@@ -24,8 +25,14 @@ export const Route = createFileRoute("/stays")({
 function StaysPage() {
   const [stateFilter, setStateFilter] = useState<string | undefined>(undefined);
   const [draft, setDraft] = useState<BookingDraft | null>(null);
+  const [hostHomes, setHostHomes] = useState<HostHome[]>([]);
 
-  /* Sync catalog — every card is an <a href> in SSR/HTML so clicks never depend on overlay hacks */
+  useEffect(() => {
+    const load = () => fetchHostHomes(undefined, true).then(setHostHomes);
+    load();
+    return subscribeDemoStore(load);
+  }, []);
+
   const stays = useMemo(
     () => (stateFilter ? catalogStays.filter((s) => s.stateSlug === stateFilter) : catalogStays),
     [stateFilter],
@@ -50,6 +57,52 @@ function StaysPage() {
           />
         ))}
       </div>
+
+      {hostHomes.length > 0 && (
+        <section className="mb-12">
+          <h2 className="mb-4 text-[20px] font-bold tracking-tight">Host CMS listings</h2>
+          <p className="mb-4 text-[13px] text-neutral-500">
+            Live from host dashboards — newly listed homes appear here instantly.
+          </p>
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {hostHomes.map((h) => (
+              <Link
+                key={h.id}
+                to="/host/$slug"
+                params={{ slug: h.slug }}
+                className="group overflow-hidden rounded-3xl border bg-white transition-all hover:-translate-y-1 hover:shadow-2xl"
+                style={{ borderColor: "rgba(0,0,0,0.07)" }}
+              >
+                <div className="relative" style={{ aspectRatio: "16/10" }}>
+                  <img
+                    src={h.photos[0]}
+                    alt={h.name}
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <span
+                    className="absolute left-3 top-3 flex items-center gap-1 rounded-lg px-1.5 py-0.5 text-[11px] font-bold text-white"
+                    style={{ background: GREEN }}
+                  >
+                    {h.rating} <Star size={9} fill="white" />
+                  </span>
+                </div>
+                <div className="p-4">
+                  <p className="text-[16px] font-bold">{h.name}</p>
+                  <p className="mt-0.5 flex items-center gap-1 text-[12px] text-neutral-500">
+                    <MapPin size={11} /> {h.place}
+                  </p>
+                  <p className="mt-3 text-[19px] font-bold" style={{ color: RED }}>
+                    {formatINR(h.pricePerNight)}
+                    <span className="ml-1 text-[11px] font-medium text-neutral-400">/ night</span>
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <h2 className="mb-4 text-[20px] font-bold tracking-tight">Marketplace catalog</h2>
 
       {stays.length === 0 ? (
         <div className="rounded-3xl bg-neutral-50 py-16 text-center">

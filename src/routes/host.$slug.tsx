@@ -7,7 +7,8 @@ import { PhotoGallery, VideoRow, RatingLikes, PriceBlock } from "@/components/si
 import { stays as catalogStays } from "@/data/catalog";
 import type { DemoAccount, HostHome, HostTrip48h } from "@/data/demoUniverse";
 import { SAMPLE_VIDEOS } from "@/data/demoUniverse";
-import { fetchHostBySlug, fetchHostTrips, formatINR } from "@/lib/demoApi";
+import { fetchHostBySlug, fetchHostTrips, formatINR, listCityItems, subscribeDemoStore } from "@/lib/demoApi";
+import type { HostCityItem } from "@/data/demoUniverse";
 import { GREEN, GREEN_LIGHT, RED } from "@/lib/brand";
 
 export const Route = createFileRoute("/host/$slug")({
@@ -19,13 +20,27 @@ function HostProfilePage() {
   const { slug } = Route.useParams();
   const [data, setData] = useState<{ home: HostHome; host: DemoAccount } | null | undefined>(undefined);
   const [trips, setTrips] = useState<HostTrip48h[]>([]);
+  const [city, setCity] = useState<HostCityItem[]>([]);
   const [draft, setDraft] = useState<BookingDraft | null>(null);
 
   useEffect(() => {
-    fetchHostBySlug(slug).then((d) => {
-      setData(d ?? null);
-      if (d) fetchHostTrips(d.host.id).then(setTrips);
-    });
+    let alive = true;
+    const load = () => {
+      fetchHostBySlug(slug).then((d) => {
+        if (!alive) return;
+        setData(d ?? null);
+        if (d) {
+          fetchHostTrips(d.host.id).then((t) => alive && setTrips(t));
+          setCity(listCityItems(d.host.id));
+        }
+      });
+    };
+    load();
+    const unsub = subscribeDemoStore(load);
+    return () => {
+      alive = false;
+      unsub();
+    };
   }, [slug]);
 
   if (data === undefined) {
@@ -47,9 +62,18 @@ function HostProfilePage() {
   }
 
   const { home, host } = data;
-  const places = [...new Set(trips.flatMap((t) => t.places))];
-  const food = [...new Set(trips.flatMap((t) => t.food))];
-  const cabs = [...new Set(trips.flatMap((t) => t.cabs))];
+  const cityPlaces = city.filter((c) => c.kind === "place");
+  const cityFood = city.filter((c) => c.kind === "restaurant");
+  const cityCabs = city.filter((c) => c.kind === "cab");
+  const places = cityPlaces.length
+    ? cityPlaces.map((c) => c.name)
+    : [...new Set(trips.flatMap((t) => t.places))];
+  const food = cityFood.length
+    ? cityFood.map((c) => c.name)
+    : [...new Set(trips.flatMap((t) => t.food))];
+  const cabs = cityCabs.length
+    ? cityCabs.map((c) => c.name)
+    : [...new Set(trips.flatMap((t) => t.cabs))];
   const placeKey = home.place.split(",")[0]?.trim().toLowerCase() ?? "";
   const relatedStays = catalogStays
     .filter(
@@ -171,6 +195,7 @@ function HostProfilePage() {
                             perPerson: false,
                             sourceId: t.id,
                             publisherId: t.hostId,
+                            hostId: t.hostId,
                           })
                         }
                         className="rounded-full px-4 py-1.5 text-[12px] font-bold text-white"
@@ -233,6 +258,7 @@ function HostProfilePage() {
                 unitPrice: home.pricePerNight,
                 perPerson: false,
                 sourceId: home.id,
+                hostId: home.hostId,
               })
             }
             className="mt-5 w-full rounded-full py-3 text-[15px] font-bold text-white"

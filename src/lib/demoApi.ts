@@ -37,7 +37,51 @@ import {
   type PlaceClip,
   type PublishedItinerary,
 } from "@/data/demoUniverse";
+import {
+  adminCmsSnapshot,
+  deleteCityItem,
+  deleteCreatorPlan,
+  deleteFreelancePlan,
+  deleteHostHome,
+  deleteHostTrip,
+  getCreatorPlanCms,
+  getEchoSosEnabled,
+  getFreelancePlanCms,
+  getHostHomeBySlugCms,
+  getPlannerSettings,
+  getProfileOverride,
+  listAllCreatorPlans,
+  listAllFreelancePlans,
+  listAllHostHomes,
+  listAllHostTrips,
+  listCityItems,
+  listCreatorPlansCms,
+  listFreelancePlansCms,
+  listHostHomesCms,
+  listHostTripsCms,
+  mergeAccountProfile,
+  regenerateTripReferral,
+  setCreatorPlanPublished,
+  setEchoSosEnabled,
+  setFreelancePlanPublished,
+  setHostHomeListed,
+  updatePlannerSettings,
+  updateProfile,
+  upsertCityItem,
+  upsertCreatorPlan,
+  upsertFreelancePlan,
+  upsertHostHome,
+  upsertHostTrip,
+  type HostCityItem,
+  type PlannerSettings,
+  type ProfileOverride,
+} from "@/lib/demoCms";
 
+/* silence unused seed imports kept for parity / future catalog merges */
+void CREATOR_PLANS;
+void FREELANCE_PLANS;
+void HOST_HOMES;
+void HOST_TRIPS_48H;
 const simulate = <T>(data: T, ms = 280): Promise<T> =>
   new Promise((resolve) => setTimeout(() => resolve(data), ms));
 
@@ -159,32 +203,43 @@ export function fetchPublishedByCode(code: string): Promise<PublishedItinerary |
   );
 }
 
-export function fetchCreatorPlans(creatorId?: string): Promise<CreatorPlan[]> {
+export function fetchCreatorPlans(creatorId?: string, opts?: { publishedOnly?: boolean }): Promise<CreatorPlan[]> {
+  let all = listCreatorPlansCms(creatorId);
+  /* Merge legacy extras once into CMS list */
   const extra = readJson<CreatorPlan[]>(KEYS.creatorPlansExtra, []);
-  const all = [...extra, ...CREATOR_PLANS];
-  return simulate(creatorId ? all.filter((p) => p.creatorId === creatorId) : all);
+  if (extra.length && typeof window !== "undefined") {
+    const ids = new Set(all.map((p) => p.id));
+    const missing = extra.filter((p) => !ids.has(p.id)).map((p) => ({ ...p, published: true }));
+    if (missing.length) {
+      const merged = [...missing, ...all];
+      window.localStorage.setItem("nn-cms-creator-plans-v1", JSON.stringify(merged));
+      all = creatorId ? merged.filter((p) => p.creatorId === creatorId) : merged;
+    }
+  }
+  if (opts?.publishedOnly) all = all.filter((p) => p.published !== false);
+  return simulate(all);
 }
 
 export function fetchCreatorPlan(id: string): Promise<CreatorPlan | undefined> {
-  return fetchCreatorPlans().then((list) => list.find((p) => p.id === id));
+  return simulate(getCreatorPlanCms(id) ?? listAllCreatorPlans().find((p) => p.id === id));
 }
 
-export function fetchHostHomes(hostId?: string): Promise<HostHome[]> {
-  return simulate(hostId ? HOST_HOMES.filter((h) => h.hostId === hostId) : HOST_HOMES);
+export function fetchHostHomes(hostId?: string, listedOnly = false): Promise<HostHome[]> {
+  return simulate(listHostHomesCms(hostId, listedOnly));
 }
 
 export function fetchHostBySlug(
   slug: string,
 ): Promise<{ home: HostHome; host: DemoAccount } | undefined> {
-  const home = HOST_HOMES.find((h) => h.slug === slug);
-  if (!home) return simulate(undefined);
-  const host = DEMO_ACCOUNTS.find((a) => a.id === home.hostId);
-  if (!host) return simulate(undefined);
-  return simulate({ home, host });
+  const home = getHostHomeBySlugCms(slug) ?? listAllHostHomes().find((h) => h.slug === slug);
+  if (!home || home.listed === false) return simulate(undefined);
+  const hostRaw = DEMO_ACCOUNTS.find((a) => a.id === home.hostId);
+  if (!hostRaw) return simulate(undefined);
+  return simulate({ home, host: mergeAccountProfile(hostRaw) });
 }
 
 export function fetchHostTrips(hostId?: string): Promise<HostTrip48h[]> {
-  return simulate(hostId ? HOST_TRIPS_48H.filter((t) => t.hostId === hostId) : HOST_TRIPS_48H);
+  return simulate(listHostTripsCms(hostId));
 }
 
 export function fetchGroupInvites(): Promise<GroupInvite[]> {
@@ -200,32 +255,38 @@ export function fetchGroupByCode(code: string): Promise<GroupInvite | undefined>
   );
 }
 
-export function fetchFreelancePlans(plannerId?: string): Promise<FreelancePlan[]> {
-  return simulate(plannerId ? FREELANCE_PLANS.filter((p) => p.plannerId === plannerId) : FREELANCE_PLANS);
+export function fetchFreelancePlans(plannerId?: string, opts?: { publishedOnly?: boolean }): Promise<FreelancePlan[]> {
+  let all = listFreelancePlansCms(plannerId);
+  if (opts?.publishedOnly) all = all.filter((p) => p.published !== false);
+  return simulate(all);
 }
 
 export function fetchFreelancePlan(id: string): Promise<FreelancePlan | undefined> {
-  return simulate(FREELANCE_PLANS.find((p) => p.id === id));
+  return simulate(getFreelancePlanCms(id) ?? listAllFreelancePlans().find((p) => p.id === id));
 }
 
 export function fetchCreators(): Promise<DemoAccount[]> {
-  return simulate(DEMO_ACCOUNTS.filter((a) => a.type === "creator"));
+  return simulate(
+    DEMO_ACCOUNTS.filter((a) => a.type === "creator").map(mergeAccountProfile),
+  );
 }
 
 export function fetchCreatorByHandle(handle: string): Promise<DemoAccount | undefined> {
-  return simulate(
-    DEMO_ACCOUNTS.find(
-      (a) => a.type === "creator" && a.handle?.toLowerCase() === handle.toLowerCase(),
-    ),
+  const acc = DEMO_ACCOUNTS.find(
+    (a) => a.type === "creator" && a.handle?.toLowerCase() === handle.toLowerCase(),
   );
+  return simulate(acc ? mergeAccountProfile(acc) : undefined);
 }
 
 export function fetchPlannerBySubdomain(sub: string): Promise<DemoAccount | undefined> {
-  return simulate(
-    DEMO_ACCOUNTS.find(
-      (a) => a.type === "planner" && a.subdomain?.toLowerCase() === sub.toLowerCase(),
-    ),
-  );
+  const acc = DEMO_ACCOUNTS.find((a) => {
+    if (a.type !== "planner") return false;
+    const merged = mergeAccountProfile(a);
+    const settings = getPlannerSettings(a.id, a.subdomain ?? "nestcraft");
+    const subActual = settings.subdomain || merged.subdomain || a.subdomain;
+    return subActual?.toLowerCase() === sub.toLowerCase();
+  });
+  return simulate(acc ? mergeAccountProfile(acc) : undefined);
 }
 
 /* ============ ACCOUNT STORE ============ */
@@ -239,11 +300,12 @@ export type DemoUser = {
   avatar: string;
   verified?: boolean;
   bio?: string;
+  cover?: string;
   slug?: string;
   subdomain?: string;
 };
 
-export type BookingStatus = "confirmed" | "completed" | "cancelled";
+export type BookingStatus = "pending" | "confirmed" | "completed" | "cancelled";
 
 export type Booking = {
   id: string;
@@ -266,6 +328,8 @@ export type Booking = {
   sourceId?: string;
   publisherId?: string;
   publishCode?: string;
+  userId?: string;
+  hostId?: string;
 };
 
 export type PermitApplication = {
@@ -284,6 +348,7 @@ export type SavedItinerary = {
   placeIds: string[];
   createdAt: string;
   userId: string;
+  notes?: string;
 };
 
 export type CommissionEntry = {
@@ -343,7 +408,17 @@ export function subscribeDemoStore(cb: () => void): () => void {
 /* --- auth --- */
 
 export function getUser(): DemoUser | null {
-  return readJson<DemoUser | null>(KEYS.user, null);
+  const user = readJson<DemoUser | null>(KEYS.user, null);
+  if (!user) return null;
+  const o = getProfileOverride(user.id);
+  return {
+    ...user,
+    name: o.name ?? user.name,
+    bio: o.bio ?? user.bio,
+    avatar: o.avatar ?? user.avatar,
+    cover: o.cover ?? user.cover,
+    subdomain: o.subdomain ?? user.subdomain,
+  };
 }
 
 export function listDemoAccounts(): DemoAccount[] {
@@ -365,17 +440,19 @@ export function signIn(name: string, email: string): Promise<DemoUser> {
 export function signInDemo(idOrEmail: string, password: string): Promise<DemoUser> {
   const acc = findAccount(idOrEmail, password);
   if (!acc) return Promise.reject(new Error("Invalid id or password"));
+  const merged = mergeAccountProfile(acc);
   const user: DemoUser = {
-    id: acc.id,
-    name: acc.name,
-    email: acc.email,
-    type: acc.type,
-    handle: acc.handle,
-    avatar: acc.avatar,
-    verified: acc.verified,
-    bio: acc.bio,
-    slug: acc.slug,
-    subdomain: acc.subdomain,
+    id: merged.id,
+    name: merged.name,
+    email: merged.email,
+    type: merged.type,
+    handle: merged.handle,
+    avatar: merged.avatar,
+    verified: merged.verified,
+    bio: merged.bio,
+    cover: merged.cover,
+    slug: merged.slug,
+    subdomain: merged.subdomain,
   };
   writeJson(KEYS.user, user);
   return simulate(user, 400);
@@ -434,7 +511,7 @@ export function clearCart() {
   writeJson(KEYS.cart, []);
 }
 
-export function saveItinerary(title: string): Promise<SavedItinerary> {
+export function saveItinerary(title: string, notes?: string): Promise<SavedItinerary> {
   const user = getUser();
   if (!user) return Promise.reject(new Error("Sign in required"));
   const placeIds = getCart();
@@ -443,25 +520,72 @@ export function saveItinerary(title: string): Promise<SavedItinerary> {
     id: refCode("ITIN"),
     title: title.trim() || "My itinerary",
     placeIds,
+    notes: notes ?? "",
     createdAt: new Date().toISOString(),
     userId: user.id,
   };
-  writeJson(KEYS.savedItineraries, [itin, ...listSavedItineraries()]);
+  writeJson(KEYS.savedItineraries, [itin, ...readJson<SavedItinerary[]>(KEYS.savedItineraries, [])]);
   return simulate(itin, 500);
+}
+
+function ensureTravelerSavedSeeds(userId: string) {
+  const all = readJson<SavedItinerary[]>(KEYS.savedItineraries, []);
+  if (all.some((i) => i.userId === userId)) return;
+  const seeds: SavedItinerary[] = PLACE_CLIPS.slice(0, 5).map((c, i) => ({
+    id: `ITIN-SEED-${userId}-${i + 1}`,
+    title: `${["Monsoon", "Ridge", "Valley", "Falls", "Border"][i]} draft · ${c.place}`,
+    placeIds: PLACE_CLIPS.slice(i, i + 3).map((p) => p.id),
+    notes: `Demo saved route starting at ${c.place}. Edit notes anytime.`,
+    createdAt: new Date(Date.now() - 86400000 * (i + 2)).toISOString(),
+    userId,
+  }));
+  writeJson(KEYS.savedItineraries, [...seeds, ...all]);
 }
 
 export function listSavedItineraries(): SavedItinerary[] {
   const user = getUser();
+  if (user) ensureTravelerSavedSeeds(user.id);
   const all = readJson<SavedItinerary[]>(KEYS.savedItineraries, []);
   if (!user) return all;
   return all.filter((i) => i.userId === user.id);
 }
 
-/* --- bookings --- */
-
-export function listBookings(): Booking[] {
-  return ensureSeedBookings();
+export function updateSavedItinerary(
+  id: string,
+  patch: Partial<Pick<SavedItinerary, "title" | "notes" | "placeIds">>,
+): SavedItinerary {
+  const all = readJson<SavedItinerary[]>(KEYS.savedItineraries, []);
+  const idx = all.findIndex((i) => i.id === id);
+  if (idx < 0) throw new Error("Itinerary not found");
+  const updated = { ...all[idx], ...patch };
+  const next = [...all];
+  next[idx] = updated;
+  writeJson(KEYS.savedItineraries, next);
+  return updated;
 }
+
+export function deleteSavedItinerary(id: string): void {
+  writeJson(
+    KEYS.savedItineraries,
+    readJson<SavedItinerary[]>(KEYS.savedItineraries, []).filter((i) => i.id !== id),
+  );
+}
+
+export function duplicateSavedItinerary(id: string): SavedItinerary {
+  const all = readJson<SavedItinerary[]>(KEYS.savedItineraries, []);
+  const src = all.find((i) => i.id === id);
+  if (!src) throw new Error("Itinerary not found");
+  const copy: SavedItinerary = {
+    ...src,
+    id: refCode("ITIN"),
+    title: `${src.title} (copy)`,
+    createdAt: new Date().toISOString(),
+  };
+  writeJson(KEYS.savedItineraries, [copy, ...all]);
+  return copy;
+}
+
+/* --- bookings --- */
 
 function ensureSeedBookings(): Booking[] {
   if (typeof window === "undefined") return [];
@@ -480,6 +604,7 @@ function ensureSeedBookings(): Booking[] {
       sourceId: "pub-1",
       publisherId: "traveler1",
       publishCode: "NN-MEGH-804",
+      userId: "traveler1",
     },
     {
       id: "NN-SEED02",
@@ -491,44 +616,100 @@ function ensureSeedBookings(): Booking[] {
       createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
       status: "confirmed",
       sourceId: "pkg-tawang-circuit",
+      userId: "traveler1",
+    },
+    {
+      id: "NN-SEED03",
+      kind: "stay",
+      title: "Pending · Cloud Homestay hold",
+      detail: "Awaiting host confirmation",
+      amount: 6400,
+      travellers: 2,
+      createdAt: new Date(Date.now() - 86400000).toISOString(),
+      status: "pending",
+      sourceId: "stay-demo",
+      userId: "traveler1",
+      hostId: "host1",
+    },
+    {
+      id: "NN-SEED04",
+      kind: "host-trip",
+      title: "Guest referral · 48h Sohra sprint",
+      detail: "Booked via host referral code",
+      amount: 5200,
+      travellers: 2,
+      createdAt: new Date(Date.now() - 86400000 * 4).toISOString(),
+      status: "confirmed",
+      sourceId: "ht-seed",
+      userId: "traveler2",
+      hostId: "host1",
+    },
+    {
+      id: "NN-SEED05",
+      kind: "freelance",
+      title: "Seven Sisters Sampler",
+      detail: "Planner booking · awaiting travel",
+      amount: 42000,
+      travellers: 3,
+      createdAt: new Date(Date.now() - 86400000 * 6).toISOString(),
+      status: "confirmed",
+      sourceId: "fp-seed",
+      userId: "traveler2",
+      publisherId: "planner1",
     },
   ];
   writeJson(KEYS.bookings, seed);
   return seed;
 }
 
+export function listBookings(filter?: {
+  userId?: string;
+  hostId?: string;
+  kind?: Booking["kind"];
+}): Booking[] {
+  let list = ensureSeedBookings();
+  if (filter?.userId) list = list.filter((b) => !b.userId || b.userId === filter.userId);
+  if (filter?.hostId) list = list.filter((b) => b.hostId === filter.hostId);
+  if (filter?.kind) list = list.filter((b) => b.kind === filter.kind);
+  return list;
+}
+
 export function createBooking(
   input: Omit<Booking, "id" | "createdAt" | "status"> & { status?: BookingStatus },
 ): Promise<Booking> {
+  const user = getUser();
   const booking: Booking = {
     ...input,
+    userId: input.userId ?? user?.id,
     status: input.status ?? "confirmed",
     id: refCode("NN"),
     createdAt: new Date().toISOString(),
   };
-  writeJson(KEYS.bookings, [booking, ...listBookings()]);
+  writeJson(KEYS.bookings, [booking, ...ensureSeedBookings()]);
   return simulate(booking, 600);
 }
 
-export function completeBooking(bookingId: string): Promise<Booking> {
-  const list = listBookings();
+export function setBookingStatus(bookingId: string, status: BookingStatus): Promise<Booking> {
+  const list = ensureSeedBookings();
   const idx = list.findIndex((b) => b.id === bookingId);
   if (idx < 0) return Promise.reject(new Error("Booking not found"));
-  const updated = { ...list[idx], status: "completed" as const };
+  const updated = { ...list[idx], status };
   const next = [...list];
   next[idx] = updated;
   writeJson(KEYS.bookings, next);
-
-  if (updated.publisherId && updated.publisherId !== getUser()?.id) {
-    const amount = Math.round(updated.amount * 0.08);
+  if (status === "completed" && updated.publisherId && updated.publisherId !== getUser()?.id) {
     addCommission({
       beneficiaryId: updated.publisherId,
       fromBookingId: updated.id,
       title: `Commission · ${updated.title}`,
-      amount,
+      amount: Math.round(updated.amount * 0.08),
     });
   }
-  return simulate(updated, 400);
+  return simulate(updated, 300);
+}
+
+export function completeBooking(bookingId: string): Promise<Booking> {
+  return setBookingStatus(bookingId, "completed");
 }
 
 export function publishItineraryFromBooking(
@@ -623,8 +804,7 @@ export function publishCreatorPlan(input: {
     .filter(Boolean) as PlaceClip[];
   const use = clips.length ? clips : PLACE_CLIPS.slice(0, 3);
 
-  const plan: CreatorPlan = {
-    id: refCode("CP"),
+  const plan = upsertCreatorPlan({
     creatorId: user.id,
     title: input.title,
     cover: use[0].poster,
@@ -636,35 +816,34 @@ export function publishCreatorPlan(input: {
     rating: 5,
     experience: input.experience,
     stops: use.map((c, i) => ({ place: c.place, day: i + 1, note: c.blurb, img: c.poster })),
-  };
-  writeJson(KEYS.creatorPlansExtra, [plan, ...readJson<CreatorPlan[]>(KEYS.creatorPlansExtra, [])]);
+    published: true,
+  });
 
-  const published: PublishedItinerary = {
-    id: refCode("PUB"),
-    code: generatePublishCode(input.title),
-    title: input.title,
-    publisherId: user.id,
-    publisherName: user.name,
-    publisherType:
-      user.type === "admin" ? "creator" : (user.type as PublishedItinerary["publisherType"]),
-    days: plan.days,
-    priceFrom: plan.priceFrom,
-    rating: 5,
-    likes: 0,
-    reviews: 0,
-    cover: plan.cover,
-    photos: plan.photos,
-    videos: plan.videos,
-    stops: plan.stops,
-    experience: input.experience,
-    commissionPct: 12,
-    fromCompletedBooking: false,
-  };
-  writeJson(KEYS.publishedExtra, [
-    published,
-    ...readJson<PublishedItinerary[]>(KEYS.publishedExtra, []),
-  ]);
-  return simulate({ plan, published }, 600);
+  return fetchPublishedItineraries().then((list) => {
+    const published =
+      list.find((p) => p.id === `from-${plan.id}` || p.code === plan.publishCode) ??
+      ({
+        id: `from-${plan.id}`,
+        code: plan.publishCode ?? generatePublishCode(input.title),
+        title: plan.title,
+        publisherId: user.id,
+        publisherName: user.name,
+        publisherType: "creator" as const,
+        days: plan.days,
+        priceFrom: plan.priceFrom,
+        rating: 5,
+        likes: 0,
+        reviews: 0,
+        cover: plan.cover,
+        photos: plan.photos,
+        videos: plan.videos,
+        stops: plan.stops,
+        experience: input.experience,
+        commissionPct: 12,
+        fromCompletedBooking: false,
+      } satisfies PublishedItinerary);
+    return simulate({ plan, published }, 600);
+  });
 }
 
 function addCommission(input: Omit<CommissionEntry, "id" | "createdAt">) {
@@ -816,3 +995,38 @@ export function dashboardPathFor(type: AccountType): string {
 }
 
 export { SAMPLE_VIDEOS, PLACE_CLIPS, DEMO_ACCOUNTS };
+
+/* CMS re-exports for dashboards */
+export {
+  adminCmsSnapshot,
+  deleteCityItem,
+  deleteCreatorPlan,
+  deleteFreelancePlan,
+  deleteHostHome,
+  deleteHostTrip,
+  getEchoSosEnabled,
+  getPlannerSettings,
+  getProfileOverride,
+  listCityItems,
+  listAllCreatorPlans,
+  listAllFreelancePlans,
+  listAllHostHomes,
+  listAllHostTrips,
+  listCreatorPlansCms,
+  listFreelancePlansCms,
+  listHostHomesCms,
+  listHostTripsCms,
+  regenerateTripReferral,
+  setCreatorPlanPublished,
+  setEchoSosEnabled,
+  setFreelancePlanPublished,
+  setHostHomeListed,
+  updatePlannerSettings,
+  updateProfile,
+  upsertCityItem,
+  upsertCreatorPlan,
+  upsertFreelancePlan,
+  upsertHostHome,
+  upsertHostTrip,
+};
+export type { HostCityItem, PlannerSettings, ProfileOverride };

@@ -5,7 +5,7 @@ import { PageHero, SiteShell } from "@/components/site/SiteShell";
 import { BookingDialog, type BookingDraft } from "@/components/site/BookingDialog";
 import { travelPackages as catalogPackages, type TravelPackage } from "@/data/catalog";
 import { PUBLISHED_ITINERARIES, type PublishedItinerary } from "@/data/demoUniverse";
-import { fetchPackages, fetchPublishedItineraries, formatINR } from "@/lib/demoApi";
+import { fetchPackages, fetchPublishedItineraries, formatINR, subscribeDemoStore } from "@/lib/demoApi";
 import { GREEN, GREEN_LIGHT, RED } from "@/lib/brand";
 
 export const Route = createFileRoute("/packages")({
@@ -30,14 +30,19 @@ function PackagesPage() {
 
   useEffect(() => {
     let alive = true;
-    fetchPackages().then((list) => {
-      if (alive) setPackages(list);
-    });
-    fetchPublishedItineraries().then((list) => {
-      if (alive) setPublished(list);
-    });
+    const load = () => {
+      fetchPackages().then((list) => {
+        if (alive) setPackages(list);
+      });
+      fetchPublishedItineraries().then((list) => {
+        if (alive) setPublished(list);
+      });
+    };
+    load();
+    const unsub = subscribeDemoStore(load);
     return () => {
       alive = false;
+      unsub();
     };
   }, []);
 

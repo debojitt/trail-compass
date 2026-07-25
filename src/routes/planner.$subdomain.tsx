@@ -4,7 +4,7 @@ import { BadgeCheck, Shield } from "lucide-react";
 import { SiteShell } from "@/components/site/SiteShell";
 import { BookingDialog, type BookingDraft } from "@/components/site/BookingDialog";
 import type { DemoAccount, FreelancePlan } from "@/data/demoUniverse";
-import { fetchFreelancePlans, fetchPlannerBySubdomain, formatINR } from "@/lib/demoApi";
+import { fetchFreelancePlans, fetchPlannerBySubdomain, formatINR, getPlannerSettings, subscribeDemoStore } from "@/lib/demoApi";
 import { GREEN, RED } from "@/lib/brand";
 
 export const Route = createFileRoute("/planner/$subdomain")({
@@ -18,13 +18,28 @@ function PlannerPublicPage() {
   const { subdomain } = Route.useParams();
   const [planner, setPlanner] = useState<DemoAccount | null | undefined>(undefined);
   const [plans, setPlans] = useState<FreelancePlan[]>([]);
+  const [brandNote, setBrandNote] = useState("");
   const [draft, setDraft] = useState<BookingDraft | null>(null);
 
   useEffect(() => {
-    fetchPlannerBySubdomain(subdomain).then((p) => {
-      setPlanner(p ?? null);
-      if (p) fetchFreelancePlans(p.id).then(setPlans);
-    });
+    let alive = true;
+    const load = () => {
+      fetchPlannerBySubdomain(subdomain).then((p) => {
+        if (!alive) return;
+        setPlanner(p ?? null);
+        if (p) {
+          fetchFreelancePlans(p.id, { publishedOnly: true }).then((list) => alive && setPlans(list));
+          const s = getPlannerSettings(p.id, subdomain);
+          setBrandNote(s.accentNote);
+        }
+      });
+    };
+    load();
+    const unsub = subscribeDemoStore(load);
+    return () => {
+      alive = false;
+      unsub();
+    };
   }, [subdomain]);
 
   if (planner === undefined) {
@@ -56,6 +71,7 @@ function PlannerPublicPage() {
             {planner.verified && <BadgeCheck size={20} style={{ color: GREEN }} />}
           </h1>
           <p className="text-[13px] text-neutral-500">{planner.bio}</p>
+          {brandNote && <p className="mt-1 text-[12px] font-medium text-neutral-500">{brandNote}</p>}
           <p className="mt-1 flex items-center gap-1 text-[12px] font-semibold" style={{ color: GREEN }}>
             <Shield size={12} /> Echo SOS always on · Northnest fulfills 100%
           </p>

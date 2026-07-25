@@ -3,7 +3,7 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import { BadgeCheck, Heart } from "lucide-react";
 import { SiteShell } from "@/components/site/SiteShell";
 import type { CreatorPlan, DemoAccount } from "@/data/demoUniverse";
-import { fetchCreatorByHandle, fetchCreatorPlans, formatINR } from "@/lib/demoApi";
+import { fetchCreatorByHandle, fetchCreatorPlans, formatINR, subscribeDemoStore } from "@/lib/demoApi";
 import { GREEN, RED } from "@/lib/brand";
 
 export const Route = createFileRoute("/creator/$handle")({
@@ -17,10 +17,26 @@ function CreatorProfilePage() {
   const [plans, setPlans] = useState<CreatorPlan[]>([]);
 
   useEffect(() => {
-    fetchCreatorByHandle(handle).then((c) => {
-      setCreator(c ?? null);
-      if (c) fetchCreatorPlans(c.id).then(setPlans);
-    });
+    let alive = true;
+    const load = () => {
+      fetchCreatorByHandle(handle).then((c) => {
+        if (!alive) return;
+        setCreator(c ?? null);
+        if (c) {
+          fetchCreatorPlans(c.id, { publishedOnly: true }).then((list) => {
+            if (alive) setPlans(list);
+          });
+        } else {
+          setPlans([]);
+        }
+      });
+    };
+    load();
+    const unsub = subscribeDemoStore(load);
+    return () => {
+      alive = false;
+      unsub();
+    };
   }, [handle]);
 
   if (creator === undefined) {
@@ -43,6 +59,11 @@ function CreatorProfilePage() {
 
   return (
     <SiteShell>
+      {creator.cover && (
+        <div className="mb-6 overflow-hidden rounded-3xl" style={{ aspectRatio: "3/1" }}>
+          <img src={creator.cover} alt="" className="h-full w-full object-cover" />
+        </div>
+      )}
       <div className="flex flex-col items-center text-center">
         <img src={creator.avatar} alt="" className="h-28 w-28 rounded-full object-cover ring-4 ring-white shadow-lg" />
         <h1 className="mt-4 flex items-center gap-2 text-[26px] font-bold tracking-tight">

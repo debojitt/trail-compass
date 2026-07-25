@@ -1,23 +1,40 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { PageHero, SiteShell } from "@/components/site/SiteShell";
 import { useDemoUser } from "@/components/site/useDemoUser";
 import {
+  ActionBtn,
+  CmsDrawer,
+  CmsEmpty,
+  CmsSection,
+  Field,
+  StatusPill,
+  fieldClass,
+} from "@/components/site/CmsKit";
+import {
   PLACE_CLIPS,
   completeBooking,
   createGroupInvite,
+  deleteSavedItinerary,
+  duplicateSavedItinerary,
+  fetchGroupInvites,
   formatINR,
+  getCart,
   getUser,
   listBookings,
   listCommissions,
   listSavedItineraries,
   publishItineraryFromBooking,
+  setBookingStatus,
   subscribeDemoStore,
+  updateProfile,
+  updateSavedItinerary,
   type Booking,
   type CommissionEntry,
   type SavedItinerary,
 } from "@/lib/demoApi";
-import { GREEN, GREEN_LIGHT, RED } from "@/lib/brand";
+import type { GroupInvite } from "@/data/demoUniverse";
+import { GREEN, RED } from "@/lib/brand";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/traveler")({
@@ -30,21 +47,43 @@ function TravelerDashboard() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [saved, setSaved] = useState<SavedItinerary[]>([]);
   const [comms, setComms] = useState<CommissionEntry[]>([]);
+  const [cart, setCart] = useState<string[]>([]);
+  const [invites, setInvites] = useState<GroupInvite[]>([]);
+  const [edit, setEdit] = useState<SavedItinerary | null>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [pubTitle, setPubTitle] = useState("");
   const [pubExp, setPubExp] = useState("");
   const [publishing, setPublishing] = useState<string | null>(null);
+  const [name, setName] = useState("");
+  const [bio, setBio] = useState("");
+  const [avatar, setAvatar] = useState("");
 
   const refresh = () => {
-    setBookings(listBookings());
-    setSaved(listSavedItineraries());
     const u = getUser();
-    if (u) setComms(listCommissions(u.id));
+    setBookings(listBookings(u ? { userId: u.id } : undefined));
+    setSaved(listSavedItineraries());
+    setCart(getCart());
+    if (u) {
+      setComms(listCommissions(u.id));
+      setName(u.name);
+      setBio(u.bio ?? "");
+      setAvatar(u.avatar);
+    }
+    fetchGroupInvites().then((list) => {
+      const uid = getUser()?.id;
+      setInvites(uid ? list.filter((g) => g.plannerId === uid) : list.slice(0, 3));
+    });
   };
 
   useEffect(() => {
     refresh();
     return subscribeDemoStore(refresh);
   }, []);
+
+  const cartPlaces = useMemo(
+    () => cart.map((id) => PLACE_CLIPS.find((c) => c.id === id)).filter(Boolean),
+    [cart],
+  );
 
   if (!user) {
     return (
@@ -60,69 +99,104 @@ function TravelerDashboard() {
   return (
     <SiteShell>
       <PageHero
-        eyebrow="Traveler dashboard"
+        eyebrow="Traveler CMS"
         title={`Hey, ${user.name.split(" ")[0]}`}
-        sub="Build itineraries, book trips, complete them, then publish a special code. Earn commission when others complete your published routes."
+        sub="Manage itineraries, bookings, crew invites, and profile — everything saves to this browser."
       />
 
       <div className="mb-8 flex flex-wrap gap-3">
-        <Link
-          to="/builder"
-          className="rounded-full px-5 py-2.5 text-[13px] font-bold text-white"
-          style={{ background: RED }}
-        >
+        <Link to="/builder" className="rounded-full px-5 py-2.5 text-[13px] font-bold text-white" style={{ background: RED }}>
           Open Shorts builder
         </Link>
-        <Link
-          to="/invite"
-          className="rounded-full border px-5 py-2.5 text-[13px] font-bold"
-          style={{ borderColor: "rgba(0,0,0,0.12)" }}
-        >
-          Invite Crew
-        </Link>
+        <ActionBtn variant="ghost" onClick={() => setProfileOpen(true)}>
+          Edit profile
+        </ActionBtn>
         <Link to="/packages" className="rounded-full border px-5 py-2.5 text-[13px] font-bold" style={{ borderColor: "rgba(0,0,0,0.12)" }}>
-          Published itineraries
+          Browse published codes
         </Link>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-2">
-        <section
-          className="rounded-3xl border p-5"
-          style={{ borderColor: "rgba(0,0,0,0.07)" }}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <CmsSection
+          title="My itineraries"
+          sub="Edit name/notes, duplicate, or delete. Seeded with demo drafts."
         >
-          <h2 className="text-[17px] font-bold">Saved itineraries</h2>
-          <ul className="mt-4 space-y-3">
-            {saved.length === 0 && (
-              <li className="text-[13px] text-neutral-400">None yet — swipe places in the builder.</li>
-            )}
-            {saved.map((s) => (
-              <li key={s.id} className="rounded-2xl bg-neutral-50 p-3">
-                <p className="text-[14px] font-bold">{s.title}</p>
-                <p className="text-[11px] text-neutral-500">
-                  {s.id} · {s.placeIds.length} stops ·{" "}
-                  {s.placeIds
-                    .map((id) => PLACE_CLIPS.find((c) => c.id === id)?.place)
-                    .filter(Boolean)
-                    .slice(0, 3)
-                    .join(", ")}
-                </p>
-              </li>
-            ))}
-          </ul>
-        </section>
+          {saved.length === 0 ? (
+            <CmsEmpty label="No itineraries yet." cta="Open builder" onClick={() => (window.location.href = "/builder")} />
+          ) : (
+            <ul className="space-y-3">
+              {saved.map((s) => (
+                <li key={s.id} className="rounded-2xl bg-neutral-50 p-3">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div>
+                      <p className="text-[14px] font-bold">{s.title}</p>
+                      <p className="text-[11px] text-neutral-500">
+                        {s.placeIds.length} stops ·{" "}
+                        {s.placeIds
+                          .map((id) => PLACE_CLIPS.find((c) => c.id === id)?.place)
+                          .filter(Boolean)
+                          .slice(0, 3)
+                          .join(", ")}
+                      </p>
+                      {s.notes && <p className="mt-1 text-[12px] text-neutral-600">{s.notes}</p>}
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      <ActionBtn onClick={() => setEdit(s)}>Edit</ActionBtn>
+                      <ActionBtn
+                        onClick={() => {
+                          duplicateSavedItinerary(s.id);
+                          toast.success("Duplicated");
+                          refresh();
+                        }}
+                      >
+                        Duplicate
+                      </ActionBtn>
+                      <ActionBtn
+                        variant="danger"
+                        onClick={() => {
+                          deleteSavedItinerary(s.id);
+                          toast.success("Deleted");
+                          refresh();
+                        }}
+                      >
+                        Delete
+                      </ActionBtn>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CmsSection>
 
-        <section
-          className="rounded-3xl border p-5"
-          style={{ borderColor: "rgba(0,0,0,0.07)" }}
-        >
-          <h2 className="text-[17px] font-bold">Commission earned</h2>
-          <p className="mt-1 text-[12px] text-neutral-500">
-            When another traveler books your published itinerary and completes it.
-          </p>
-          <ul className="mt-4 space-y-2">
-            {comms.length === 0 && (
-              <li className="text-[13px] text-neutral-400">No commissions yet.</li>
-            )}
+        <CmsSection title="Saved stops / cart" sub="From the Shorts builder — persists in localStorage.">
+          {cartPlaces.length === 0 ? (
+            <p className="text-[13px] text-neutral-400">Cart empty — swipe places in the builder.</p>
+          ) : (
+            <ul className="space-y-2">
+              {cartPlaces.map((c) =>
+                c ? (
+                  <li key={c.id} className="flex items-center gap-3 rounded-2xl bg-neutral-50 p-2">
+                    <img src={c.poster} alt="" className="h-12 w-12 rounded-xl object-cover" />
+                    <div>
+                      <p className="text-[13px] font-bold">{c.place}</p>
+                      <p className="text-[11px] text-neutral-500">{c.state}</p>
+                    </div>
+                  </li>
+                ) : null,
+              )}
+            </ul>
+          )}
+          <Link to="/builder" className="mt-3 inline-block text-[13px] font-semibold" style={{ color: RED }}>
+            Manage in builder →
+          </Link>
+        </CmsSection>
+      </div>
+
+      <div className="mt-6">
+        <CmsSection title="Commission earned" sub="When others complete bookings of your published itineraries.">
+          <ul className="space-y-2">
+            {comms.length === 0 && <li className="text-[13px] text-neutral-400">No commissions yet.</li>}
             {comms.map((c) => (
               <li key={c.id} className="flex justify-between rounded-2xl bg-neutral-50 px-3 py-2 text-[13px]">
                 <span>{c.title}</span>
@@ -132,134 +206,235 @@ function TravelerDashboard() {
               </li>
             ))}
           </ul>
-        </section>
+        </CmsSection>
       </div>
 
-      <section className="mt-8 rounded-3xl border p-5" style={{ borderColor: "rgba(0,0,0,0.07)" }}>
-        <h2 className="text-[17px] font-bold">Bookings</h2>
-        <p className="mt-1 text-[12px] text-neutral-500">
-          Mark COMPLETED to unlock publishing a special code (codes only generate after completed status).
-        </p>
-        <div className="mt-4 space-y-4">
-          {bookings.map((b) => (
-            <div key={b.id} className="rounded-2xl border p-4" style={{ borderColor: "rgba(0,0,0,0.06)" }}>
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="text-[15px] font-bold">{b.title}</p>
-                  <p className="text-[12px] text-neutral-500">
-                    {b.id} · {b.detail} · {formatINR(b.amount)}
-                  </p>
-                  <span
-                    className="mt-2 inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase"
-                    style={{
-                      background: b.status === "completed" ? GREEN_LIGHT : "#f5f5f5",
-                      color: b.status === "completed" ? GREEN : "#666",
-                    }}
-                  >
-                    {b.status}
-                  </span>
-                  {b.publishCode && (
-                    <Link
-                      to="/itinerary/$code"
-                      params={{ code: b.publishCode }}
-                      className="ml-2 font-mono text-[12px] font-bold"
-                      style={{ color: RED }}
-                    >
-                      {b.publishCode}
-                    </Link>
-                  )}
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {b.status === "confirmed" && (
-                    <button
-                      onClick={async () => {
-                        await completeBooking(b.id);
-                        toast.success("Marked COMPLETED — you can publish now");
-                        refresh();
-                      }}
-                      className="rounded-full px-4 py-1.5 text-[12px] font-bold text-white"
-                      style={{ background: GREEN }}
-                    >
-                      Mark completed
-                    </button>
-                  )}
-                  {b.status === "completed" && !b.publishCode && (
-                    <button
-                      onClick={() => {
-                        setPublishing(b.id);
-                        setPubTitle(b.title);
-                        setPubExp("My experience videos and photos from this trip.");
-                      }}
-                      className="rounded-full px-4 py-1.5 text-[12px] font-bold text-white"
-                      style={{ background: RED }}
-                    >
-                      Publish itinerary
-                    </button>
-                  )}
-                </div>
-              </div>
-              {publishing === b.id && (
-                <div className="mt-4 space-y-2 rounded-2xl bg-neutral-50 p-3">
-                  <input
-                    value={pubTitle}
-                    onChange={(e) => setPubTitle(e.target.value)}
-                    className="w-full rounded-xl border px-3 py-2 text-[13px]"
-                    placeholder="Title"
-                  />
-                  <textarea
-                    value={pubExp}
-                    onChange={(e) => setPubExp(e.target.value)}
-                    className="w-full rounded-xl border px-3 py-2 text-[13px]"
-                    rows={2}
-                    placeholder="Experience notes"
-                  />
-                  <button
-                    onClick={async () => {
-                      try {
-                        const pub = await publishItineraryFromBooking(b.id, {
-                          title: pubTitle,
-                          experience: pubExp,
-                        });
-                        toast.success(`Published as ${pub.code}`);
-                        setPublishing(null);
-                        refresh();
-                      } catch (e) {
-                        toast.error(e instanceof Error ? e.message : "Publish failed");
-                      }
-                    }}
-                    className="rounded-full px-4 py-2 text-[12px] font-bold text-white"
-                    style={{ background: RED }}
-                  >
-                    Generate code & publish
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="mt-8 rounded-3xl border p-5" style={{ borderColor: "rgba(0,0,0,0.07)" }}>
-        <h2 className="text-[17px] font-bold">Invite Crew (multiplayer)</h2>
-        <p className="mt-1 text-[13px] text-neutral-500">
-          Share a link — each member claims and pays their own seat (individual EMI). Nobody waits for the whole group.
-        </p>
-        <button
-          onClick={async () => {
-            const inv = await createGroupInvite({
-              title: `${user.name.split(" ")[0]}'s Crew Trip`,
-              pricePerSeat: 18400,
-              seatCount: 6,
-            });
-            toast.success(`Invite ${inv.code} created`);
-            window.location.href = `/invite/${inv.code}`;
-          }}
-          className="mt-4 rounded-full px-5 py-2.5 text-[13px] font-bold text-white"
-          style={{ background: RED }}
+      <div className="mt-6">
+        <CmsSection
+          title="Bookings"
+          sub="Statuses: PENDING → CONFIRMED → COMPLETED. Publish codes unlock only after COMPLETED."
         >
-          Create Invite Crew link
-        </button>
-      </section>
+          <div className="space-y-4">
+            {bookings.map((b) => (
+              <div key={b.id} className="rounded-2xl border p-4" style={{ borderColor: "rgba(0,0,0,0.06)" }}>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-[15px] font-bold">{b.title}</p>
+                    <p className="text-[12px] text-neutral-500">
+                      {b.id} · {b.detail} · {formatINR(b.amount)}
+                    </p>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <StatusPill
+                        tone={
+                          b.status === "completed"
+                            ? "green"
+                            : b.status === "pending"
+                              ? "amber"
+                              : b.status === "cancelled"
+                                ? "red"
+                                : "gray"
+                        }
+                      >
+                        {b.status}
+                      </StatusPill>
+                      {b.publishCode && (
+                        <Link
+                          to="/itinerary/$code"
+                          params={{ code: b.publishCode }}
+                          className="font-mono text-[12px] font-bold"
+                          style={{ color: RED }}
+                        >
+                          {b.publishCode}
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {b.status === "pending" && (
+                      <ActionBtn
+                        variant="success"
+                        onClick={async () => {
+                          await setBookingStatus(b.id, "confirmed");
+                          toast.success("Confirmed");
+                          refresh();
+                        }}
+                      >
+                        Confirm
+                      </ActionBtn>
+                    )}
+                    {b.status === "confirmed" && (
+                      <ActionBtn
+                        variant="success"
+                        onClick={async () => {
+                          await completeBooking(b.id);
+                          toast.success("Marked COMPLETED");
+                          refresh();
+                        }}
+                      >
+                        Mark complete
+                      </ActionBtn>
+                    )}
+                    {b.status === "completed" && !b.publishCode && (
+                      <ActionBtn
+                        variant="primary"
+                        onClick={() => {
+                          setPublishing(b.id);
+                          setPubTitle(b.title);
+                          setPubExp("My experience videos and photos from this trip.");
+                        }}
+                      >
+                        Publish with code
+                      </ActionBtn>
+                    )}
+                  </div>
+                </div>
+                {publishing === b.id && (
+                  <div className="mt-4 space-y-2 rounded-2xl bg-neutral-50 p-3">
+                    <input value={pubTitle} onChange={(e) => setPubTitle(e.target.value)} className={fieldClass} placeholder="Title" />
+                    <textarea value={pubExp} onChange={(e) => setPubExp(e.target.value)} className={fieldClass} rows={2} placeholder="Experience notes" />
+                    <ActionBtn
+                      variant="primary"
+                      onClick={async () => {
+                        try {
+                          const pub = await publishItineraryFromBooking(b.id, {
+                            title: pubTitle,
+                            experience: pubExp,
+                          });
+                          toast.success(`Published as ${pub.code}`);
+                          setPublishing(null);
+                          refresh();
+                        } catch (e) {
+                          toast.error(e instanceof Error ? e.message : "Publish failed");
+                        }
+                      }}
+                    >
+                      Generate code & publish
+                    </ActionBtn>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </CmsSection>
+      </div>
+
+      <div className="mt-6">
+        <CmsSection
+          title="Invite Crew"
+          sub="Create a link from an itinerary idea; track seat payment / EMI status."
+          action={
+            <ActionBtn
+              variant="primary"
+              onClick={async () => {
+                const inv = await createGroupInvite({
+                  title: saved[0]?.title ?? `${user.name.split(" ")[0]}'s Crew Trip`,
+                  pricePerSeat: 18400,
+                  seatCount: 6,
+                });
+                toast.success(`Invite ${inv.code} created`);
+                window.location.href = `/invite/${inv.code}`;
+              }}
+            >
+              Create invite link
+            </ActionBtn>
+          }
+        >
+          {invites.length === 0 ? (
+            <p className="text-[13px] text-neutral-400">No crew invites yet.</p>
+          ) : (
+            <ul className="space-y-3">
+              {invites.map((g) => (
+                <li key={g.id} className="rounded-2xl bg-neutral-50 p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <p className="font-bold">{g.title}</p>
+                      <Link to="/invite/$code" params={{ code: g.code }} className="font-mono text-[12px] font-bold" style={{ color: RED }}>
+                        {g.code}
+                      </Link>
+                    </div>
+                    <p className="text-[12px] text-neutral-500">
+                      {g.seats.filter((s) => s.paid).length}/{g.seats.length} paid ·{" "}
+                      {g.seats.filter((s) => s.claimedBy).length} claimed
+                    </p>
+                  </div>
+                  <ul className="mt-2 grid gap-1 sm:grid-cols-2">
+                    {g.seats.map((s) => (
+                      <li key={s.id} className="flex justify-between text-[11px] text-neutral-600">
+                        <span>
+                          {s.label}: {s.claimedBy ?? "open"}
+                        </span>
+                        <StatusPill tone={s.paid ? "green" : s.claimedBy ? "amber" : "gray"}>
+                          {s.paid ? "paid" : s.emiPaid ? `EMI ${s.emiPaid}/4` : "unpaid"}
+                        </StatusPill>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CmsSection>
+      </div>
+
+      <CmsDrawer
+        open={!!edit}
+        title="Edit itinerary"
+        onClose={() => setEdit(null)}
+        footer={
+          <ActionBtn
+            variant="primary"
+            onClick={() => {
+              if (!edit) return;
+              updateSavedItinerary(edit.id, { title: edit.title, notes: edit.notes });
+              toast.success("Saved");
+              setEdit(null);
+              refresh();
+            }}
+          >
+            Save changes
+          </ActionBtn>
+        }
+      >
+        {edit && (
+          <>
+            <Field label="Name">
+              <input className={fieldClass} value={edit.title} onChange={(e) => setEdit({ ...edit, title: e.target.value })} />
+            </Field>
+            <Field label="Notes">
+              <textarea className={fieldClass} rows={4} value={edit.notes ?? ""} onChange={(e) => setEdit({ ...edit, notes: e.target.value })} />
+            </Field>
+          </>
+        )}
+      </CmsDrawer>
+
+      <CmsDrawer
+        open={profileOpen}
+        title="Edit profile"
+        onClose={() => setProfileOpen(false)}
+        footer={
+          <ActionBtn
+            variant="primary"
+            onClick={() => {
+              updateProfile(user.id, { name, bio, avatar });
+              toast.success("Profile updated");
+              setProfileOpen(false);
+              refresh();
+            }}
+          >
+            Save profile
+          </ActionBtn>
+        }
+      >
+        <Field label="Name">
+          <input className={fieldClass} value={name} onChange={(e) => setName(e.target.value)} />
+        </Field>
+        <Field label="Bio">
+          <textarea className={fieldClass} rows={3} value={bio} onChange={(e) => setBio(e.target.value)} />
+        </Field>
+        <Field label="Avatar URL">
+          <input className={fieldClass} value={avatar} onChange={(e) => setAvatar(e.target.value)} />
+        </Field>
+      </CmsDrawer>
     </SiteShell>
   );
 }
