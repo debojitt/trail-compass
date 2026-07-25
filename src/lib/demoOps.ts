@@ -6,8 +6,8 @@
 const CHANGE_EVENT = "nn-demo-store-change";
 
 const OPS_KEYS = {
-  enquiries: "nn-demo-enquiries-v1",
-  activity: "nn-demo-activity-v1",
+  enquiries: "nn-demo-enquiries-v2",
+  activity: "nn-demo-activity-v2",
   settings: "nn-demo-dash-settings-v1",
   suspended: "nn-demo-suspended-users-v1",
   listingFlags: "nn-demo-admin-listing-flags-v1",
@@ -180,7 +180,7 @@ function seedEnquiries(): Enquiry[] {
 function ensureEnquiries(): Enquiry[] {
   if (typeof window === "undefined") return seedEnquiries();
   const existing = readJson<Enquiry[] | null>(OPS_KEYS.enquiries, null);
-  if (existing) return existing;
+  if (existing && existing.length > 0) return existing;
   writeJson(OPS_KEYS.enquiries, seedEnquiries());
   return seedEnquiries();
 }
@@ -419,7 +419,7 @@ function seedActivity(): ActivityEvent[] {
 function ensureActivity(): ActivityEvent[] {
   if (typeof window === "undefined") return seedActivity();
   const existing = readJson<ActivityEvent[] | null>(OPS_KEYS.activity, null);
-  if (existing) return existing;
+  if (existing && existing.length > 0) return existing;
   writeJson(OPS_KEYS.activity, seedActivity());
   return seedActivity();
 }

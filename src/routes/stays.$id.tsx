@@ -49,7 +49,7 @@ function StayDetailPage() {
   const videos = stay.videos?.length ? stay.videos : [SAMPLE_VIDEOS[0], SAMPLE_VIDEOS[1]];
 
   return (
-    <SiteShell>
+    <SiteShell backFallback="/stays">
       <Link to="/stays" className="text-[13px] font-semibold text-neutral-500">
         ← All stays
       </Link>

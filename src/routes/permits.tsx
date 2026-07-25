@@ -79,6 +79,8 @@ function PermitsPage() {
         eyebrow="Permits"
         title="Filed before you fly."
         sub="Four of the eight states need an Inner Line Permit. Apply here and carry the QR — it works offline at every checkgate."
+        backFallback="/"
+        backLabel="Home"
       />
 
       <div className="grid gap-10 lg:grid-cols-[1.2fr_1fr]">

@@ -46,7 +46,10 @@ function ItineraryByCodePage() {
   }
 
   return (
-    <SiteShell>
+    <SiteShell backFallback="/packages">
+      <Link to="/packages" className="mb-3 inline-block text-[13px] font-semibold text-neutral-500">
+        ← Browse itineraries
+      </Link>
       <p className="font-mono text-[12px] font-bold" style={{ color: GREEN }}>
         {pub.code}
       </p>

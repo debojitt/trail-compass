@@ -46,6 +46,8 @@ function OffersPage() {
         eyebrow="Offers"
         title="Deals worth flying for."
         sub="Copy a code and apply it at the demo checkout. Codes marked AUTO apply themselves."
+        backFallback="/"
+        backLabel="Home"
       />
 
       {offers === null ? (

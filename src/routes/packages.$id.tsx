@@ -49,7 +49,7 @@ function PackageDetailPage() {
   const videos = pk.videos?.length ? pk.videos : [SAMPLE_VIDEOS[2], SAMPLE_VIDEOS[3]];
 
   return (
-    <SiteShell>
+    <SiteShell backFallback="/packages">
       <Link to="/packages" className="text-[13px] font-semibold text-neutral-500">
         ← All packages
       </Link>

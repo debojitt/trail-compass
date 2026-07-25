@@ -286,6 +286,52 @@
   transform: scaleX(1);
 }
 
+/* Curved places carousel — 3D stage */
+.nn-places-stage {
+  transform-style: preserve-3d;
+}
+.nn-places-card {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  will-change: transform, opacity;
+}
+
+/* Offers — small pocket cards + hover motion */
+.nn-offer-card {
+  perspective: 900px;
+}
+.nn-offer-card-inner {
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.nn-offer-card:hover .nn-offer-card-inner {
+  box-shadow: 0 22px 40px rgba(70, 40, 100, 0.18);
+}
+.nn-offer-sheet {
+  transition: transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.nn-offer-card:hover .nn-offer-sheet {
+  transform: translateY(-4px);
+}
+.nn-offer-pocket {
+  transition: transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.nn-offer-card:hover .nn-offer-pocket {
+  transform: translateY(4px) scale(1.02);
+}
+.nn-offer-thumb {
+  transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.nn-offer-card:hover .nn-offer-thumb {
+  transform: rotate(6deg) scale(1.08);
+}
+.nn-offer-thumb img {
+  transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.nn-offer-card:hover .nn-offer-thumb img {
+  transform: scale(1.12);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .nn-marquee-track {
     animation: none;
@@ -303,5 +349,16 @@
     opacity: 1;
     transform: none;
     transition: none;
+  }
+  .nn-places-card {
+    transition: none !important;
+  }
+  .nn-offer-card-inner,
+  .nn-offer-sheet,
+  .nn-offer-pocket,
+  .nn-offer-thumb,
+  .nn-offer-thumb img {
+    transition: none !important;
+    transform: none !important;
   }
 }

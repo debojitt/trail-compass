@@ -32,6 +32,8 @@ function CreatorsPage() {
         eyebrow="Creators"
         title="Search creators like Instagram"
         sub="Verified profiles with custom itinerary grids — not reels photos."
+        backFallback="/"
+        backLabel="Home"
       />
       <div
         className="mb-8 flex items-center gap-2 rounded-2xl border px-4 py-3"

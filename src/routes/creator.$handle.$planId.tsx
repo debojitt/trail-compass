@@ -41,7 +41,7 @@ function CreatorPlanPage() {
   }
 
   return (
-    <SiteShell>
+    <SiteShell backFallback={`/creator/${handle}`}>
       <Link to="/creator/$handle" params={{ handle }} className="text-[13px] font-semibold text-neutral-500">
         ← @{handle}
       </Link>

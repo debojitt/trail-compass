@@ -59,6 +59,8 @@ function PackagesPage() {
         eyebrow="Curated packages"
         title="Everything included. Even the permits."
         sub="Fixed departures plus traveler-published itineraries with special codes. Search a code to load a full route instantly."
+        backFallback="/"
+        backLabel="Home"
       />
 
       <form

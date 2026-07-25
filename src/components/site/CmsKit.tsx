@@ -1,8 +1,9 @@
-import { useState, type ReactNode } from "react";
-import { X } from "lucide-react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { ArrowLeft } from "lucide-react";
 import { GREEN, GREEN_LIGHT, RED } from "@/lib/brand";
 import type { ActivityEvent, Booking, BookingStatus, Enquiry } from "@/lib/demoApi";
 import { formatINR } from "@/lib/demoApi";
+import { openSignInDialog } from "@/lib/openSignIn";
 
 export function CmsSection({
   title,
@@ -138,16 +139,70 @@ export function CmsDrawer({
   children: ReactNode;
   footer?: ReactNode;
 }) {
+  const pushedRef = useRef(false);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  useEffect(() => {
+    if (!open) return;
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      // Prefer history.back so the pushState we added is cleared cleanly
+      if (pushedRef.current) {
+        window.history.back();
+      } else {
+        onCloseRef.current();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+
+    // So browser / header Back closes the panel instead of leaving the page
+    const marker = { nnDrawer: true };
+    window.history.pushState(marker, "");
+    pushedRef.current = true;
+    const onPop = () => {
+      pushedRef.current = false;
+      onCloseRef.current();
+    };
+    window.addEventListener("popstate", onPop);
+
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("popstate", onPop);
+      if (pushedRef.current) {
+        pushedRef.current = false;
+        window.history.back();
+      }
+    };
+  }, [open]);
+
   if (!open) return null;
+
+  const close = () => {
+    if (pushedRef.current) {
+      pushedRef.current = false;
+      window.history.back();
+      return;
+    }
+    onClose();
+  };
+
   return (
     <div className="fixed inset-0 z-[80] flex justify-end">
-      <button type="button" aria-label="Close drawer" className="absolute inset-0 bg-black/35" onClick={onClose} />
+      <button type="button" aria-label="Go back" className="absolute inset-0 bg-black/35" onClick={close} />
       <div className="relative flex h-full w-full max-w-md flex-col bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b px-5 py-4" style={{ borderColor: "rgba(0,0,0,0.06)" }}>
-          <h3 className="text-[16px] font-bold">{title}</h3>
-          <button type="button" onClick={onClose} className="rounded-full p-2 hover:bg-neutral-100">
-            <X size={18} />
+        <div className="flex items-center gap-3 border-b px-4 py-4" style={{ borderColor: "rgba(0,0,0,0.06)" }}>
+          <button
+            type="button"
+            onClick={close}
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-full border bg-neutral-50 px-3 py-1.5 text-[12px] font-bold hover:bg-neutral-100"
+            style={{ borderColor: "rgba(0,0,0,0.12)" }}
+            aria-label="Back"
+          >
+            <ArrowLeft size={14} /> Back
           </button>
+          <h3 className="min-w-0 flex-1 truncate text-[16px] font-bold">{title}</h3>
         </div>
         <div className="flex-1 space-y-3 overflow-y-auto px-5 py-4">{children}</div>
         {footer && (
@@ -192,6 +247,39 @@ export function InventoryTable({
         </tbody>
       </table>
     </div>
+  );
+}
+
+export function DashSignInGate({
+  roleLabel,
+  title,
+}: {
+  roleLabel: string;
+  title: string;
+}) {
+  return (
+    <div className="space-y-4 py-8">
+      <p className="text-[12px] font-bold uppercase tracking-wide text-neutral-400">{roleLabel}</p>
+      <h1 className="text-[28px] font-bold tracking-tight">{title}</h1>
+      <p className="max-w-md text-[14px] text-neutral-500">
+        Choose a matching account from Sign in to load seeded bookings, inventory, enquiries, and full
+        add/edit/delete controls.
+      </p>
+      <button
+        type="button"
+        onClick={() => openSignInDialog()}
+        className="rounded-full px-5 py-2.5 text-[13px] font-bold text-white"
+        style={{ background: RED }}
+      >
+        Open sign in
+      </button>
+    </div>
+  );
+}
+
+export function DashLoading() {
+  return (
+    <div className="py-20 text-center text-[14px] text-neutral-400">Loading dashboard…</div>
   );
 }
 

@@ -232,7 +232,7 @@ export function fetchCreatorPlans(creatorId?: string, opts?: { publishedOnly?: b
     const missing = extra.filter((p) => !ids.has(p.id)).map((p) => ({ ...p, published: true }));
     if (missing.length) {
       const merged = [...missing, ...all];
-      window.localStorage.setItem("nn-cms-creator-plans-v1", JSON.stringify(merged));
+      window.localStorage.setItem("nn-cms-creator-plans-v2", JSON.stringify(merged));
       all = creatorId ? merged.filter((p) => p.creatorId === creatorId) : merged;
     }
   }
@@ -260,19 +260,6 @@ export function fetchHostBySlug(
 
 export function fetchHostTrips(hostId?: string): Promise<HostTrip48h[]> {
   return simulate(listHostTripsCms(hostId));
-}
-
-export function fetchGroupInvites(): Promise<GroupInvite[]> {
-  const overrides = readJson<GroupInvite[]>(KEYS.groupOverrides, []);
-  const map = new Map(GROUP_INVITES.map((g) => [g.code, g]));
-  for (const o of overrides) map.set(o.code, o);
-  return simulate([...map.values()]);
-}
-
-export function fetchGroupByCode(code: string): Promise<GroupInvite | undefined> {
-  return fetchGroupInvites().then((list) =>
-    list.find((g) => g.code.toUpperCase() === code.trim().toUpperCase()),
-  );
 }
 
 export function fetchFreelancePlans(plannerId?: string, opts?: { publishedOnly?: boolean }): Promise<FreelancePlan[]> {
@@ -385,18 +372,33 @@ export type CommissionEntry = {
 
 const KEYS = {
   user: "nn-demo-user-v2",
-  bookings: "nn-demo-bookings-v3",
+  bookings: "nn-demo-bookings-v4",
   permits: "nn-demo-permits",
   cart: "nn-demo-cart",
   savedItineraries: "nn-demo-saved-itins",
   publishedExtra: "nn-demo-published-extra",
   creatorPlansExtra: "nn-demo-creator-plans",
-  commissions: "nn-demo-commissions",
+  commissions: "nn-demo-commissions-v2",
   groupOverrides: "nn-demo-groups",
   undoStack: "nn-demo-undo",
 } as const;
 
 const CHANGE_EVENT = "nn-demo-store-change";
+
+/** Warm all role dashboard seeds (bookings, CMS, enquiries, history). */
+export function ensureDemoDataReady(userId?: string) {
+  if (typeof window === "undefined") return;
+  ensureSeedBookings();
+  ensureSeedCommissions();
+  listEnquiries();
+  listActivity();
+  listAllCreatorPlans();
+  listAllHostHomes();
+  listAllHostTrips();
+  listAllFreelancePlans();
+  listCityItems();
+  if (userId) ensureTravelerSavedSeeds(userId);
+}
 
 function readJson<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -428,6 +430,44 @@ export function subscribeDemoStore(cb: () => void): () => void {
   };
 }
 
+/* --- group invites (multiplayer flywheel) --- */
+
+function normalizeInvite(g: GroupInvite): GroupInvite {
+  const seats = Array.isArray(g.seats)
+    ? g.seats.map((s, i) => ({
+        id: s?.id || `seat-${i + 1}`,
+        label: s?.label || `Seat ${i + 1}`,
+        claimedBy: s?.claimedBy ?? null,
+        paid: Boolean(s?.paid),
+        emiPaid: Number(s?.emiPaid) || 0,
+      }))
+    : [];
+  return { ...g, seats };
+}
+
+export function listGroupInvitesSync(): GroupInvite[] {
+  const overrides = readJson<GroupInvite[]>(KEYS.groupOverrides, []);
+  const map = new Map(GROUP_INVITES.map((g) => [g.code.toUpperCase(), normalizeInvite(g)]));
+  for (const o of overrides) {
+    if (!o?.code) continue;
+    map.set(o.code.toUpperCase(), normalizeInvite(o));
+  }
+  return [...map.values()];
+}
+
+export function getGroupByCodeSync(code: string): GroupInvite | undefined {
+  const q = code.trim().toUpperCase();
+  return listGroupInvitesSync().find((g) => g.code.toUpperCase() === q);
+}
+
+export function fetchGroupInvites(): Promise<GroupInvite[]> {
+  return simulate(listGroupInvitesSync());
+}
+
+export function fetchGroupByCode(code: string): Promise<GroupInvite | undefined> {
+  return simulate(getGroupByCodeSync(code));
+}
+
 /* --- auth --- */
 
 export function getUser(): DemoUser | null {
@@ -457,6 +497,14 @@ export function signIn(name: string, email: string): Promise<DemoUser> {
     avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200",
   };
   writeJson(KEYS.user, user);
+  ensureDemoDataReady(user.id);
+  appendActivity({
+    actorId: user.id,
+    actorName: user.name,
+    role: user.type,
+    action: "login",
+    summary: `Signed in as guest traveler`,
+  });
   return simulate(user, 400);
 }
 
@@ -478,6 +526,7 @@ export function signInDemo(idOrEmail: string, password: string): Promise<DemoUse
     subdomain: merged.subdomain,
   };
   writeJson(KEYS.user, user);
+  ensureDemoDataReady(user.id);
   appendActivity({
     actorId: user.id,
     actorName: user.name,
@@ -620,7 +669,7 @@ export function duplicateSavedItinerary(id: string): SavedItinerary {
 function ensureSeedBookings(): Booking[] {
   if (typeof window === "undefined") return [];
   const existing = readJson<Booking[] | null>(KEYS.bookings, null);
-  if (existing) return existing;
+  if (existing && existing.length > 0) return existing;
   const seed: Booking[] = [
     {
       id: "NN-SEED01",
@@ -970,7 +1019,7 @@ export function listCommissions(userId?: string): CommissionEntry[] {
 function ensureSeedCommissions(): CommissionEntry[] {
   if (typeof window === "undefined") return [];
   const existing = readJson<CommissionEntry[] | null>(KEYS.commissions, null);
-  if (existing) return existing;
+  if (existing && existing.length > 0) return existing;
   const seed: CommissionEntry[] = [
     {
       id: "COM-SEED1",
@@ -1006,54 +1055,81 @@ export function claimGroupSeat(
   seatId: string,
   claimerName: string,
 ): Promise<GroupInvite> {
-  return fetchGroupByCode(inviteCode).then((g) => {
-    if (!g) throw new Error("Invite not found");
-    const seats = g.seats.map((s) =>
-      s.id === seatId && !s.claimedBy
-        ? { ...s, claimedBy: claimerName, paid: false, emiPaid: 0 }
-        : s,
-    );
-    const updated = { ...g, seats };
-    const overrides = readJson<GroupInvite[]>(KEYS.groupOverrides, []);
-    const filtered = overrides.filter((o) => o.code !== g.code);
-    writeJson(KEYS.groupOverrides, [updated, ...filtered]);
-    return simulate(updated, 500);
+  const g = getGroupByCodeSync(inviteCode);
+  if (!g) return Promise.reject(new Error("Invite not found"));
+  const seat = g.seats.find((s) => s.id === seatId);
+  if (!seat) return Promise.reject(new Error("Seat not found"));
+  if (seat.claimedBy) return Promise.reject(new Error("Seat already claimed"));
+  const name = claimerName.trim() || "Guest Traveler";
+  const seats = g.seats.map((s) =>
+    s.id === seatId ? { ...s, claimedBy: name, paid: false, emiPaid: 0 } : s,
+  );
+  const updated = { ...g, seats };
+  saveGroupInvite(updated);
+  const actor = getUser();
+  appendActivity({
+    actorId: actor?.id ?? "guest",
+    actorName: name,
+    role: actor?.type ?? "traveler",
+    action: "booking",
+    summary: `Claimed ${seat.label} on ${g.code}`,
+    meta: { inviteCode: g.code, seatId },
   });
+  return simulate(updated, 350);
 }
 
 export function payGroupSeatEmi(inviteCode: string, seatId: string): Promise<GroupInvite> {
-  return fetchGroupByCode(inviteCode).then((g) => {
-    if (!g) throw new Error("Invite not found");
-    const seats = g.seats.map((s) => {
-      if (s.id !== seatId) return s;
-      const emiPaid = Math.min(4, s.emiPaid + 1);
-      return { ...s, emiPaid, paid: emiPaid >= 4 };
-    });
-    const updated = { ...g, seats };
-    const overrides = readJson<GroupInvite[]>(KEYS.groupOverrides, []);
-    const filtered = overrides.filter((o) => o.code !== g.code);
-    writeJson(KEYS.groupOverrides, [updated, ...filtered]);
-    return simulate(updated, 500);
+  const g = getGroupByCodeSync(inviteCode);
+  if (!g) return Promise.reject(new Error("Invite not found"));
+  const seats = g.seats.map((s) => {
+    if (s.id !== seatId) return s;
+    if (!s.claimedBy) return s;
+    const emiPaid = Math.min(4, (s.emiPaid ?? 0) + 1);
+    return { ...s, emiPaid, paid: emiPaid >= 4 };
   });
+  const updated = { ...g, seats };
+  saveGroupInvite(updated);
+  const seat = updated.seats.find((s) => s.id === seatId);
+  const actor = getUser();
+  appendActivity({
+    actorId: actor?.id ?? "guest",
+    actorName: actor?.name ?? seat?.claimedBy ?? "Guest",
+    role: actor?.type ?? "traveler",
+    action: "booking",
+    summary: seat?.paid
+      ? `Seat fully paid on ${g.code}`
+      : `Paid EMI ${seat?.emiPaid}/4 on ${g.code}`,
+    meta: { inviteCode: g.code, seatId },
+  });
+  return simulate(updated, 350);
+}
+
+function saveGroupInvite(invite: GroupInvite) {
+  const overrides = readJson<GroupInvite[]>(KEYS.groupOverrides, []);
+  const filtered = overrides.filter((o) => o.code.toUpperCase() !== invite.code.toUpperCase());
+  writeJson(KEYS.groupOverrides, [invite, ...filtered]);
 }
 
 export function createGroupInvite(input: {
   title: string;
   pricePerSeat: number;
   seatCount: number;
+  cover?: string;
 }): Promise<GroupInvite> {
   const user = getUser();
   if (!user) return Promise.reject(new Error("Sign in required"));
+  const seatCount = Math.max(2, Math.min(12, input.seatCount || 4));
+  const price = Math.max(1000, input.pricePerSeat || 12000);
   const invite: GroupInvite = {
     id: refCode("GI"),
-    code: `CREW-${refCode("X").slice(3, 7)}`,
-    title: input.title,
+    code: `CREW-${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
+    title: input.title.trim() || "Crew trip",
     plannerName: user.name,
     plannerId: user.id,
-    cover: PLACE_CLIPS[0].poster,
-    pricePerSeat: input.pricePerSeat,
-    emiPerMonth: Math.round(input.pricePerSeat / 4),
-    seats: Array.from({ length: input.seatCount }, (_, i) => ({
+    cover: input.cover ?? PLACE_CLIPS[0].poster,
+    pricePerSeat: price,
+    emiPerMonth: Math.round(price / 4),
+    seats: Array.from({ length: seatCount }, (_, i) => ({
       id: `seat-${i + 1}`,
       label: `Seat ${i + 1}`,
       claimedBy: i === 0 ? user.name : null,
@@ -1061,9 +1137,53 @@ export function createGroupInvite(input: {
       emiPaid: i === 0 ? 4 : 0,
     })),
   };
-  const overrides = readJson<GroupInvite[]>(KEYS.groupOverrides, []);
-  writeJson(KEYS.groupOverrides, [invite, ...overrides]);
-  return simulate(invite, 500);
+  saveGroupInvite(invite);
+  appendActivity({
+    actorId: user.id,
+    actorName: user.name,
+    role: user.type,
+    action: "create",
+    summary: `Created crew invite ${invite.code}`,
+    meta: { inviteCode: invite.code },
+  });
+  return simulate(invite, 400);
+}
+
+/** Ensure a shareable crew invite exists for a legacy trip id (multiplayer flywheel). */
+export function ensureInviteForTrip(input: {
+  tripId: string;
+  title: string;
+  cover: string;
+  pricePerSeat: number;
+  seatCount: number;
+  plannerName?: string;
+}): GroupInvite {
+  const code = `CREW-${input.tripId.replace(/[^a-z0-9]/gi, "").toUpperCase().slice(0, 8) || "TRIP"}`;
+  const existing = getGroupByCodeSync(code);
+  if (existing) return existing;
+  const user = getUser();
+  const plannerName = input.plannerName ?? user?.name ?? "Trip planner";
+  const seatCount = Math.max(2, Math.min(12, input.seatCount || 4));
+  const price = Math.max(1000, input.pricePerSeat || 12000);
+  const invite: GroupInvite = {
+    id: refCode("GI"),
+    code,
+    title: input.title,
+    plannerName,
+    plannerId: user?.id ?? input.tripId,
+    cover: input.cover,
+    pricePerSeat: price,
+    emiPerMonth: Math.round(price / 4),
+    seats: Array.from({ length: seatCount }, (_, i) => ({
+      id: `seat-${i + 1}`,
+      label: `Seat ${i + 1}`,
+      claimedBy: i === 0 ? plannerName : null,
+      paid: i === 0,
+      emiPaid: i === 0 ? 4 : 0,
+    })),
+  };
+  saveGroupInvite(invite);
+  return invite;
 }
 
 export function listPermits(): PermitApplication[] {

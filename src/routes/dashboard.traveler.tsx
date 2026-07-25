@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { PageHero, SiteShell } from "@/components/site/SiteShell";
-import { useDemoUser } from "@/components/site/useDemoUser";
+import { useDemoAuthReady, useDemoUser } from "@/components/site/useDemoUser";
 import {
   ActionBtn,
   BookingsManager,
   CmsDrawer,
   CmsEmpty,
   CmsSection,
+  DashLoading,
+  DashSignInGate,
   DashTabs,
   EnquiriesInbox,
   Field,
@@ -24,9 +26,9 @@ import {
   completeBooking,
   createEnquiry,
   createGroupInvite,
+  dashboardPathFor,
   deleteSavedItinerary,
   duplicateSavedItinerary,
-  fetchGroupInvites,
   formatINR,
   getCart,
   getDashSettings,
@@ -35,6 +37,7 @@ import {
   listBookings,
   listCommissions,
   listEnquiries,
+  listGroupInvitesSync,
   listSavedItineraries,
   markEnquiryRead,
   publishItineraryFromBooking,
@@ -64,6 +67,8 @@ export const Route = createFileRoute("/dashboard/traveler")({
 
 function TravelerDashboard() {
   const user = useDemoUser();
+  const ready = useDemoAuthReady();
+  const navigate = useNavigate();
   const [tab, setTab] = useState<DashTabId>("overview");
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [saved, setSaved] = useState<SavedItinerary[]>([]);
@@ -101,10 +106,9 @@ function TravelerDashboard() {
       setHistory(listActivity({ actorId: u.id }));
       setSettings(getDashSettings(u.id));
     }
-    fetchGroupInvites().then((list) => {
-      const uid = getUser()?.id;
-      setInvites(uid ? list.filter((g) => g.plannerId === uid) : list.slice(0, 3));
-    });
+    const uid = getUser()?.id;
+    const allInvites = listGroupInvitesSync();
+    setInvites(uid ? allInvites.filter((g) => g.plannerId === uid) : allInvites.slice(0, 3));
   };
 
   useEffect(() => {
@@ -112,18 +116,38 @@ function TravelerDashboard() {
     return subscribeDemoStore(refresh);
   }, []);
 
+  useEffect(() => {
+    if (!ready || !user) return;
+    if (user.type !== "traveler") {
+      void navigate({ href: dashboardPathFor(user.type) });
+    }
+  }, [ready, user, navigate]);
+
   const cartPlaces = useMemo(
     () => cart.map((id) => PLACE_CLIPS.find((c) => c.id === id)).filter(Boolean),
     [cart],
   );
 
+  if (!ready) {
+    return (
+      <SiteShell>
+        <DashLoading />
+      </SiteShell>
+    );
+  }
+
   if (!user) {
     return (
       <SiteShell>
-        <PageHero eyebrow="Traveler" title="Sign in to see your dashboard" sub="Use a demo traveler account." />
-        <Link to="/demo-login" className="font-semibold" style={{ color: RED }}>
-          Demo login →
-        </Link>
+        <DashSignInGate roleLabel="Traveler" title="Sign in to see your dashboard" />
+      </SiteShell>
+    );
+  }
+
+  if (user.type !== "traveler") {
+    return (
+      <SiteShell>
+        <DashLoading />
       </SiteShell>
     );
   }
@@ -134,6 +158,8 @@ function TravelerDashboard() {
         eyebrow="Traveler control panel"
         title={`Hey, ${user.name.split(" ")[0]}`}
         sub="Overview · CMS · Bookings · Enquiries · History · Settings — all persisted in this browser."
+        backFallback="/"
+        backLabel="Home"
       />
 
       <DashTabs active={tab} onChange={setTab} />
@@ -242,20 +268,17 @@ function TravelerDashboard() {
             <ActionBtn
               variant="primary"
               onClick={async () => {
-                const inv = await createGroupInvite({
-                  title: saved[0]?.title ?? `${user.name.split(" ")[0]}'s Crew Trip`,
-                  pricePerSeat: 18400,
-                  seatCount: 6,
-                });
-                appendActivity({
-                  actorId: user.id,
-                  actorName: user.name,
-                  role: "traveler",
-                  action: "create",
-                  summary: `Created crew invite ${inv.code}`,
-                });
-                toast.success(`Invite ${inv.code} created`);
-                window.location.href = `/invite/${inv.code}`;
+                try {
+                  const inv = await createGroupInvite({
+                    title: saved[0]?.title ?? `${user.name.split(" ")[0]}'s Crew Trip`,
+                    pricePerSeat: 18400,
+                    seatCount: 6,
+                  });
+                  toast.success(`Invite ${inv.code} created`);
+                  window.location.assign(`/invite/${inv.code}`);
+                } catch (e) {
+                  toast.error(e instanceof Error ? e.message : "Could not create invite");
+                }
               }}
             >
               Create invite link

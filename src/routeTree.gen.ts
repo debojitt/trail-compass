@@ -34,6 +34,7 @@ import { Route as DashboardTravelerRouteImport } from './routes/dashboard.travel
 import { Route as ExploreSlugRouteImport } from './routes/explore.$slug'
 import { Route as HostSlugRouteImport } from './routes/host.$slug'
 import { Route as HostsIdRouteImport } from './routes/hosts.$id'
+import { Route as InviteIndexRouteImport } from './routes/invite.index'
 import { Route as InviteCodeRouteImport } from './routes/invite.$code'
 import { Route as ItinerariesCodeRouteImport } from './routes/itineraries.$code'
 import { Route as ItineraryCodeRouteImport } from './routes/itinerary.$code'
@@ -169,6 +170,11 @@ const HostsIdRoute = HostsIdRouteImport.update({
   path: '/hosts/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InviteIndexRoute = InviteIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => InviteRoute,
+} as any)
 const InviteCodeRoute = InviteCodeRouteImport.update({
   id: '/$code',
   path: '/$code',
@@ -247,6 +253,7 @@ export interface FileRoutesByFullPath {
   '/packages/$id': typeof PackagesIdRoute
   '/planner/$subdomain': typeof PlannerSubdomainRoute
   '/stays/$id': typeof StaysIdRoute
+  '/invite/': typeof InviteIndexRoute
   '/creator/$handle/$planId': typeof CreatorHandlePlanIdRoute
   '/trip/$id/invite': typeof TripIdInviteRoute
   '/trip/$id/sos': typeof TripIdSosRoute
@@ -260,7 +267,6 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRouteWithChildren
   '/demo-login': typeof DemoLoginRoute
   '/flights': typeof FlightsRoute
-  '/invite': typeof InviteRouteWithChildren
   '/itineraries': typeof ItinerariesRouteWithChildren
   '/offers': typeof OffersRoute
   '/packages': typeof PackagesRouteWithChildren
@@ -283,6 +289,7 @@ export interface FileRoutesByTo {
   '/packages/$id': typeof PackagesIdRoute
   '/planner/$subdomain': typeof PlannerSubdomainRoute
   '/stays/$id': typeof StaysIdRoute
+  '/invite': typeof InviteIndexRoute
   '/creator/$handle/$planId': typeof CreatorHandlePlanIdRoute
   '/trip/$id/invite': typeof TripIdInviteRoute
   '/trip/$id/sos': typeof TripIdSosRoute
@@ -320,6 +327,7 @@ export interface FileRoutesById {
   '/packages/$id': typeof PackagesIdRoute
   '/planner/$subdomain': typeof PlannerSubdomainRoute
   '/stays/$id': typeof StaysIdRoute
+  '/invite/': typeof InviteIndexRoute
   '/creator/$handle/$planId': typeof CreatorHandlePlanIdRoute
   '/trip/$id/invite': typeof TripIdInviteRoute
   '/trip/$id/sos': typeof TripIdSosRoute
@@ -358,6 +366,7 @@ export interface FileRouteTypes {
     | '/packages/$id'
     | '/planner/$subdomain'
     | '/stays/$id'
+    | '/invite/'
     | '/creator/$handle/$planId'
     | '/trip/$id/invite'
     | '/trip/$id/sos'
@@ -371,7 +380,6 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/demo-login'
     | '/flights'
-    | '/invite'
     | '/itineraries'
     | '/offers'
     | '/packages'
@@ -394,6 +402,7 @@ export interface FileRouteTypes {
     | '/packages/$id'
     | '/planner/$subdomain'
     | '/stays/$id'
+    | '/invite'
     | '/creator/$handle/$planId'
     | '/trip/$id/invite'
     | '/trip/$id/sos'
@@ -430,6 +439,7 @@ export interface FileRouteTypes {
     | '/packages/$id'
     | '/planner/$subdomain'
     | '/stays/$id'
+    | '/invite/'
     | '/creator/$handle/$planId'
     | '/trip/$id/invite'
     | '/trip/$id/sos'
@@ -638,6 +648,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HostsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/invite/': {
+      id: '/invite/'
+      path: '/'
+      fullPath: '/invite/'
+      preLoaderRoute: typeof InviteIndexRouteImport
+      parentRoute: typeof InviteRoute
+    }
     '/invite/$code': {
       id: '/invite/$code'
       path: '/$code'
@@ -738,10 +755,12 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
 
 interface InviteRouteChildren {
   InviteCodeRoute: typeof InviteCodeRoute
+  InviteIndexRoute: typeof InviteIndexRoute
 }
 
 const InviteRouteChildren: InviteRouteChildren = {
   InviteCodeRoute: InviteCodeRoute,
+  InviteIndexRoute: InviteIndexRoute,
 }
 
 const InviteRouteWithChildren =

@@ -68,7 +68,7 @@ export function TransportPage({ mode }: { mode: TransportMode }) {
 
   return (
     <SiteShell>
-      <PageHero eyebrow={meta.eyebrow} title={meta.title} sub={meta.sub} />
+      <PageHero eyebrow={meta.eyebrow} title={meta.title} sub={meta.sub} backFallback="/" backLabel="Home" />
 
       {/* Search bar */}
       <form

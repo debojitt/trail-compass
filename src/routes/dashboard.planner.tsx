@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AlertTriangle, Eye, EyeOff, MapPin, Shield } from "lucide-react";
 import { PageHero, SiteShell } from "@/components/site/SiteShell";
-import { useDemoUser } from "@/components/site/useDemoUser";
+import { useDemoAuthReady, useDemoUser } from "@/components/site/useDemoUser";
 import {
   ActionBtn,
   BookingsManager,
   CmsDrawer,
   CmsEmpty,
   CmsSection,
+  DashLoading,
+  DashSignInGate,
   DashTabs,
   EnquiriesInbox,
   Field,
@@ -24,6 +26,7 @@ import type { FreelancePlan } from "@/data/demoUniverse";
 import {
   PLACE_CLIPS,
   appendActivity,
+  dashboardPathFor,
   deleteFreelancePlan,
   fetchFreelancePlans,
   formatINR,
@@ -76,6 +79,8 @@ type PlanForm = {
 
 function PlannerDashboard() {
   const user = useDemoUser();
+  const ready = useDemoAuthReady();
+  const navigate = useNavigate();
   const [tab, setTab] = useState<DashTabId>("overview");
   const [plans, setPlans] = useState<FreelancePlan[]>([]);
   const [comms, setComms] = useState<CommissionEntry[]>([]);
@@ -114,17 +119,37 @@ function PlannerDashboard() {
   }, [user?.id]);
 
   useEffect(() => {
+    if (!ready || !user) return;
+    if (user.type !== "planner") {
+      void navigate({ href: dashboardPathFor(user.type) });
+    }
+  }, [ready, user, navigate]);
+
+  useEffect(() => {
     const t = setInterval(() => setHoursLeft((h) => Math.max(0, h - 0.01)), 36000);
     return () => clearInterval(t);
   }, []);
 
+  if (!ready) {
+    return (
+      <SiteShell>
+        <DashLoading />
+      </SiteShell>
+    );
+  }
+
   if (!user) {
     return (
       <SiteShell>
-        <PageHero eyebrow="Planner" title="Sign in as a freelance planner" sub="" />
-        <Link to="/demo-login" style={{ color: RED }} className="font-semibold">
-          Demo login →
-        </Link>
+        <DashSignInGate roleLabel="Planner" title="Sign in as a freelance planner" />
+      </SiteShell>
+    );
+  }
+
+  if (user.type !== "planner") {
+    return (
+      <SiteShell>
+        <DashLoading />
       </SiteShell>
     );
   }
@@ -178,6 +203,8 @@ function PlannerDashboard() {
         eyebrow="Planner control panel"
         title={user.name}
         sub="Plans CMS · bookings · enquiries · profit ledger · subdomain / vendor-mask / Echo SOS toggles."
+        backFallback="/"
+        backLabel="Home"
       />
 
       <DashTabs active={tab} onChange={setTab} />

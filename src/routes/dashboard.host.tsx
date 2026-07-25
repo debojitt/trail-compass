@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Copy } from "lucide-react";
 import { PageHero, SiteShell } from "@/components/site/SiteShell";
-import { useDemoUser } from "@/components/site/useDemoUser";
+import { useDemoAuthReady, useDemoUser } from "@/components/site/useDemoUser";
 import {
   ActionBtn,
   BookingsManager,
   CmsDrawer,
   CmsEmpty,
   CmsSection,
+  DashLoading,
+  DashSignInGate,
   DashTabs,
   EnquiriesInbox,
   Field,
@@ -24,6 +26,7 @@ import type { HostCityItem, HostHome, HostTrip48h } from "@/data/demoUniverse";
 import {
   PLACE_CLIPS,
   appendActivity,
+  dashboardPathFor,
   deleteCityItem,
   deleteHostHome,
   deleteHostTrip,
@@ -94,6 +97,8 @@ type CityForm = {
 
 function HostDashboard() {
   const user = useDemoUser();
+  const ready = useDemoAuthReady();
+  const navigate = useNavigate();
   const [tab, setTab] = useState<DashTabId>("overview");
   const [homes, setHomes] = useState<HostHome[]>([]);
   const [trips, setTrips] = useState<HostTrip48h[]>([]);
@@ -129,13 +134,33 @@ function HostDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
+  useEffect(() => {
+    if (!ready || !user) return;
+    if (user.type !== "host") {
+      void navigate({ href: dashboardPathFor(user.type) });
+    }
+  }, [ready, user, navigate]);
+
+  if (!ready) {
+    return (
+      <SiteShell>
+        <DashLoading />
+      </SiteShell>
+    );
+  }
+
   if (!user) {
     return (
       <SiteShell>
-        <PageHero eyebrow="Host" title="Sign in as a homestay host" sub="" />
-        <Link to="/demo-login" style={{ color: RED }} className="font-semibold">
-          Demo login →
-        </Link>
+        <DashSignInGate roleLabel="Host" title="Sign in as a homestay host" />
+      </SiteShell>
+    );
+  }
+
+  if (user.type !== "host") {
+    return (
+      <SiteShell>
+        <DashLoading />
       </SiteShell>
     );
   }
@@ -238,6 +263,8 @@ function HostDashboard() {
         eyebrow="Host control panel"
         title={user.name}
         sub="Homes · 48h itineraries · city inventory · bookings calendar · enquiries · history."
+        backFallback="/"
+        backLabel="Home"
       />
       <div
         className="mb-4 rounded-3xl px-5 py-3 text-[13px] font-semibold"

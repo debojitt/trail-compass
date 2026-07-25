@@ -41,13 +41,20 @@ function ExplorePage() {
       {/* Top bar */}
       <header className="relative z-30 flex shrink-0 items-center justify-between gap-3 border-b border-white/10 bg-black/70 px-4 py-3 backdrop-blur-md md:px-6">
         <div className="flex min-w-0 items-center gap-3">
-          <Link
-            to="/"
+          <button
+            type="button"
+            onClick={() => {
+              if (typeof window !== "undefined" && window.history.length > 1) {
+                window.history.back();
+              } else {
+                window.location.href = "/";
+              }
+            }}
             className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-white/20 bg-white/10 transition hover:bg-white/20"
-            aria-label="Back home"
+            aria-label="Go back"
           >
             <ArrowLeft size={16} />
-          </Link>
+          </button>
           <div className="min-w-0">
             <p className="truncate text-[11px] font-semibold uppercase tracking-[0.2em] text-white/55">
               Virtual experience

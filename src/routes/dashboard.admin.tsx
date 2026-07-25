@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { PageHero, SiteShell } from "@/components/site/SiteShell";
+import { useDemoAuthReady, useDemoUser } from "@/components/site/useDemoUser";
+import { openSignInDialog } from "@/components/site/SignInButton";
 import {
   ActionBtn,
   CmsSection,
+  DashLoading,
+  DashSignInGate,
   DashTabs,
   EnquiriesInbox,
   HistoryTimeline,
@@ -15,6 +19,7 @@ import {
 import { DEMO_ACCOUNTS, GROUP_INVITES } from "@/data/demoUniverse";
 import {
   adminCmsSnapshot,
+  dashboardPathFor,
   fetchPublishedItineraries,
   formatINR,
   isUserSuspended,
@@ -44,6 +49,9 @@ export const Route = createFileRoute("/dashboard/admin")({
 });
 
 function AdminDashboard() {
+  const user = useDemoUser();
+  const ready = useDemoAuthReady();
+  const navigate = useNavigate();
   const [tab, setTab] = useState<DashTabId>("overview");
   const [snap, setSnap] = useState(adminCmsSnapshot());
   const [published, setPublished] = useState<Awaited<ReturnType<typeof fetchPublishedItineraries>>>([]);
@@ -69,7 +77,38 @@ function AdminDashboard() {
     return subscribeDemoStore(refresh);
   }, []);
 
+  useEffect(() => {
+    if (!ready || !user) return;
+    if (user.type !== "admin") {
+      void navigate({ href: dashboardPathFor(user.type) });
+    }
+  }, [ready, user, navigate]);
+
   void tick;
+
+  if (!ready) {
+    return (
+      <SiteShell>
+        <DashLoading />
+      </SiteShell>
+    );
+  }
+
+  if (!user) {
+    return (
+      <SiteShell>
+        <DashSignInGate roleLabel="Admin" title="Sign in as ops admin" />
+      </SiteShell>
+    );
+  }
+
+  if (user.type !== "admin") {
+    return (
+      <SiteShell>
+        <DashLoading />
+      </SiteShell>
+    );
+  }
 
   return (
     <SiteShell>
@@ -77,6 +116,8 @@ function AdminDashboard() {
         eyebrow="Ops admin control panel"
         title="Marketplace overview"
         sub="Users · listings · enquiries · platform history — counts update from live demo data."
+        backFallback="/"
+        backLabel="Home"
       />
 
       <DashTabs active={tab} onChange={setTab} />
@@ -92,9 +133,9 @@ function AdminDashboard() {
             ]}
           />
           <div className="flex flex-wrap gap-3">
-            <Link to="/demo-login" className="rounded-full px-5 py-2 text-[13px] font-bold text-white" style={{ background: RED }}>
+            <ActionBtn variant="primary" onClick={() => openSignInDialog()}>
               Switch accounts
-            </Link>
+            </ActionBtn>
             <ActionBtn onClick={refresh}>Refresh live counts</ActionBtn>
             <ActionBtn onClick={() => setTab("cms")}>Manage listings</ActionBtn>
             <ActionBtn onClick={() => setTab("enquiries")}>Enquiry queue</ActionBtn>
@@ -127,9 +168,14 @@ function AdminDashboard() {
                     >
                       {suspended ? "Unsuspend" : "Suspend"}
                     </ActionBtn>
-                    <Link to="/demo-login" className="self-center text-[12px] font-bold" style={{ color: RED }}>
+                    <button
+                      type="button"
+                      onClick={() => openSignInDialog()}
+                      className="self-center text-[12px] font-bold"
+                      style={{ color: RED }}
+                    >
                       Login →
-                    </Link>
+                    </button>
                   </div>,
                 ];
               })}
@@ -270,7 +316,7 @@ function AdminDashboard() {
           <div className="flex flex-wrap gap-3">
             <Link to="/packages" className="rounded-full border px-5 py-2 text-[13px] font-bold">Packages</Link>
             <Link to="/stays" className="rounded-full border px-5 py-2 text-[13px] font-bold">Stays</Link>
-            <Link to="/demo-login" className="rounded-full border px-5 py-2 text-[13px] font-bold">Demo login</Link>
+            <ActionBtn onClick={() => openSignInDialog()}>Switch account</ActionBtn>
             <ActionBtn variant="primary" onClick={refresh}>Refresh counts</ActionBtn>
           </div>
           <p className="mt-4 text-[13px] text-neutral-500" style={{ color: GREEN }}>

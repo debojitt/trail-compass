@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
-import { ChevronRight, Compass, MapPin, Menu } from "lucide-react";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { ArrowLeft, ChevronRight, Compass, MapPin, Menu } from "lucide-react";
 import {
   Sheet,
   SheetClose,
@@ -22,35 +22,87 @@ export const NAV_LINKS = [
   { label: "Offers", to: "/offers" },
 ] as const;
 
+/** Browser back, or fall back to a parent route / home. */
+export function BackButton({
+  fallback = "/",
+  label = "Back",
+  className = "",
+}: {
+  fallback?: string;
+  label?: string;
+  className?: string;
+}) {
+  const navigate = useNavigate();
+
+  const goBack = () => {
+    if (typeof window === "undefined") {
+      void navigate({ to: fallback });
+      return;
+    }
+    const idx = (window.history.state as { idx?: number } | null)?.idx;
+    if (typeof idx === "number" ? idx > 0 : window.history.length > 1) {
+      window.history.back();
+      return;
+    }
+    void navigate({ to: fallback });
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={goBack}
+      className={`inline-flex items-center gap-1.5 rounded-full border bg-white px-3 py-1.5 text-[12px] font-bold text-neutral-700 shadow-sm transition hover:bg-neutral-50 ${className}`}
+      style={{ borderColor: "rgba(0,0,0,0.14)" }}
+      aria-label={label}
+    >
+      <ArrowLeft size={14} />
+      {label}
+    </button>
+  );
+}
+
 /** Solid header + footer wrapper used by every page except the homepage hero */
-export function SiteShell({ children }: { children: ReactNode }) {
+export function SiteShell({
+  children,
+  backFallback,
+}: {
+  children: ReactNode;
+  /** Optional fallback path when history cannot go back */
+  backFallback?: string;
+}) {
   return (
     <div className="min-h-screen bg-white font-sans text-neutral-900 antialiased">
-      <SiteHeader />
+      <SiteHeader backFallback={backFallback} />
       <main className="mx-auto max-w-[1200px] px-4 pb-16 pt-24 md:px-6">{children}</main>
       <SiteFooter />
     </div>
   );
 }
 
-export function SiteHeader() {
+export function SiteHeader({ backFallback = "/" }: { backFallback?: string }) {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const showBack = pathname !== "/" && pathname !== "";
+
   return (
     <header
       className="fixed inset-x-0 top-0 z-50 border-b bg-white/85"
       style={{ backdropFilter: "blur(20px) saturate(180%)", borderColor: "rgba(0,0,0,0.06)" }}
     >
-      <div className="mx-auto flex h-14 max-w-[1200px] items-center justify-between px-4 md:px-6">
-        <Link to="/" className="flex items-center gap-2">
-          <img
-            src="/elements/northnest-logo.png"
-            alt="northnest"
-            className="h-8 w-8 rounded-full object-cover shadow-sm"
-            draggable={false}
-          />
-          <span className="text-[17px] font-bold tracking-tight" style={{ color: RED }}>
-            NORTHNEST
-          </span>
-        </Link>
+      <div className="mx-auto flex h-14 max-w-[1200px] items-center justify-between gap-2 px-4 md:px-6">
+        <div className="flex min-w-0 items-center gap-2 md:gap-3">
+          {showBack && <BackButton fallback={backFallback} className="shrink-0" />}
+          <Link to="/" className="flex min-w-0 items-center gap-2">
+            <img
+              src="/elements/northnest-logo.png"
+              alt="northnest"
+              className="h-8 w-8 shrink-0 rounded-full object-cover shadow-sm"
+              draggable={false}
+            />
+            <span className="truncate text-[17px] font-bold tracking-tight" style={{ color: RED }}>
+              NORTHNEST
+            </span>
+          </Link>
+        </div>
         <nav className="hidden items-center gap-6 lg:flex">
           {NAV_LINKS.map((l) => (
             <Link
@@ -64,7 +116,7 @@ export function SiteHeader() {
             </Link>
           ))}
         </nav>
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-3">
           <SignInButton />
           <MobileMenu />
         </div>
@@ -142,7 +194,7 @@ export function SiteFooter() {
     {
       h: "Explore 360°",
       items: [
-        { label: "Meghalaya wonders", explore: "meghalaya" },
+        { label: "Nohkalikai Falls", explore: "meghalaya" },
         { label: "Tawang Monastery", explore: "arunachal-pradesh" },
         { label: "MG Marg, Gangtok", explore: "sikkim" },
         { label: "Kisama Village", explore: "nagaland" },
@@ -165,12 +217,12 @@ export function SiteFooter() {
     {
       h: "Company",
       items: [
-        { label: "Demo login", to: "/demo-login" },
-        { label: "Invite Crew", to: "/invite" },
-        { label: "Creators", to: "/creators" },
-        { label: "Builder", to: "/builder" },
         { label: "Offers", to: "/offers" },
         { label: "Permits", to: "/permits" },
+        { label: "Invite Crew", to: "/invite" },
+        { label: "Creators", to: "/creators" },
+        { label: "About" },
+        { label: "Support 24×7" },
       ],
     },
   ];
@@ -248,13 +300,22 @@ export function PageHero({
   eyebrow,
   title,
   sub,
+  backFallback,
+  backLabel = "Back",
 }: {
   eyebrow: string;
   title: string;
   sub: string;
+  backFallback?: string;
+  backLabel?: string;
 }) {
   return (
     <div className="pb-8 pt-6 md:pb-10">
+      {backFallback && (
+        <div className="mb-4">
+          <BackButton fallback={backFallback} label={backLabel} />
+        </div>
+      )}
       <p className="text-[12px] font-semibold uppercase tracking-[0.25em]" style={{ color: RED }}>
         {eyebrow}
       </p>

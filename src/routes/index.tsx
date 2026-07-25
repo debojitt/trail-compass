@@ -17,6 +17,7 @@ import {
   WifiOff,
   Wallet,
   ChevronDown,
+  ChevronLeft,
   ChevronRight,
   BadgePercent,
   Quote,
@@ -35,7 +36,7 @@ import {
   PUBLISHED_ITINERARIES,
 } from "@/data/demoUniverse";
 import { MobileMenu, NAV_LINKS, SiteFooter } from "@/components/site/SiteShell";
-import { SignInButton } from "@/components/site/SignInButton";
+import { SignInButton, openSignInDialog } from "@/components/site/SignInButton";
 import { formatINR } from "@/lib/demoApi";
 
 export const Route = createFileRoute("/")({
@@ -88,9 +89,9 @@ function Index() {
       {/* Content emerges as the sky fades away */}
       <main className="relative z-10 mx-auto max-w-[1200px] px-4 md:px-6">
         <SearchHub />
-        <OffersRow />
-        <Statement />
         <StatesGrid />
+        <Statement />
+        <OffersRow />
         <VirtualToursSection />
         <CultureStrip />
         <HomestaysSection />
@@ -510,9 +511,10 @@ function Cloud({ src, style }: { src: string; style: React.CSSProperties }) {
 
 /* ============ SEARCH HUB (MakeMyTrip-style) ============ */
 
-type TabId = "stays" | "flights" | "trains" | "cabs" | "packages" | "permits";
+type TabId = "itinerary" | "stays" | "flights" | "trains" | "cabs" | "packages" | "permits";
 
 const tabs: { id: TabId; label: string; icon: typeof Home }[] = [
+  { id: "itinerary", label: "Itinerary search", icon: Compass },
   { id: "stays", label: "Homestays", icon: Home },
   { id: "flights", label: "Flights", icon: Plane },
   { id: "trains", label: "Trains", icon: TrainFront },
@@ -521,7 +523,7 @@ const tabs: { id: TabId; label: string; icon: typeof Home }[] = [
   { id: "permits", label: "Permits", icon: FileCheck },
 ];
 
-const tabRoute: Record<TabId, string> = {
+const tabRoute: Record<Exclude<TabId, "itinerary">, string> = {
   stays: "/stays",
   flights: "/flights",
   trains: "/trains",
@@ -531,7 +533,7 @@ const tabRoute: Record<TabId, string> = {
 };
 
 const tabConfig: Record<
-  TabId,
+  Exclude<TabId, "itinerary">,
   { from: string; fromV: string; to: string; toV: string; cta: string }
 > = {
   stays: { from: "Destination", fromV: "Shillong, Meghalaya", to: "Property type", toV: "Homestay · Eco-resort", cta: "Search Homestays" },
@@ -543,18 +545,19 @@ const tabConfig: Record<
 };
 
 function SearchHub() {
-  const [tab, setTab] = useState<TabId>("stays");
+  const [tab, setTab] = useState<TabId>("itinerary");
   const [swapped, setSwapped] = useState(false);
   const [showPax, setShowPax] = useState(false);
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
   const [routeCode, setRouteCode] = useState("");
-  const cfg = tabConfig[tab];
+  const isItinerary = tab === "itinerary";
+  const cfg = isItinerary ? null : tabConfig[tab];
   const swappable = tab === "flights" || tab === "trains" || tab === "cabs";
-  const fromLabel = swapped && swappable ? cfg.to : cfg.from;
-  const toLabel = swapped && swappable ? cfg.from : cfg.to;
-  const fromValue = swapped && swappable ? cfg.toV : cfg.fromV;
-  const toValue = swapped && swappable ? cfg.fromV : cfg.toV;
+  const fromLabel = cfg ? (swapped && swappable ? cfg.to : cfg.from) : "";
+  const toLabel = cfg ? (swapped && swappable ? cfg.from : cfg.to) : "";
+  const fromValue = cfg ? (swapped && swappable ? cfg.toV : cfg.fromV) : "";
+  const toValue = cfg ? (swapped && swappable ? cfg.fromV : cfg.toV) : "";
 
   const loadByCode = (e: React.FormEvent) => {
     e.preventDefault();
@@ -595,92 +598,97 @@ function SearchHub() {
           })}
         </div>
 
-        {/* Fields */}
-        <div className="mt-4 grid gap-3 md:grid-cols-[1fr_auto_1fr_1fr_1fr]">
-          <Field label={fromLabel} value={fromValue} />
-          <button
-            onClick={() => setSwapped((s) => !s)}
-            className="mx-auto grid h-10 w-10 shrink-0 place-items-center self-center rounded-full border bg-white text-neutral-500 shadow-sm transition-transform hover:scale-105"
-            style={{
-              borderColor: "rgba(0,0,0,0.1)",
-              transform: swapped ? "rotate(180deg)" : "rotate(0deg)",
-            }}
-            aria-label="Swap"
+        {isItinerary ? (
+          /* Itinerary search — load published route by code */
+          <form
+            onSubmit={loadByCode}
+            className="mt-4 flex flex-col gap-3 rounded-2xl border bg-neutral-50/80 p-3 sm:flex-row sm:items-center"
+            style={{ borderColor: "rgba(0,0,0,0.06)" }}
           >
-            <ArrowLeftRight size={15} />
-          </button>
-          <Field label={toLabel} value={toValue} />
-          <Field label={tab === "permits" ? "Travel window" : "Dates"} value="12 Oct — 19 Oct" />
-
-          {/* Travellers */}
-          <div className="relative">
-            <button
-              onClick={() => setShowPax((s) => !s)}
-              className="w-full rounded-2xl border px-4 py-3 text-left transition-colors hover:border-neutral-300"
+            <p className="shrink-0 px-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
+              Load by code
+            </p>
+            <input
+              value={routeCode}
+              onChange={(e) => setRouteCode(e.target.value)}
+              placeholder="NN-MEGH-804"
+              className="flex-1 rounded-xl border bg-white px-3 py-2.5 font-mono text-[13px] outline-none"
               style={{ borderColor: "rgba(0,0,0,0.1)" }}
+            />
+            <button
+              type="submit"
+              className="flex items-center justify-center gap-2 rounded-full px-6 py-2.5 text-[13px] font-bold text-white shadow-lg transition-all hover:scale-[1.02]"
+              style={{ background: `linear-gradient(135deg, ${RED}, ${RED_DARK})`, boxShadow: "0 12px 30px rgba(226,55,68,0.35)" }}
             >
-              <p className="text-[11px] font-medium uppercase tracking-wide text-neutral-400">
-                Travellers
-              </p>
-              <p className="mt-0.5 truncate text-[15px] font-semibold">
-                {adults + children} traveller{adults + children !== 1 ? "s" : ""}
-              </p>
+              <Search size={15} />
+              Load full route
             </button>
-            {showPax && (
-              <div
-                className="absolute right-0 top-[calc(100%+8px)] z-30 w-64 rounded-2xl border bg-white p-4 shadow-xl"
-                style={{ borderColor: "rgba(0,0,0,0.08)" }}
+          </form>
+        ) : (
+          <>
+            {/* Fields */}
+            <div className="mt-4 grid gap-3 md:grid-cols-[1fr_auto_1fr_1fr_1fr]">
+              <Field label={fromLabel} value={fromValue} />
+              <button
+                onClick={() => setSwapped((s) => !s)}
+                className="mx-auto grid h-10 w-10 shrink-0 place-items-center self-center rounded-full border bg-white text-neutral-500 shadow-sm transition-transform hover:scale-105"
+                style={{
+                  borderColor: "rgba(0,0,0,0.1)",
+                  transform: swapped ? "rotate(180deg)" : "rotate(0deg)",
+                }}
+                aria-label="Swap"
               >
-                <PaxRow label="Adults" sub="12+ years" value={adults} setValue={setAdults} min={1} />
-                <PaxRow label="Children" sub="2–12 years" value={children} setValue={setChildren} min={0} />
+                <ArrowLeftRight size={15} />
+              </button>
+              <Field label={toLabel} value={toValue} />
+              <Field label={tab === "permits" ? "Travel window" : "Dates"} value="12 Oct — 19 Oct" />
+
+              {/* Travellers */}
+              <div className="relative">
                 <button
-                  onClick={() => setShowPax(false)}
-                  className="mt-3 w-full rounded-full py-2 text-[13px] font-semibold text-white"
-                  style={{ background: GREEN }}
+                  onClick={() => setShowPax((s) => !s)}
+                  className="w-full rounded-2xl border px-4 py-3 text-left transition-colors hover:border-neutral-300"
+                  style={{ borderColor: "rgba(0,0,0,0.1)" }}
                 >
-                  Done
+                  <p className="text-[11px] font-medium uppercase tracking-wide text-neutral-400">
+                    Travellers
+                  </p>
+                  <p className="mt-0.5 truncate text-[15px] font-semibold">
+                    {adults + children} traveller{adults + children !== 1 ? "s" : ""}
+                  </p>
                 </button>
+                {showPax && (
+                  <div
+                    className="absolute right-0 top-[calc(100%+8px)] z-30 w-64 rounded-2xl border bg-white p-4 shadow-xl"
+                    style={{ borderColor: "rgba(0,0,0,0.08)" }}
+                  >
+                    <PaxRow label="Adults" sub="12+ years" value={adults} setValue={setAdults} min={1} />
+                    <PaxRow label="Children" sub="2–12 years" value={children} setValue={setChildren} min={0} />
+                    <button
+                      onClick={() => setShowPax(false)}
+                      className="mt-3 w-full rounded-full py-2 text-[13px] font-semibold text-white"
+                      style={{ background: GREEN }}
+                    >
+                      Done
+                    </button>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        </div>
+            </div>
 
-        {/* CTA — routes to the matching demo page */}
-        <div className="mt-4 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-          <Link
-            to={tabRoute[tab]}
-            className="flex items-center gap-2 rounded-full px-12 py-3.5 text-[15px] font-bold text-white shadow-lg transition-all hover:scale-[1.02]"
-            style={{ background: `linear-gradient(135deg, ${RED}, ${RED_DARK})`, boxShadow: "0 12px 30px rgba(226,55,68,0.35)" }}
-          >
-            <Search size={17} />
-            {cfg.cta}
-          </Link>
-        </div>
-
-        {/* Instant load by published itinerary code */}
-        <form
-          onSubmit={loadByCode}
-          className="mt-4 flex flex-col gap-2 rounded-2xl border bg-neutral-50/80 p-3 sm:flex-row sm:items-center"
-          style={{ borderColor: "rgba(0,0,0,0.06)" }}
-        >
-          <p className="shrink-0 px-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
-            Or load by code
-          </p>
-          <input
-            value={routeCode}
-            onChange={(e) => setRouteCode(e.target.value)}
-            placeholder="NN-MEGH-804"
-            className="flex-1 rounded-xl border bg-white px-3 py-2 font-mono text-[13px] outline-none"
-            style={{ borderColor: "rgba(0,0,0,0.1)" }}
-          />
-          <button
-            type="submit"
-            className="rounded-full px-5 py-2 text-[12px] font-bold text-white"
-            style={{ background: GREEN }}
-          >
-            Load full route
-          </button>
-        </form>
+            {/* CTA — routes to the matching demo page */}
+            <div className="mt-4 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+              <Link
+                to={tabRoute[tab]}
+                className="flex items-center gap-2 rounded-full px-12 py-3.5 text-[15px] font-bold text-white shadow-lg transition-all hover:scale-[1.02]"
+                style={{ background: `linear-gradient(135deg, ${RED}, ${RED_DARK})`, boxShadow: "0 12px 30px rgba(226,55,68,0.35)" }}
+              >
+                <Search size={17} />
+                {cfg!.cta}
+              </Link>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Trust chips */}
@@ -751,52 +759,209 @@ function PaxRow({
   );
 }
 
-/* ============ OFFERS ============ */
+/* ============ OFFERS (small pocket cards + hover motion) ============ */
 
 function OffersRow() {
   const offers = [
-    { tag: "FESTIVE", title: "Hornbill Festival Special", body: "Flat 18% off Nagaland circuits booked before 31 Oct.", code: "HORNBILL18" },
-    { tag: "STAYS", title: "Homestay Week", body: "3rd night free at 200+ verified village homestays.", code: "NESTSTAY" },
-    { tag: "FLIGHTS", title: "CCU → GAU from ₹2,499", body: "Morning departures, cabin bag included.", code: "FLYNE" },
-    { tag: "PERMITS", title: "Zero-fee ILP filing", body: "We file your Inner Line Permit free with any package.", code: "AUTO" },
+    {
+      tag: "Festive",
+      title: "Hornbill Special",
+      body: "18% off Nagaland circuits before 31 Oct.",
+      code: "HORNBILL18",
+      sheet: "#FCE8EF",
+      dash: "#E8A0B8",
+      pocket: "#F06A2B",
+      pocketLabel: null as string | null,
+      img: "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=200",
+      tilt: -2,
+    },
+    {
+      tag: "Stays",
+      title: "Homestay Week",
+      body: "3rd night free at 200+ village stays.",
+      code: "NESTSTAY",
+      sheet: "#FBF3C8",
+      dash: "#E2C96A",
+      pocket: "#F5D76E",
+      pocketLabel: "In your nest",
+      img: "https://images.unsplash.com/photo-1571089336682-9f8d6c1671da?w=200",
+      tilt: 1.5,
+    },
+    {
+      tag: "Flights",
+      title: "CCU → GAU",
+      body: "From ₹2,499 · cabin bag included.",
+      code: "FLYNE",
+      sheet: "#E8E0F7",
+      dash: "#B9A8E0",
+      pocket: "#E83A7A",
+      pocketLabel: "Wherever you fly",
+      img: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=200",
+      tilt: -1,
+    },
+    {
+      tag: "Permits",
+      title: "Free ILP filing",
+      body: "Auto-filed with any package booking.",
+      code: "AUTO",
+      sheet: "#E4F5EC",
+      dash: "#8FCBAA",
+      pocket: "#24963F",
+      pocketLabel: "Always on",
+      img: "https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=200",
+      tilt: 2,
+    },
   ];
+
   return (
-    <Section
-      eyebrow="Offers"
-      title="Deals worth flying for."
-      action="View all offers"
-      actionTo="/offers"
-    >
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {offers.map((o, i) => (
-          <Reveal
-            key={o.title}
-            delay={i * 100}
-            className="group rounded-3xl border bg-white transition-all hover:-translate-y-1 hover:shadow-xl"
-          >
-            <Link to="/offers" className="block p-5">
-            <div className="flex items-center gap-2">
-              <BadgePercent size={16} style={{ color: RED }} />
-              <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: RED }}>
-                {o.tag}
-              </span>
+    <section className="relative left-1/2 w-screen max-w-[100vw] -translate-x-1/2 overflow-hidden py-12 md:py-16">
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(ellipse 80% 60% at 20% 20%, #f3d4e8 0%, transparent 55%), radial-gradient(ellipse 70% 50% at 85% 30%, #d9d0f5 0%, transparent 50%), radial-gradient(ellipse 60% 50% at 50% 100%, #f7e4c8 0%, transparent 45%), #ebe4f4",
+        }}
+      />
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.35]"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at 12% 40%, rgba(255,255,255,0.55) 0 18%, transparent 19%), radial-gradient(circle at 78% 70%, rgba(255,255,255,0.4) 0 12%, transparent 13%), radial-gradient(circle at 55% 18%, rgba(180,140,220,0.25) 0 10%, transparent 11%)",
+        }}
+      />
+
+      <div className="relative mx-auto max-w-[1200px] px-4 md:px-6">
+        <Reveal>
+          <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
+            <div>
+              <p className="text-[12px] font-semibold uppercase tracking-[0.25em]" style={{ color: RED }}>
+                Offers
+              </p>
+              <h2 className="mt-2 text-[26px] font-bold leading-tight tracking-tight md:text-[36px]">
+                Deals worth flying for.
+              </h2>
             </div>
-            <p className="mt-3 text-[16px] font-bold leading-snug tracking-tight">{o.title}</p>
-            <p className="mt-1.5 text-[13px] leading-relaxed text-neutral-500">{o.body}</p>
-            <div className="mt-4 flex items-center justify-between">
-              <span
-                className="rounded-lg border border-dashed px-2.5 py-1 text-[11px] font-bold tracking-wider"
-                style={{ borderColor: GREEN, color: GREEN, background: GREEN_LIGHT }}
-              >
-                {o.code}
-              </span>
-              <ChevronRight size={16} className="text-neutral-300 transition-transform group-hover:translate-x-1" />
-            </div>
+            <Link
+              to="/offers"
+              className="nn-link flex items-center gap-1 text-[13px] font-semibold"
+              style={{ color: "#4a3a5c" }}
+            >
+              View all offers <ChevronRight size={15} />
             </Link>
-          </Reveal>
-        ))}
+          </div>
+        </Reveal>
+
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:gap-5">
+          {offers.map((o, i) => (
+            <Reveal key={o.code} delay={i * 80}>
+              <OfferPocketCard offer={o} />
+            </Reveal>
+          ))}
+        </div>
       </div>
-    </Section>
+    </section>
+  );
+}
+
+function OfferPocketCard({
+  offer,
+}: {
+  offer: {
+    tag: string;
+    title: string;
+    body: string;
+    code: string;
+    sheet: string;
+    dash: string;
+    pocket: string;
+    pocketLabel: string | null;
+    img: string;
+    tilt: number;
+  };
+}) {
+  const ref = useRef<HTMLAnchorElement>(null);
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const [hover, setHover] = useState(false);
+
+  const onMove = (e: React.MouseEvent) => {
+    const el = ref.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width - 0.5;
+    const py = (e.clientY - r.top) / r.height - 0.5;
+    setTilt({ x: py * -10, y: px * 12 });
+  };
+
+  return (
+    <Link
+      ref={ref}
+      to="/offers"
+      className="nn-offer-card group block"
+      style={{ "--nn-rest-tilt": `${offer.tilt}deg` } as React.CSSProperties}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => {
+        setHover(false);
+        setTilt({ x: 0, y: 0 });
+      }}
+      onMouseMove={onMove}
+    >
+      <div
+        className="nn-offer-card-inner"
+        style={{
+          transform: hover
+            ? `perspective(800px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) translateY(-10px) scale(1.03)`
+            : `perspective(800px) rotateZ(var(--nn-rest-tilt)) translateY(0) scale(1)`,
+          transition: hover
+            ? "box-shadow 280ms ease"
+            : "transform 380ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 320ms ease",
+        }}
+      >
+        <div
+          className="nn-offer-sheet relative z-10 flex flex-col rounded-[22px] border-2 border-dashed p-3 shadow-[0_10px_24px_rgba(90,40,80,0.12)]"
+          style={{ background: offer.sheet, borderColor: offer.dash }}
+        >
+          <div className="flex items-start justify-between gap-2">
+            <span
+              className="inline-flex rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white"
+              style={{ background: offer.pocket }}
+            >
+              {offer.tag}
+            </span>
+            <div
+              className="nn-offer-thumb h-11 w-11 overflow-hidden rounded-xl border-2 border-dashed"
+              style={{ borderColor: offer.dash }}
+            >
+              <img src={offer.img} alt="" className="h-full w-full object-cover" loading="lazy" />
+            </div>
+          </div>
+          <p className="mt-2.5 text-[14px] font-bold leading-snug tracking-tight text-neutral-900 md:text-[15px]">
+            {offer.title}
+          </p>
+          <p className="mt-1 text-[11px] leading-relaxed text-neutral-600 md:text-[12px]">{offer.body}</p>
+          <span
+            className="mt-2.5 inline-flex w-fit rounded-md border border-dashed px-2 py-0.5 font-mono text-[10px] font-bold tracking-wider"
+            style={{ borderColor: GREEN, color: GREEN, background: GREEN_LIGHT }}
+          >
+            {offer.code}
+          </span>
+        </div>
+        <div
+          className="nn-offer-pocket relative z-20 -mt-3 flex h-[52px] items-center justify-center rounded-[20px] border-[2.5px] border-dashed px-3 text-center"
+          style={{ background: offer.pocket, borderColor: "rgba(255,255,255,0.85)" }}
+        >
+          {offer.pocketLabel ? (
+            <p
+              className="text-[11px] font-bold tracking-tight md:text-[12px]"
+              style={{ color: offer.pocket === "#F5D76E" ? "#5C3D12" : "#fff" }}
+            >
+              {offer.pocketLabel}
+            </p>
+          ) : (
+            <img src="/elements/northnest-logo.png" alt="" className="h-6 w-auto brightness-0 invert" />
+          )}
+        </div>
+      </div>
+    </Link>
   );
 }
 
@@ -1029,54 +1194,195 @@ function CultureCardFace({
   );
 }
 
-/* ============ DESTINATIONS: 8 SISTER STATES ============ */
+/* ============ DESTINATIONS: curved 3D places carousel ============ */
 
 function StatesGrid() {
+  const n = destinations.length;
+  const [index, setIndex] = useState(0);
+  const [dragPx, setDragPx] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const [hovering, setHovering] = useState(false);
+  const dragRef = useRef<{
+    active: boolean;
+    startX: number;
+    lastX: number;
+    moved: boolean;
+  }>({ active: false, startX: 0, lastX: 0, moved: false });
+  const stepPx = 240;
+
+  useEffect(() => {
+    if (hovering || dragging) return;
+    const id = window.setInterval(() => {
+      setIndex((i) => (i + 1) % n);
+    }, 3200);
+    return () => window.clearInterval(id);
+  }, [hovering, dragging, n]);
+
+  const pos = index + dragPx / stepPx;
+
+  const wrapRel = (i: number) => {
+    let rel = i - pos;
+    while (rel > n / 2) rel -= n;
+    while (rel < -n / 2) rel += n;
+    return rel;
+  };
+
+  const endDrag = (clientX: number) => {
+    if (!dragRef.current.active) return;
+    const dx = clientX - dragRef.current.startX;
+    dragRef.current.active = false;
+    setDragging(false);
+    setDragPx(0);
+    if (Math.abs(dx) > 40) {
+      const dir = dx < 0 ? 1 : -1;
+      setIndex((i) => (i + dir + n) % n);
+      dragRef.current.moved = true;
+    }
+  };
+
   return (
-    <Section
-      eyebrow="Destinations"
-      title="Eight sisters. Pick your first."
-      action="Open the map"
-      actionExplore
-      marquee="eight sisters ·"
+    <section
+      className="relative left-1/2 w-screen max-w-[100vw] -translate-x-1/2 overflow-hidden py-12 md:py-16"
+      style={{ background: "#F3F0EA" }}
+      onMouseEnter={() => setHovering(true)}
+      onMouseLeave={() => {
+        setHovering(false);
+        endDrag(dragRef.current.lastX);
+      }}
     >
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        {destinations.map((s, i) => (
-          <Reveal key={s.slug} delay={(i % 4) * 90}>
-            <Link
-              to="/explore/$slug"
-              params={{ slug: s.slug }}
-              className="group relative block overflow-hidden rounded-3xl"
-              style={{ aspectRatio: "4/5" }}
-            >
-              <img
-                src={s.heroImg}
-                alt={s.name}
-                loading="lazy"
-                decoding="async"
-                className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-              <div className="absolute inset-x-0 bottom-0 p-4">
-                <p className="text-[16px] font-bold tracking-tight text-white">{s.name}</p>
-                <p className="text-[11px] text-white/75">{s.tag}</p>
-                <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                  <span
-                    className="inline-block rounded-full px-2 py-0.5 text-[10px] font-bold text-white"
-                    style={{ background: GREEN }}
-                  >
-                    {s.stays}
-                  </span>
-                  <span className="inline-block rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur">
-                    360° look
-                  </span>
-                </div>
-              </div>
-            </Link>
-          </Reveal>
-        ))}
+      <div className="mx-auto mb-8 max-w-[1200px] px-4 text-center md:px-6">
+        <p className="text-[12px] font-semibold uppercase tracking-[0.25em]" style={{ color: RED }}>
+          Places we operate
+        </p>
+        <h2 className="mt-2 text-[26px] font-bold tracking-tight md:text-[36px]">
+          Eight sisters. Pick your first.
+        </h2>
       </div>
-    </Section>
+
+      <div
+        className="nn-places-stage relative mx-auto h-[300px] touch-pan-y select-none md:h-[360px]"
+        style={{ perspective: "1400px", cursor: dragging ? "grabbing" : "grab" }}
+        onPointerDown={(e) => {
+          dragRef.current = { active: true, startX: e.clientX, lastX: e.clientX, moved: false };
+          setDragging(true);
+          (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+        }}
+        onPointerMove={(e) => {
+          if (!dragRef.current.active) return;
+          dragRef.current.lastX = e.clientX;
+          const dx = e.clientX - dragRef.current.startX;
+          if (Math.abs(dx) > 6) dragRef.current.moved = true;
+          setDragPx(dx);
+        }}
+        onPointerUp={(e) => endDrag(e.clientX)}
+        onPointerCancel={(e) => endDrag(e.clientX)}
+      >
+        <div
+          className="absolute inset-0 flex items-center justify-center"
+          style={{ transformStyle: "preserve-3d" }}
+        >
+          {destinations.map((s, i) => {
+            const rel = wrapRel(i);
+            const abs = Math.abs(rel);
+            if (abs > 3.2) return null;
+            const rotateY = rel * -38;
+            const x = rel * stepPx;
+            const z = -Math.abs(rel) * 90;
+            const scale = 1 - Math.min(abs, 3) * 0.06;
+            const opacity = abs > 2.6 ? Math.max(0, 1 - (abs - 2.6) * 2) : 1;
+            const active = abs < 0.45;
+
+            return (
+              <Link
+                key={s.slug}
+                to="/explore/$slug"
+                params={{ slug: s.slug }}
+                onClick={(e) => {
+                  if (dragRef.current.moved) {
+                    e.preventDefault();
+                    return;
+                  }
+                  if (!active) {
+                    e.preventDefault();
+                    setIndex(i);
+                  }
+                }}
+                className="nn-places-card group absolute overflow-hidden rounded-sm bg-neutral-200 shadow-[0_18px_40px_rgba(0,0,0,0.18)]"
+                style={{
+                  width: "min(42vw, 220px)",
+                  height: "min(62vw, 320px)",
+                  transform: `translateX(${x}px) translateZ(${z}px) rotateY(${rotateY}deg) scale(${scale})`,
+                  opacity,
+                  zIndex: Math.round(40 - abs * 10),
+                  transition: dragging
+                    ? "none"
+                    : "transform 520ms cubic-bezier(0.22, 1, 0.36, 1), opacity 420ms ease",
+                }}
+                aria-label={s.name}
+              >
+                <img
+                  src={s.heroImg}
+                  alt={s.name}
+                  draggable={false}
+                  loading="lazy"
+                  decoding="async"
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+                <div className="absolute inset-x-0 bottom-0 p-3 md:p-4">
+                  <p className="text-[15px] font-bold tracking-tight text-white md:text-[17px]">{s.name}</p>
+                  <p className="mt-0.5 line-clamp-1 text-[10px] text-white/75 md:text-[11px]">{s.tag}</p>
+                  {active && (
+                    <span
+                      className="mt-2 inline-block rounded-full px-2 py-0.5 text-[10px] font-bold text-white"
+                      style={{ background: GREEN }}
+                    >
+                      {s.stays}
+                    </span>
+                  )}
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="mt-6 flex items-center justify-center gap-4">
+        <button
+          type="button"
+          aria-label="Previous place"
+          onClick={() => setIndex((i) => (i - 1 + n) % n)}
+          className="grid h-10 w-10 place-items-center rounded-full border bg-white/80 text-neutral-600 transition hover:bg-white"
+          style={{ borderColor: "rgba(0,0,0,0.08)" }}
+        >
+          <ChevronLeft size={18} />
+        </button>
+        <div className="flex items-center gap-1.5">
+          {destinations.map((s, i) => (
+            <button
+              key={s.slug}
+              type="button"
+              aria-label={s.name}
+              onClick={() => setIndex(i)}
+              className="h-1.5 rounded-full transition-all"
+              style={{
+                width: i === index ? 22 : 6,
+                background: i === index ? RED : "rgba(0,0,0,0.2)",
+              }}
+            />
+          ))}
+        </div>
+        <button
+          type="button"
+          aria-label="Next place"
+          onClick={() => setIndex((i) => (i + 1) % n)}
+          className="grid h-10 w-10 place-items-center rounded-full border bg-white/80 text-neutral-600 transition hover:bg-white"
+          style={{ borderColor: "rgba(0,0,0,0.08)" }}
+        >
+          <ChevronRight size={18} />
+        </button>
+      </div>
+    </section>
   );
 }
 
@@ -1532,12 +1838,13 @@ function BuilderCta() {
             >
               <Compass size={15} /> Open builder
             </Link>
-            <Link
-              to="/demo-login"
+            <button
+              type="button"
+              onClick={() => openSignInDialog()}
               className="rounded-full border border-white/40 px-6 py-3 text-[13px] font-bold text-white"
             >
-              Demo login
-            </Link>
+              Sign in to dashboards
+            </button>
           </div>
         </div>
       </Reveal>

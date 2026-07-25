@@ -88,7 +88,10 @@ function HostProfilePage() {
     relatedStays.length > 0 ? relatedStays : catalogStays.filter((s) => s.pricePerNight > 0).slice(0, 4);
 
   return (
-    <SiteShell>
+    <SiteShell backFallback="/stays">
+      <Link to="/stays" className="mb-4 inline-block text-[13px] font-semibold text-neutral-500">
+        ← All hosts / stays
+      </Link>
       <div
         className="mb-4 inline-block rounded-full px-3 py-1 text-[11px] font-bold"
         style={{ background: GREEN_LIGHT, color: GREEN }}

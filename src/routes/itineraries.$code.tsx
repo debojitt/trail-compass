@@ -2,18 +2,20 @@ import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-ro
 import { Calendar, Copy, Heart, MapPin, Share2, ShieldCheck, ShoppingCart, Users } from "lucide-react";
 import { SiteShell } from "@/components/site/SiteShell";
 import { VideoRow } from "@/components/site/DetailMedia";
+import { useDemoUser } from "@/components/site/useDemoUser";
+import { openSignInDialog } from "@/lib/openSignIn";
 import { SAMPLE_VIDEOS } from "@/data/demoUniverse";
 import {
   bookItinerary,
-  createGroupTrip,
   formatINR,
   likeItinerary,
   saveDraftItinerary,
-  useCurrentUser,
   useStore,
 } from "@/lib/store";
+import { createGroupInvite } from "@/lib/demoApi";
 import { RED, GREEN, GREEN_LIGHT } from "@/lib/brand";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/itineraries/$code")({
   head: ({ params }) => ({
@@ -44,16 +46,20 @@ function ItineraryDetail() {
   const it = useStore((s) => s.publicItineraries.find((x) => x.code === code));
   const places = useStore((s) => s.places);
   const accounts = useStore((s) => s.accounts);
-  const user = useCurrentUser();
+  const user = useDemoUser();
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [busyInvite, setBusyInvite] = useState(false);
 
   if (!it) throw notFound();
   const creator = accounts.find((a) => a.id === it.creatorId);
 
   const useThis = () => {
-    if (!user) return navigate({ to: "/auth" });
+    if (!user) {
+      openSignInDialog();
+      return;
+    }
     const draft = saveDraftItinerary({
       title: `${it.title} (copy)`,
       stops: it.stops.map((s) => ({ placeId: s.placeId, day: s.day })),
@@ -66,7 +72,10 @@ function ItineraryDetail() {
   };
 
   const bookNow = () => {
-    if (!user) return navigate({ to: "/auth" });
+    if (!user) {
+      openSignInDialog();
+      return;
+    }
     const draft = saveDraftItinerary({
       title: it.title,
       stops: it.stops.map((s) => ({ placeId: s.placeId, day: s.day })),
@@ -79,22 +88,26 @@ function ItineraryDetail() {
     }
   };
 
-  const inviteCrew = () => {
-    if (!user) return navigate({ to: "/auth" });
-    const draft = saveDraftItinerary({
-      title: it.title,
-      stops: it.stops.map((s) => ({ placeId: s.placeId, day: s.day })),
-      cover: it.cover,
-    });
-    if (!draft) return;
-    const trip = createGroupTrip({
-      itineraryId: draft.id,
-      title: it.title,
-      cover: it.cover,
-      perSeat: it.price,
-      seatCount: 4,
-    });
-    if (trip) navigate({ to: "/trip/$id/invite", params: { id: trip.id } });
+  const inviteCrew = async () => {
+    if (!user) {
+      openSignInDialog();
+      toast.message("Sign in to create a crew invite");
+      return;
+    }
+    setBusyInvite(true);
+    try {
+      const inv = await createGroupInvite({
+        title: it.title,
+        pricePerSeat: it.price,
+        seatCount: 4,
+        cover: it.cover,
+      });
+      toast.success(`Crew invite ${inv.code} ready`);
+      void navigate({ to: "/invite/$code", params: { code: inv.code } });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not create invite");
+    }
+    setBusyInvite(false);
   };
 
   const share = () => {
@@ -105,7 +118,10 @@ function ItineraryDetail() {
   };
 
   return (
-    <SiteShell>
+    <SiteShell backFallback="/itineraries">
+      <Link to="/itineraries" className="mb-4 inline-block text-[13px] font-semibold text-neutral-500">
+        ← All itineraries
+      </Link>
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
         <div>
           {/* Gallery */}
@@ -231,14 +247,24 @@ function ItineraryDetail() {
               <ShoppingCart size={13} className="mr-1 inline" /> Use as template
             </button>
             <button
-              onClick={inviteCrew}
-              className="mt-2 w-full rounded-full border py-3 text-[13px] font-bold"
+              type="button"
+              disabled={busyInvite}
+              onClick={() => void inviteCrew()}
+              className="mt-2 w-full rounded-full border py-3 text-[13px] font-bold disabled:opacity-60"
               style={{ borderColor: "rgba(0,0,0,0.15)" }}
             >
-              <Users size={13} className="mr-1 inline" /> Invite crew (per-seat pay)
+              <Users size={13} className="mr-1 inline" />{" "}
+              {busyInvite ? "Creating crew…" : "Invite crew (per-seat pay)"}
             </button>
             <button
-              onClick={() => (user ? likeItinerary(it.code) : navigate({ to: "/auth" }))}
+              type="button"
+              onClick={() => {
+                if (!user) {
+                  openSignInDialog();
+                  return;
+                }
+                likeItinerary(it.code);
+              }}
               className="mt-2 flex w-full items-center justify-center gap-2 rounded-full py-2 text-[12px] font-bold text-neutral-500 hover:bg-neutral-50"
             >
               <Heart size={13} /> Like

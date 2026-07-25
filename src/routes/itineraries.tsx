@@ -43,6 +43,8 @@ function ItinerariesIndex() {
         eyebrow="Verified itineraries"
         title="Every trip has a short code."
         sub="Paste an NN-XXXX-### code below to load the full route instantly — no clickable-link problem, no scrolling reels for context."
+        backFallback="/"
+        backLabel="Home"
       />
 
       <form

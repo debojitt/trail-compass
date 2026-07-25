@@ -23,11 +23,11 @@ export type { HostCityItem };
 const CHANGE_EVENT = "nn-demo-store-change";
 
 const CMS_KEYS = {
-  creatorPlans: "nn-cms-creator-plans-v1",
-  hostHomes: "nn-cms-host-homes-v1",
-  hostTrips: "nn-cms-host-trips-v1",
-  cityItems: "nn-cms-city-items-v1",
-  freelancePlans: "nn-cms-freelance-plans-v1",
+  creatorPlans: "nn-cms-creator-plans-v2",
+  hostHomes: "nn-cms-host-homes-v2",
+  hostTrips: "nn-cms-host-trips-v2",
+  cityItems: "nn-cms-city-items-v2",
+  freelancePlans: "nn-cms-freelance-plans-v2",
   profileOverrides: "nn-cms-profiles-v1",
   plannerSettings: "nn-cms-planner-settings-v1",
   echoSos: "nn-cms-echo-sos-v1",
@@ -56,7 +56,7 @@ function refCode(prefix: string) {
 function ensureList<T>(key: string, seed: T[]): T[] {
   if (typeof window === "undefined") return seed;
   const existing = readJson<T[] | null>(key, null);
-  if (existing) return existing;
+  if (existing && existing.length > 0) return existing;
   writeJson(key, seed);
   return seed;
 }

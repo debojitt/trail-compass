@@ -44,6 +44,8 @@ function StaysPage() {
         eyebrow="Homestays"
         title="Sleep where the locals live."
         sub="Every stay is host-verified with true-cost pricing — what you see includes taxes, permits help and host fees."
+        backFallback="/"
+        backLabel="Home"
       />
 
       <div className="mb-8 flex flex-wrap gap-2">

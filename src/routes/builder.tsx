@@ -51,6 +51,8 @@ function BuilderPage() {
         eyebrow="Shorts builder"
         title="Swipe your trip together."
         sub="Right = add · Left = skip · Scroll = next. Instant undo. Save to your traveler dashboard."
+        backFallback="/"
+        backLabel="Home"
       />
       <div className="grid gap-10 lg:grid-cols-[1fr_320px]">
         <ShortsBuilder onCartChange={setCart} />

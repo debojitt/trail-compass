@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { BadgeCheck } from "lucide-react";
 import { PageHero, SiteShell } from "@/components/site/SiteShell";
-import { useDemoUser } from "@/components/site/useDemoUser";
+import { useDemoAuthReady, useDemoUser } from "@/components/site/useDemoUser";
 import {
   ActionBtn,
   BookingsManager,
   CmsDrawer,
   CmsEmpty,
   CmsSection,
+  DashLoading,
+  DashSignInGate,
   DashTabs,
   EnquiriesInbox,
   Field,
@@ -24,6 +26,7 @@ import type { CreatorPlan } from "@/data/demoUniverse";
 import {
   PLACE_CLIPS,
   appendActivity,
+  dashboardPathFor,
   deleteCreatorPlan,
   fetchCreatorPlans,
   formatINR,
@@ -50,6 +53,7 @@ import {
 } from "@/lib/demoApi";
 import { GREEN, RED } from "@/lib/brand";
 import { toast } from "sonner";
+import { openSignInDialog } from "@/components/site/SignInButton";
 
 export const Route = createFileRoute("/dashboard/creator")({
   head: () => ({ meta: [{ title: "Creator Dashboard · NORTHNEST" }] }),
@@ -87,6 +91,8 @@ const blankForm = (): PlanForm => ({
 
 function CreatorDashboard() {
   const user = useDemoUser();
+  const ready = useDemoAuthReady();
+  const navigate = useNavigate();
   const [tab, setTab] = useState<DashTabId>("overview");
   const [plans, setPlans] = useState<CreatorPlan[]>([]);
   const [comms, setComms] = useState<CommissionEntry[]>([]);
@@ -120,13 +126,33 @@ function CreatorDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
+  useEffect(() => {
+    if (!ready || !user) return;
+    if (user.type !== "creator") {
+      void navigate({ href: dashboardPathFor(user.type) });
+    }
+  }, [ready, user, navigate]);
+
+  if (!ready) {
+    return (
+      <SiteShell>
+        <DashLoading />
+      </SiteShell>
+    );
+  }
+
   if (!user) {
     return (
       <SiteShell>
-        <PageHero eyebrow="Creator" title="Sign in as a verified creator" sub="" />
-        <Link to="/demo-login" style={{ color: RED }} className="font-semibold">
-          Demo login →
-        </Link>
+        <DashSignInGate roleLabel="Creator" title="Sign in as a verified creator" />
+      </SiteShell>
+    );
+  }
+
+  if (user.type !== "creator") {
+    return (
+      <SiteShell>
+        <DashLoading />
       </SiteShell>
     );
   }
@@ -138,7 +164,17 @@ function CreatorDashboard() {
           eyebrow="Verification required"
           title="Claim your creator profile"
           sub="Verification is required before you can publish custom itineraries."
+          backFallback="/"
+          backLabel="Home"
         />
+        <button
+          type="button"
+          onClick={() => openSignInDialog()}
+          className="font-semibold"
+          style={{ color: RED }}
+        >
+          Switch to a verified creator account →
+        </button>
       </SiteShell>
     );
   }
@@ -219,6 +255,8 @@ function CreatorDashboard() {
         eyebrow="Creator control panel"
         title={`${user.name} · verified`}
         sub="Full itinerary CMS, bookings, enquiries, commission history, and publish toggles."
+        backFallback="/"
+        backLabel="Home"
       />
       <p className="mb-4 -mt-4 flex items-center gap-1.5 text-[13px] font-semibold" style={{ color: GREEN }}>
         <BadgeCheck size={16} /> Verification badge active

@@ -59,7 +59,10 @@ function PlannerPublicPage() {
   }
 
   return (
-    <SiteShell>
+    <SiteShell backFallback="/">
+      <Link to="/" className="mb-4 inline-block text-[13px] font-semibold text-neutral-500">
+        ← Home
+      </Link>
       <p className="font-mono text-[12px] font-semibold text-neutral-400">
         {subdomain}.northnest.demo
       </p>
