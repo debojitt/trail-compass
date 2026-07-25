@@ -3,8 +3,8 @@ import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Heart, Play, Rotate3d, Search, Star } from "lucide-react";
 import { PageHero, SiteShell } from "@/components/site/SiteShell";
 import { BookingDialog, type BookingDraft } from "@/components/site/BookingDialog";
-import type { TravelPackage } from "@/data/catalog";
-import type { PublishedItinerary } from "@/data/demoUniverse";
+import { travelPackages as catalogPackages, type TravelPackage } from "@/data/catalog";
+import { PUBLISHED_ITINERARIES, type PublishedItinerary } from "@/data/demoUniverse";
 import { fetchPackages, fetchPublishedItineraries, formatINR } from "@/lib/demoApi";
 import { GREEN, GREEN_LIGHT, RED } from "@/lib/brand";
 
@@ -23,8 +23,8 @@ export const Route = createFileRoute("/packages")({
 
 function PackagesPage() {
   const navigate = useNavigate();
-  const [packages, setPackages] = useState<TravelPackage[] | null>(null);
-  const [published, setPublished] = useState<PublishedItinerary[]>([]);
+  const [packages, setPackages] = useState<TravelPackage[]>(catalogPackages);
+  const [published, setPublished] = useState<PublishedItinerary[]>(PUBLISHED_ITINERARIES);
   const [draft, setDraft] = useState<BookingDraft | null>(null);
   const [codeQuery, setCodeQuery] = useState("");
 
@@ -144,7 +144,7 @@ function PackagesPage() {
         <h2 className="text-[22px] font-bold tracking-tight">Curated NORTHNEST packages</h2>
       </div>
 
-      {packages === null ? (
+      {packages.length === 0 ? (
         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <div
@@ -162,90 +162,85 @@ function PackagesPage() {
               className="group relative overflow-hidden rounded-3xl border bg-white transition-all hover:-translate-y-1 hover:shadow-2xl"
               style={{ borderColor: "rgba(0,0,0,0.07)" }}
             >
-              <Link
-                to="/packages/$id"
-                params={{ id: pk.id }}
-                className="absolute inset-0 z-[1]"
-                aria-label={`View ${pk.title}`}
-              />
-              <div className="relative" style={{ aspectRatio: "16/10" }}>
-                <img
-                  src={pk.img}
-                  alt={pk.title}
-                  loading="lazy"
-                  decoding="async"
-                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-                <span className="absolute left-3 top-3 rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur">
-                  {pk.days}
-                </span>
-                <div className="absolute right-3 top-3 flex gap-1.5">
-                  {(pk.videos?.length ?? 0) > 0 && (
-                    <span className="flex items-center gap-1 rounded-full bg-black/55 px-2 py-1 text-[10px] font-bold text-white backdrop-blur">
-                      <Play size={10} fill="white" /> Video
-                    </span>
-                  )}
-                  {pk.states[0] && (
-                    <span className="flex items-center gap-1 rounded-full bg-black/55 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur">
-                      <Rotate3d size={12} /> Preview
+              <Link to="/packages/$id" params={{ id: pk.id }} className="block">
+                <div className="relative" style={{ aspectRatio: "16/10" }}>
+                  <img
+                    src={pk.img}
+                    alt={pk.title}
+                    loading="lazy"
+                    decoding="async"
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <span className="absolute left-3 top-3 rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur">
+                    {pk.days}
+                  </span>
+                  <div className="absolute right-3 top-3 flex gap-1.5">
+                    {(pk.videos?.length ?? 0) > 0 && (
+                      <span className="flex items-center gap-1 rounded-full bg-black/55 px-2 py-1 text-[10px] font-bold text-white backdrop-blur">
+                        <Play size={10} fill="white" /> Video
+                      </span>
+                    )}
+                    {pk.states[0] && (
+                      <span className="flex items-center gap-1 rounded-full bg-black/55 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur">
+                        <Rotate3d size={12} /> Preview
+                      </span>
+                    )}
+                  </div>
+                  {(pk.photos?.length ?? 0) > 1 && (
+                    <span className="absolute bottom-3 left-3 rounded-lg bg-black/55 px-2 py-1 text-[10px] font-bold text-white backdrop-blur">
+                      {pk.photos!.length} photos
                     </span>
                   )}
                 </div>
-                {(pk.photos?.length ?? 0) > 1 && (
-                  <span className="absolute bottom-3 left-3 rounded-lg bg-black/55 px-2 py-1 text-[10px] font-bold text-white backdrop-blur">
-                    {pk.photos!.length} photos
-                  </span>
-                )}
-              </div>
-              <div className="relative z-[2] p-5 pointer-events-none">
-                <div className="flex items-start justify-between gap-3">
-                  <p className="text-[17px] font-bold leading-snug tracking-tight">{pk.title}</p>
-                  <span
-                    className="flex shrink-0 items-center gap-1 rounded-lg px-1.5 py-0.5 text-[11px] font-bold text-white"
-                    style={{ background: GREEN }}
-                  >
-                    {pk.rating} <Star size={9} fill="white" />
-                  </span>
-                </div>
-                <p className="mt-0.5 text-[11px] text-neutral-400">{pk.reviews} verified reviews</p>
-                <div className="mt-3 flex flex-wrap gap-1.5">
-                  {pk.perks.slice(0, 3).map((perk) => (
+                <div className="p-5 pb-16">
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="text-[17px] font-bold leading-snug tracking-tight">{pk.title}</p>
                     <span
-                      key={perk}
-                      className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
-                      style={{ background: GREEN_LIGHT, color: GREEN }}
+                      className="flex shrink-0 items-center gap-1 rounded-lg px-1.5 py-0.5 text-[11px] font-bold text-white"
+                      style={{ background: GREEN }}
                     >
-                      {perk}
+                      {pk.rating} <Star size={9} fill="white" />
                     </span>
-                  ))}
-                </div>
-                <div className="mt-4 flex items-end justify-between">
-                  <div>
+                  </div>
+                  <p className="mt-0.5 text-[11px] text-neutral-400">{pk.reviews} verified reviews</p>
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {pk.perks.slice(0, 3).map((perk) => (
+                      <span
+                        key={perk}
+                        className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                        style={{ background: GREEN_LIGHT, color: GREEN }}
+                      >
+                        {perk}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="mt-4">
                     <p className="text-[11px] text-neutral-400 line-through">{formatINR(pk.oldPrice)}</p>
                     <p className="text-[22px] font-bold tracking-tight" style={{ color: RED }}>
                       {formatINR(pk.price)}
                       <span className="ml-1 text-[11px] font-medium text-neutral-400">/ person</span>
                     </p>
                   </div>
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setDraft({
-                        kind: "package",
-                        title: pk.title,
-                        detail: `${pk.days} · curated package`,
-                        unitPrice: pk.price,
-                        sourceId: pk.id,
-                      });
-                    }}
-                    className="pointer-events-auto relative z-[3] rounded-full px-5 py-2 text-[13px] font-bold text-white"
-                    style={{ background: RED }}
-                  >
-                    Book
-                  </button>
                 </div>
-              </div>
+              </Link>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setDraft({
+                    kind: "package",
+                    title: pk.title,
+                    detail: `${pk.days} · curated package`,
+                    unitPrice: pk.price,
+                    sourceId: pk.id,
+                  });
+                }}
+                className="absolute bottom-5 right-5 z-10 rounded-full px-5 py-2 text-[13px] font-bold text-white shadow-sm"
+                style={{ background: RED }}
+              >
+                Book
+              </button>
             </article>
           ))}
         </div>

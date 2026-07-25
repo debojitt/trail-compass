@@ -22,11 +22,21 @@ import {
   Quote,
   Play,
   Rotate3d,
+  BadgeCheck,
+  Users,
+  Clapperboard,
+  Compass,
 } from "lucide-react";
 import { destinations } from "@/data/destinations";
 import { stays as catalogStays, travelPackages as catalogPackages } from "@/data/catalog";
+import {
+  DEMO_ACCOUNTS,
+  HOST_HOMES,
+  PUBLISHED_ITINERARIES,
+} from "@/data/demoUniverse";
 import { MobileMenu, NAV_LINKS, SiteFooter } from "@/components/site/SiteShell";
 import { SignInButton } from "@/components/site/SignInButton";
+import { formatINR } from "@/lib/demoApi";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -85,6 +95,12 @@ function Index() {
         <CultureStrip />
         <HomestaysSection />
         <PackagesSection />
+        <PublishedCodesTeaser />
+        <CreatorsTeaser />
+        <HostsTeaser />
+        <InviteCrewTeaser />
+        <PlannerTeaser />
+        <BuilderCta />
         <FeatureStrip />
         <Testimonials />
       </main>
@@ -1288,6 +1304,244 @@ function PackagesSection() {
         ))}
       </div>
     </Section>
+  );
+}
+
+/* ============ PUBLISHED ITINERARY CODES ============ */
+
+function PublishedCodesTeaser() {
+  const list = PUBLISHED_ITINERARIES.slice(0, 6);
+  return (
+    <Section
+      eyebrow="Published codes"
+      title="Load a full route by special code."
+      action="Browse all codes"
+      actionTo="/packages"
+      marquee="codes ·"
+    >
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {list.map((p, i) => (
+          <Reveal key={p.id} delay={(i % 3) * 80}>
+            <Link
+              to="/itinerary/$code"
+              params={{ code: p.code }}
+              className="group flex gap-3 overflow-hidden rounded-3xl border bg-white p-3 transition-all hover:-translate-y-0.5 hover:shadow-xl"
+              style={{ borderColor: "rgba(0,0,0,0.07)" }}
+            >
+              <img src={p.cover} alt="" className="h-20 w-20 shrink-0 rounded-2xl object-cover" />
+              <div className="min-w-0">
+                <p className="font-mono text-[11px] font-bold" style={{ color: GREEN }}>
+                  {p.code}
+                </p>
+                <p className="mt-0.5 truncate text-[14px] font-bold leading-snug">{p.title}</p>
+                <p className="mt-1 text-[11px] text-neutral-400">
+                  {p.publisherName} · from {formatINR(p.priceFrom)}
+                </p>
+              </div>
+            </Link>
+          </Reveal>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+/* ============ CREATORS ============ */
+
+function CreatorsTeaser() {
+  const creators = DEMO_ACCOUNTS.filter((a) => a.type === "creator");
+  return (
+    <Section
+      eyebrow="Creators"
+      title="Verified profiles. Custom itinerary grids."
+      action="All creators"
+      actionTo="/creators"
+    >
+      <div className="grid gap-4 sm:grid-cols-2">
+        {creators.map((c, i) => (
+          <Reveal key={c.id} delay={i * 90}>
+            <Link
+              to="/creator/$handle"
+              params={{ handle: c.handle ?? c.id }}
+              className="flex items-center gap-4 rounded-3xl border bg-white p-4 transition-all hover:-translate-y-0.5 hover:shadow-xl"
+              style={{ borderColor: "rgba(0,0,0,0.07)" }}
+            >
+              <img src={c.avatar} alt="" className="h-16 w-16 rounded-full object-cover" />
+              <div>
+                <p className="flex items-center gap-1 text-[15px] font-bold">
+                  {c.name}
+                  {c.verified && <BadgeCheck size={15} style={{ color: GREEN }} />}
+                </p>
+                <p className="text-[13px]" style={{ color: RED }}>
+                  @{c.handle}
+                </p>
+                <p className="mt-1 line-clamp-2 text-[12px] text-neutral-500">{c.bio}</p>
+              </div>
+            </Link>
+          </Reveal>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+/* ============ HOSTS / 48h TRIPS ============ */
+
+function HostsTeaser() {
+  const homes = HOST_HOMES.slice(0, 6);
+  return (
+    <Section
+      eyebrow="Hosts · 48h trips"
+      title="Homestays with in-city referral itineraries."
+      action="Browse stays"
+      actionTo="/stays"
+    >
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {homes.map((h, i) => (
+          <Reveal key={h.id} delay={(i % 3) * 80}>
+            <Link
+              to="/host/$slug"
+              params={{ slug: h.slug }}
+              className="group overflow-hidden rounded-3xl border bg-white transition-all hover:-translate-y-0.5 hover:shadow-xl"
+              style={{ borderColor: "rgba(0,0,0,0.07)" }}
+            >
+              <div className="relative" style={{ aspectRatio: "16/10" }}>
+                <img
+                  src={h.photos[0]}
+                  alt={h.name}
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+              </div>
+              <div className="p-4">
+                <p className="text-[14px] font-bold leading-snug">{h.name}</p>
+                <p className="mt-0.5 text-[11px] text-neutral-500">{h.place}</p>
+                <p className="mt-2 text-[15px] font-bold" style={{ color: RED }}>
+                  {formatINR(h.pricePerNight)}
+                  <span className="ml-1 text-[10px] font-medium text-neutral-400">/ night</span>
+                </p>
+              </div>
+            </Link>
+          </Reveal>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+/* ============ INVITE CREW ============ */
+
+function InviteCrewTeaser() {
+  return (
+    <section className="py-14 md:py-20">
+      <Reveal>
+        <div
+          className="flex flex-col items-start justify-between gap-6 overflow-hidden rounded-[2rem] border px-6 py-8 md:flex-row md:items-center md:px-10"
+          style={{
+            borderColor: "rgba(0,0,0,0.07)",
+            background: "linear-gradient(135deg, #fff 0%, #F3FAF5 55%, #FFF5F6 100%)",
+          }}
+        >
+          <div className="max-w-lg">
+            <p className="flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.25em]" style={{ color: RED }}>
+              <Users size={14} /> Invite Crew
+            </p>
+            <h2 className="mt-2 text-[24px] font-bold tracking-tight md:text-[32px]">
+              Multiplayer seats for group trips.
+            </h2>
+            <p className="mt-2 text-[14px] leading-relaxed text-neutral-500">
+              Claim a seat, split EMI, and travel together — try demo code CREW-MEGH-01.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              to="/invite"
+              className="rounded-full px-6 py-3 text-[13px] font-bold text-white"
+              style={{ background: RED }}
+            >
+              Open Invite Crew
+            </Link>
+            <Link
+              to="/invite/$code"
+              params={{ code: "CREW-MEGH-01" }}
+              className="rounded-full border bg-white px-6 py-3 text-[13px] font-bold"
+              style={{ borderColor: "rgba(0,0,0,0.12)" }}
+            >
+              Try CREW-MEGH-01
+            </Link>
+          </div>
+        </div>
+      </Reveal>
+    </section>
+  );
+}
+
+/* ============ PLANNER HIGHLIGHT ============ */
+
+function PlannerTeaser() {
+  const planners = DEMO_ACCOUNTS.filter((a) => a.type === "planner");
+  return (
+    <Section eyebrow="Freelance planners" title="Branded profiles. 60% share. Echo SOS on.">
+      <div className="grid gap-4 md:grid-cols-2">
+        {planners.map((p, i) => (
+          <Reveal key={p.id} delay={i * 90}>
+            <Link
+              to="/planner/$subdomain"
+              params={{ subdomain: p.subdomain ?? p.id }}
+              className="flex gap-4 rounded-3xl border bg-white p-5 transition-all hover:-translate-y-0.5 hover:shadow-xl"
+              style={{ borderColor: "rgba(0,0,0,0.07)" }}
+            >
+              <img src={p.avatar} alt="" className="h-16 w-16 rounded-2xl object-cover" />
+              <div>
+                <p className="flex items-center gap-1 text-[16px] font-bold">
+                  {p.name}
+                  {p.verified && <BadgeCheck size={15} style={{ color: GREEN }} />}
+                </p>
+                <p className="font-mono text-[12px] text-neutral-400">{p.subdomain}.northnest.demo</p>
+                <p className="mt-1 text-[12px] text-neutral-500">{p.bio}</p>
+              </div>
+            </Link>
+          </Reveal>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+/* ============ BUILDER CTA ============ */
+
+function BuilderCta() {
+  return (
+    <section className="py-10 md:py-14">
+      <Reveal>
+        <div
+          className="relative overflow-hidden rounded-[2rem] px-6 py-10 text-center text-white md:px-12"
+          style={{ background: `linear-gradient(135deg, ${RED} 0%, ${RED_DARK} 55%, #1a1a1a 140%)` }}
+        >
+          <Clapperboard className="mx-auto opacity-90" size={28} />
+          <h2 className="mt-4 text-[26px] font-bold tracking-tight md:text-[36px]">
+            Shorts-style itinerary builder
+          </h2>
+          <p className="mx-auto mt-2 max-w-md text-[14px] text-white/80">
+            Swipe places, save a route, complete a trip, then publish a shareable NORTHNEST code.
+          </p>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              to="/builder"
+              className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3 text-[13px] font-bold"
+              style={{ color: RED }}
+            >
+              <Compass size={15} /> Open builder
+            </Link>
+            <Link
+              to="/demo-login"
+              className="rounded-full border border-white/40 px-6 py-3 text-[13px] font-bold text-white"
+            >
+              Demo login
+            </Link>
+          </div>
+        </div>
+      </Reveal>
+    </section>
   );
 }
 

@@ -4,6 +4,7 @@ import { Car, MapPin, Utensils } from "lucide-react";
 import { SiteShell } from "@/components/site/SiteShell";
 import { BookingDialog, type BookingDraft } from "@/components/site/BookingDialog";
 import { PhotoGallery, VideoRow, RatingLikes, PriceBlock } from "@/components/site/DetailMedia";
+import { stays as catalogStays } from "@/data/catalog";
 import type { DemoAccount, HostHome, HostTrip48h } from "@/data/demoUniverse";
 import { SAMPLE_VIDEOS } from "@/data/demoUniverse";
 import { fetchHostBySlug, fetchHostTrips, formatINR } from "@/lib/demoApi";
@@ -49,6 +50,18 @@ function HostProfilePage() {
   const places = [...new Set(trips.flatMap((t) => t.places))];
   const food = [...new Set(trips.flatMap((t) => t.food))];
   const cabs = [...new Set(trips.flatMap((t) => t.cabs))];
+  const placeKey = home.place.split(",")[0]?.trim().toLowerCase() ?? "";
+  const relatedStays = catalogStays
+    .filter(
+      (s) =>
+        s.name.toLowerCase().includes(home.name.split(" ")[0]?.toLowerCase() ?? "") ||
+        s.place.toLowerCase().includes(placeKey) ||
+        (placeKey.includes("sohra") && s.stateSlug === "meghalaya") ||
+        (placeKey.includes("ziro") && s.stateSlug === "arunachal-pradesh"),
+    )
+    .slice(0, 4);
+  const marketplaceStays =
+    relatedStays.length > 0 ? relatedStays : catalogStays.filter((s) => s.pricePerNight > 0).slice(0, 4);
 
   return (
     <SiteShell>
@@ -170,6 +183,35 @@ function HostProfilePage() {
                 </div>
               ))}
             </div>
+          </section>
+
+          <section>
+            <h2 className="text-[16px] font-bold">Marketplace stays nearby</h2>
+            <p className="mt-1 text-[12px] text-neutral-500">Open full stay detail pages with photos, videos and book CTAs.</p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {marketplaceStays.map((s) => (
+                <Link
+                  key={s.id}
+                  to="/stays/$id"
+                  params={{ id: s.id }}
+                  className="flex gap-3 overflow-hidden rounded-2xl border transition-shadow hover:shadow-lg"
+                  style={{ borderColor: "rgba(0,0,0,0.07)" }}
+                >
+                  <img src={s.img} alt="" className="h-20 w-20 shrink-0 object-cover" />
+                  <div className="min-w-0 py-2 pr-2">
+                    <p className="truncate text-[13px] font-bold">{s.name}</p>
+                    <p className="truncate text-[11px] text-neutral-500">{s.place}</p>
+                    <p className="mt-1 text-[13px] font-bold" style={{ color: RED }}>
+                      {formatINR(s.pricePerNight)}
+                      <span className="text-[10px] font-medium text-neutral-400"> / night</span>
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+            <Link to="/stays" className="mt-3 inline-block text-[13px] font-semibold" style={{ color: RED }}>
+              All marketplace stays →
+            </Link>
           </section>
         </div>
 

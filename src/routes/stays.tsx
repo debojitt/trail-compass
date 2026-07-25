@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { MapPin, Star } from "lucide-react";
 import { PageHero, SiteShell } from "@/components/site/SiteShell";
 import { BookingDialog, type BookingDraft } from "@/components/site/BookingDialog";
 import { destinations } from "@/data/destinations";
-import type { Stay } from "@/data/catalog";
-import { fetchStays, formatINR } from "@/lib/demoApi";
+import { stays as catalogStays } from "@/data/catalog";
+import { formatINR } from "@/lib/demoApi";
 import { GREEN, GREEN_LIGHT, RED } from "@/lib/brand";
 
 export const Route = createFileRoute("/stays")({
@@ -23,19 +23,13 @@ export const Route = createFileRoute("/stays")({
 
 function StaysPage() {
   const [stateFilter, setStateFilter] = useState<string | undefined>(undefined);
-  const [stays, setStays] = useState<Stay[] | null>(null);
   const [draft, setDraft] = useState<BookingDraft | null>(null);
 
-  useEffect(() => {
-    let alive = true;
-    setStays(null);
-    fetchStays(stateFilter).then((list) => {
-      if (alive) setStays(list);
-    });
-    return () => {
-      alive = false;
-    };
-  }, [stateFilter]);
+  /* Sync catalog — every card is an <a href> in SSR/HTML so clicks never depend on overlay hacks */
+  const stays = useMemo(
+    () => (stateFilter ? catalogStays.filter((s) => s.stateSlug === stateFilter) : catalogStays),
+    [stateFilter],
+  );
 
   return (
     <SiteShell>
@@ -45,7 +39,6 @@ function StaysPage() {
         sub="Every stay is host-verified with true-cost pricing — what you see includes taxes, permits help and host fees."
       />
 
-      {/* State filter chips */}
       <div className="mb-8 flex flex-wrap gap-2">
         <FilterChip label="All states" active={!stateFilter} onClick={() => setStateFilter(undefined)} />
         {destinations.map((d) => (
@@ -58,20 +51,7 @@ function StaysPage() {
         ))}
       </div>
 
-      {stays === null ? (
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="animate-pulse overflow-hidden rounded-3xl border" style={{ borderColor: "rgba(0,0,0,0.07)" }}>
-              <div className="bg-neutral-100" style={{ aspectRatio: "16/10" }} />
-              <div className="space-y-2 p-4">
-                <div className="h-4 w-2/3 rounded bg-neutral-100" />
-                <div className="h-3 w-1/2 rounded bg-neutral-100" />
-                <div className="h-8 w-full rounded bg-neutral-50" />
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : stays.length === 0 ? (
+      {stays.length === 0 ? (
         <div className="rounded-3xl bg-neutral-50 py-16 text-center">
           <p className="text-[15px] font-semibold">No demo stays here yet</p>
           <p className="mt-1 text-[13px] text-neutral-500">
@@ -86,8 +66,7 @@ function StaysPage() {
               className="group relative overflow-hidden rounded-3xl border bg-white transition-all hover:-translate-y-1 hover:shadow-2xl"
               style={{ borderColor: "rgba(0,0,0,0.07)" }}
             >
-              <Link to="/stays/$id" params={{ id: s.id }} className="absolute inset-0 z-0" aria-label={`View ${s.name}`} />
-              <div className="relative pointer-events-none">
+              <Link to="/stays/$id" params={{ id: s.id }} className="block">
                 <div className="relative" style={{ aspectRatio: "16/10" }}>
                   <img
                     src={s.img}
@@ -103,7 +82,7 @@ function StaysPage() {
                     {s.rating} <Star size={9} fill="white" />
                   </span>
                 </div>
-                <div className="p-4">
+                <div className="p-4 pb-16">
                   <p className="text-[16px] font-bold leading-snug tracking-tight">{s.name}</p>
                   <p className="mt-0.5 flex items-center gap-1 text-[12px] text-neutral-500">
                     <MapPin size={11} /> {s.place}
@@ -120,43 +99,43 @@ function StaysPage() {
                       </span>
                     ))}
                   </div>
-                  <div className="mt-4 flex items-end justify-between">
-                    <div>
-                      <p className="text-[11px] text-neutral-400">{s.reviews} reviews</p>
-                      <p className="text-[19px] font-bold tracking-tight" style={{ color: RED }}>
-                        {formatINR(s.pricePerNight)}
-                        <span className="ml-1 text-[11px] font-medium text-neutral-400">/ night</span>
-                      </p>
-                    </div>
-                    <div className="pointer-events-auto relative z-10 flex gap-2">
-                      <Link
-                        to="/stays/$id"
-                        params={{ id: s.id }}
-                        className="rounded-full border px-3 py-2 text-[12px] font-bold"
-                        style={{ borderColor: "rgba(0,0,0,0.12)" }}
-                      >
-                        View
-                      </Link>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setDraft({
-                            kind: "stay",
-                            title: s.name,
-                            detail: `${s.place} · per-night rate`,
-                            unitPrice: s.pricePerNight,
-                            perPerson: false,
-                            sourceId: s.id,
-                          })
-                        }
-                        className="rounded-full px-5 py-2 text-[13px] font-bold text-white transition-transform hover:scale-105"
-                        style={{ background: RED }}
-                      >
-                        Book
-                      </button>
-                    </div>
+                  <div className="mt-4">
+                    <p className="text-[11px] text-neutral-400">{s.reviews} reviews</p>
+                    <p className="text-[19px] font-bold tracking-tight" style={{ color: RED }}>
+                      {formatINR(s.pricePerNight)}
+                      <span className="ml-1 text-[11px] font-medium text-neutral-400">/ night</span>
+                    </p>
                   </div>
                 </div>
+              </Link>
+              <div className="absolute bottom-4 right-4 z-10 flex gap-2">
+                <Link
+                  to="/stays/$id"
+                  params={{ id: s.id }}
+                  className="rounded-full border bg-white px-3 py-2 text-[12px] font-bold shadow-sm"
+                  style={{ borderColor: "rgba(0,0,0,0.12)" }}
+                >
+                  View
+                </Link>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setDraft({
+                      kind: "stay",
+                      title: s.name,
+                      detail: `${s.place} · per-night rate`,
+                      unitPrice: s.pricePerNight,
+                      perPerson: false,
+                      sourceId: s.id,
+                    });
+                  }}
+                  className="rounded-full px-5 py-2 text-[13px] font-bold text-white shadow-sm transition-transform hover:scale-105"
+                  style={{ background: RED }}
+                >
+                  Book
+                </button>
               </div>
             </article>
           ))}
