@@ -286,14 +286,40 @@
   transform: scaleX(1);
 }
 
-/* Curved places carousel — 3D stage (legacy; homepage uses horizontal scroll) */
+/* Curved places carousel — true 3D on desktop + mobile (WebKit-safe) */
+.nn-places-bleed {
+  position: relative;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  overflow-x: clip;
+  overflow-y: visible;
+}
 .nn-places-stage {
+  position: relative;
+  perspective: 1200px;
+  -webkit-perspective: 1200px;
+  perspective-origin: 50% 45%;
+  -webkit-perspective-origin: 50% 45%;
+  /* Do NOT put overflow/transform here — they flatten 3D on mobile Safari */
+  overflow: visible;
+}
+.nn-places-ring {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
 }
 .nn-places-card {
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   will-change: transform, opacity;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Shared catalog cards — profile-grid curves + boxed offer feel */
