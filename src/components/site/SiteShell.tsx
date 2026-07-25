@@ -20,7 +20,6 @@ export const NAV_LINKS = [
   { label: "Packages", to: "/packages" },
   { label: "Permits", to: "/permits" },
   { label: "Offers", to: "/offers" },
-  { label: "Labs", to: "/labs", badge: "NEW" },
 ] as const;
 
 /** Solid header + footer wrapper used by every page except the homepage hero */
