@@ -270,7 +270,7 @@ function PlaceSlide({ place, idx, inCart, swipeX, setSwipeX, onAdd, onSkip, refC
 
   return (
     <div
-      ref={(el) => rest.ref?.(el)}
+      ref={refCb}
       data-idx={idx}
       className="relative h-full w-full snap-start snap-always"
     >
