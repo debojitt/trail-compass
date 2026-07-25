@@ -297,29 +297,49 @@
 }
 .nn-places-stage {
   position: relative;
-  perspective: 1200px;
-  -webkit-perspective: 1200px;
-  perspective-origin: 50% 45%;
-  -webkit-perspective-origin: 50% 45%;
-  /* Do NOT put overflow/transform here — they flatten 3D on mobile Safari */
+  height: 360px;
+  perspective: 1400px;
+  -webkit-perspective: 1400px;
+  perspective-origin: 50% 50%;
+  -webkit-perspective-origin: 50% 50%;
   overflow: visible;
+  touch-action: pan-y;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.nn-places-stage.is-dragging {
+  touch-action: none;
+  cursor: grabbing;
 }
 .nn-places-ring {
   position: absolute;
   inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   transform-style: preserve-3d;
   -webkit-transform-style: preserve-3d;
+  /* Fixed center — no flex layout shift while dragging */
+  pointer-events: none;
 }
 .nn-places-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-left: -110px; /* half of 220 */
+  margin-top: -160px; /* half of 320 — locks vertical center rigidly */
+  width: 220px;
+  height: 320px;
+  transform-origin: 50% 50%;
+  -webkit-transform-origin: 50% 50%;
   transform-style: preserve-3d;
   -webkit-transform-style: preserve-3d;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   will-change: transform, opacity;
   -webkit-tap-highlight-color: transparent;
+  pointer-events: auto;
+  overflow: hidden;
+  border-radius: 2px;
+  background: #e5e5e5;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
 }
 
 /* Shared catalog cards — profile-grid curves + boxed offer feel */
@@ -336,10 +356,15 @@
 }
 .nn-h-scroll {
   display: flex;
+  align-items: flex-start;
   gap: 12px;
   overflow-x: auto;
+  overflow-y: hidden;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+  overscroll-behavior-x: contain;
+  overscroll-behavior-y: none;
   scrollbar-width: none;
   padding-bottom: 4px;
 }
@@ -349,6 +374,14 @@
 .nn-h-scroll > * {
   scroll-snap-align: start;
   flex-shrink: 0;
+  /* Kill vertical reveal jitter inside horizontal rows */
+  transform: none !important;
+}
+.nn-h-scroll .nn-reveal,
+.nn-h-scroll .nn-reveal.nn-in {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
 }
 
 /* Offers — small pocket cards + hover motion */

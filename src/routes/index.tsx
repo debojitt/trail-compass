@@ -1202,13 +1202,25 @@ function StatesGrid() {
   const [hovering, setHovering] = useState(false);
   const dragRef = useRef<{
     active: boolean;
+    pointerId: number | null;
     startX: number;
+    startY: number;
     lastX: number;
     lastT: number;
     velocity: number;
     moved: boolean;
-    axis: "none" | "x";
-  }>({ active: false, startX: 0, lastX: 0, lastT: 0, velocity: 0, moved: false, axis: "none" });
+    axis: "none" | "x" | "y";
+  }>({
+    active: false,
+    pointerId: null,
+    startX: 0,
+    startY: 0,
+    lastX: 0,
+    lastT: 0,
+    velocity: 0,
+    moved: false,
+    axis: "none",
+  });
   const rafRef = useRef(0);
   const stepPx = 240;
 
@@ -1220,9 +1232,12 @@ function StatesGrid() {
     return () => window.clearInterval(id);
   }, [hovering, dragging, n]);
 
-  useEffect(() => () => {
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    },
+    [],
+  );
 
   const pos = index + dragPx / stepPx;
 
@@ -1239,16 +1254,17 @@ function StatesGrid() {
     const wasDragging = dragRef.current.axis === "x";
     const velocity = dragRef.current.velocity;
     dragRef.current.active = false;
+    dragRef.current.pointerId = null;
     dragRef.current.axis = "none";
     setDragging(false);
     setDragPx(0);
-    if (wasDragging && (Math.abs(dx) > 36 || Math.abs(velocity) > 0.45)) {
-      const dir = dx + velocity * 80 < 0 ? 1 : -1;
+    if (wasDragging && (Math.abs(dx) > 40 || Math.abs(velocity) > 0.4)) {
+      const dir = dx + velocity * 90 < 0 ? 1 : -1;
       setIndex((i) => (i + dir + n) % n);
       dragRef.current.moved = true;
       window.setTimeout(() => {
         dragRef.current.moved = false;
-      }, 280);
+      }, 320);
     }
   };
 
@@ -1272,14 +1288,16 @@ function StatesGrid() {
       </div>
 
       <div
-        className="nn-places-stage relative mx-auto h-[380px] touch-none select-none"
+        className={`nn-places-stage relative mx-auto select-none ${dragging ? "is-dragging" : ""}`}
         style={{ cursor: dragging ? "grabbing" : "grab" }}
         onPointerDown={(e) => {
           if (e.button !== 0) return;
           const now = performance.now();
           dragRef.current = {
             active: true,
+            pointerId: e.pointerId,
             startX: e.clientX,
+            startY: e.clientY,
             lastX: e.clientX,
             lastT: now,
             velocity: 0,
@@ -1288,17 +1306,24 @@ function StatesGrid() {
           };
         }}
         onPointerMove={(e) => {
-          if (!dragRef.current.active) return;
+          if (!dragRef.current.active || dragRef.current.pointerId !== e.pointerId) return;
           const now = performance.now();
           const dx = e.clientX - dragRef.current.startX;
+          const dy = e.clientY - dragRef.current.startY;
           const dt = Math.max(1, now - dragRef.current.lastT);
           const instant = (e.clientX - dragRef.current.lastX) / dt;
-          dragRef.current.velocity = dragRef.current.velocity * 0.7 + instant * 0.3;
+          dragRef.current.velocity = dragRef.current.velocity * 0.65 + instant * 0.35;
           dragRef.current.lastX = e.clientX;
           dragRef.current.lastT = now;
 
           if (dragRef.current.axis === "none") {
-            if (Math.abs(dx) < 8) return;
+            if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
+            /* Vertical intent → abandon so page scroll stays normal */
+            if (Math.abs(dy) > Math.abs(dx) * 1.15) {
+              dragRef.current.active = false;
+              dragRef.current.axis = "y";
+              return;
+            }
             dragRef.current.axis = "x";
             setDragging(true);
             (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
@@ -1320,11 +1345,11 @@ function StatesGrid() {
             const rel = wrapRel(i);
             const abs = Math.abs(rel);
             if (abs > 3.2) return null;
-            /* Stronger arc so the 3D curve reads clearly on phone */
-            const rotateY = rel * -42;
+            /* Exact desktop coverflow math */
+            const rotateY = rel * -38;
             const x = rel * stepPx;
-            const z = -Math.abs(rel) * 110;
-            const scale = 1 - Math.min(abs, 3) * 0.07;
+            const z = -Math.abs(rel) * 90;
+            const scale = 1 - Math.min(abs, 3) * 0.06;
             const opacity = abs > 2.6 ? Math.max(0, 1 - (abs - 2.6) * 2) : 1;
             const active = abs < 0.45;
 
@@ -1343,17 +1368,16 @@ function StatesGrid() {
                     setIndex(i);
                   }
                 }}
-                className="nn-places-card group absolute overflow-hidden rounded-sm bg-neutral-200 shadow-[0_18px_40px_rgba(0,0,0,0.22)]"
+                className="nn-places-card group"
                 style={{
-                  width: 220,
-                  height: 320,
+                  /* Y locked at 0 — no vertical drift while swiping */
                   transform: `translate3d(${x}px, 0, ${z}px) rotateY(${rotateY}deg) scale(${scale})`,
                   WebkitTransform: `translate3d(${x}px, 0, ${z}px) rotateY(${rotateY}deg) scale(${scale})`,
                   opacity,
                   zIndex: Math.round(40 - abs * 10),
                   transition: dragging
                     ? "none"
-                    : "transform 480ms cubic-bezier(0.22, 1, 0.36, 1), opacity 360ms ease",
+                    : "transform 520ms cubic-bezier(0.22, 1, 0.36, 1), opacity 420ms ease",
                 }}
                 aria-label={s.name}
               >
