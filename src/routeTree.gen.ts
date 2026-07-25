@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BuilderRouteImport } from './routes/builder'
 import { Route as CabsRouteImport } from './routes/cabs'
 import { Route as CreatorsRouteImport } from './routes/creators'
@@ -17,12 +18,14 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as DemoLoginRouteImport } from './routes/demo-login'
 import { Route as FlightsRouteImport } from './routes/flights'
 import { Route as InviteRouteImport } from './routes/invite'
+import { Route as ItinerariesRouteImport } from './routes/itineraries'
 import { Route as OffersRouteImport } from './routes/offers'
 import { Route as PackagesRouteImport } from './routes/packages'
 import { Route as PermitsRouteImport } from './routes/permits'
 import { Route as StaysRouteImport } from './routes/stays'
 import { Route as TrainsRouteImport } from './routes/trains'
 import { Route as CreatorHandleRouteImport } from './routes/creator.$handle'
+import { Route as CreatorsHandleRouteImport } from './routes/creators.$handle'
 import { Route as DashboardAdminRouteImport } from './routes/dashboard.admin'
 import { Route as DashboardCreatorRouteImport } from './routes/dashboard.creator'
 import { Route as DashboardHostRouteImport } from './routes/dashboard.host'
@@ -30,16 +33,25 @@ import { Route as DashboardPlannerRouteImport } from './routes/dashboard.planner
 import { Route as DashboardTravelerRouteImport } from './routes/dashboard.traveler'
 import { Route as ExploreSlugRouteImport } from './routes/explore.$slug'
 import { Route as HostSlugRouteImport } from './routes/host.$slug'
+import { Route as HostsIdRouteImport } from './routes/hosts.$id'
 import { Route as InviteCodeRouteImport } from './routes/invite.$code'
+import { Route as ItinerariesCodeRouteImport } from './routes/itineraries.$code'
 import { Route as ItineraryCodeRouteImport } from './routes/itinerary.$code'
 import { Route as PackagesIdRouteImport } from './routes/packages.$id'
 import { Route as PlannerSubdomainRouteImport } from './routes/planner.$subdomain'
 import { Route as StaysIdRouteImport } from './routes/stays.$id'
 import { Route as CreatorHandlePlanIdRouteImport } from './routes/creator.$handle.$planId'
+import { Route as TripIdInviteRouteImport } from './routes/trip.$id.invite'
+import { Route as TripIdSosRouteImport } from './routes/trip.$id.sos'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BuilderRoute = BuilderRouteImport.update({
@@ -77,6 +89,11 @@ const InviteRoute = InviteRouteImport.update({
   path: '/invite',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ItinerariesRoute = ItinerariesRouteImport.update({
+  id: '/itineraries',
+  path: '/itineraries',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OffersRoute = OffersRouteImport.update({
   id: '/offers',
   path: '/offers',
@@ -106,6 +123,11 @@ const CreatorHandleRoute = CreatorHandleRouteImport.update({
   id: '/creator/$handle',
   path: '/creator/$handle',
   getParentRoute: () => rootRouteImport,
+} as any)
+const CreatorsHandleRoute = CreatorsHandleRouteImport.update({
+  id: '/$handle',
+  path: '/$handle',
+  getParentRoute: () => CreatorsRoute,
 } as any)
 const DashboardAdminRoute = DashboardAdminRouteImport.update({
   id: '/admin',
@@ -142,10 +164,20 @@ const HostSlugRoute = HostSlugRouteImport.update({
   path: '/host/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HostsIdRoute = HostsIdRouteImport.update({
+  id: '/hosts/$id',
+  path: '/hosts/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InviteCodeRoute = InviteCodeRouteImport.update({
   id: '/$code',
   path: '/$code',
   getParentRoute: () => InviteRoute,
+} as any)
+const ItinerariesCodeRoute = ItinerariesCodeRouteImport.update({
+  id: '/$code',
+  path: '/$code',
+  getParentRoute: () => ItinerariesRoute,
 } as any)
 const ItineraryCodeRoute = ItineraryCodeRouteImport.update({
   id: '/itinerary/$code',
@@ -172,22 +204,35 @@ const CreatorHandlePlanIdRoute = CreatorHandlePlanIdRouteImport.update({
   path: '/$planId',
   getParentRoute: () => CreatorHandleRoute,
 } as any)
+const TripIdInviteRoute = TripIdInviteRouteImport.update({
+  id: '/trip/$id/invite',
+  path: '/trip/$id/invite',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TripIdSosRoute = TripIdSosRouteImport.update({
+  id: '/trip/$id/sos',
+  path: '/trip/$id/sos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/builder': typeof BuilderRoute
   '/cabs': typeof CabsRoute
-  '/creators': typeof CreatorsRoute
+  '/creators': typeof CreatorsRouteWithChildren
   '/dashboard': typeof DashboardRouteWithChildren
   '/demo-login': typeof DemoLoginRoute
   '/flights': typeof FlightsRoute
   '/invite': typeof InviteRouteWithChildren
+  '/itineraries': typeof ItinerariesRouteWithChildren
   '/offers': typeof OffersRoute
   '/packages': typeof PackagesRouteWithChildren
   '/permits': typeof PermitsRoute
   '/stays': typeof StaysRouteWithChildren
   '/trains': typeof TrainsRoute
   '/creator/$handle': typeof CreatorHandleRouteWithChildren
+  '/creators/$handle': typeof CreatorsHandleRoute
   '/dashboard/admin': typeof DashboardAdminRoute
   '/dashboard/creator': typeof DashboardCreatorRoute
   '/dashboard/host': typeof DashboardHostRoute
@@ -195,28 +240,35 @@ export interface FileRoutesByFullPath {
   '/dashboard/traveler': typeof DashboardTravelerRoute
   '/explore/$slug': typeof ExploreSlugRoute
   '/host/$slug': typeof HostSlugRoute
+  '/hosts/$id': typeof HostsIdRoute
   '/invite/$code': typeof InviteCodeRoute
+  '/itineraries/$code': typeof ItinerariesCodeRoute
   '/itinerary/$code': typeof ItineraryCodeRoute
   '/packages/$id': typeof PackagesIdRoute
   '/planner/$subdomain': typeof PlannerSubdomainRoute
   '/stays/$id': typeof StaysIdRoute
   '/creator/$handle/$planId': typeof CreatorHandlePlanIdRoute
+  '/trip/$id/invite': typeof TripIdInviteRoute
+  '/trip/$id/sos': typeof TripIdSosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/builder': typeof BuilderRoute
   '/cabs': typeof CabsRoute
-  '/creators': typeof CreatorsRoute
+  '/creators': typeof CreatorsRouteWithChildren
   '/dashboard': typeof DashboardRouteWithChildren
   '/demo-login': typeof DemoLoginRoute
   '/flights': typeof FlightsRoute
   '/invite': typeof InviteRouteWithChildren
+  '/itineraries': typeof ItinerariesRouteWithChildren
   '/offers': typeof OffersRoute
   '/packages': typeof PackagesRouteWithChildren
   '/permits': typeof PermitsRoute
   '/stays': typeof StaysRouteWithChildren
   '/trains': typeof TrainsRoute
   '/creator/$handle': typeof CreatorHandleRouteWithChildren
+  '/creators/$handle': typeof CreatorsHandleRoute
   '/dashboard/admin': typeof DashboardAdminRoute
   '/dashboard/creator': typeof DashboardCreatorRoute
   '/dashboard/host': typeof DashboardHostRoute
@@ -224,29 +276,36 @@ export interface FileRoutesByTo {
   '/dashboard/traveler': typeof DashboardTravelerRoute
   '/explore/$slug': typeof ExploreSlugRoute
   '/host/$slug': typeof HostSlugRoute
+  '/hosts/$id': typeof HostsIdRoute
   '/invite/$code': typeof InviteCodeRoute
+  '/itineraries/$code': typeof ItinerariesCodeRoute
   '/itinerary/$code': typeof ItineraryCodeRoute
   '/packages/$id': typeof PackagesIdRoute
   '/planner/$subdomain': typeof PlannerSubdomainRoute
   '/stays/$id': typeof StaysIdRoute
   '/creator/$handle/$planId': typeof CreatorHandlePlanIdRoute
+  '/trip/$id/invite': typeof TripIdInviteRoute
+  '/trip/$id/sos': typeof TripIdSosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/builder': typeof BuilderRoute
   '/cabs': typeof CabsRoute
-  '/creators': typeof CreatorsRoute
+  '/creators': typeof CreatorsRouteWithChildren
   '/dashboard': typeof DashboardRouteWithChildren
   '/demo-login': typeof DemoLoginRoute
   '/flights': typeof FlightsRoute
   '/invite': typeof InviteRouteWithChildren
+  '/itineraries': typeof ItinerariesRouteWithChildren
   '/offers': typeof OffersRoute
   '/packages': typeof PackagesRouteWithChildren
   '/permits': typeof PermitsRoute
   '/stays': typeof StaysRouteWithChildren
   '/trains': typeof TrainsRoute
   '/creator/$handle': typeof CreatorHandleRouteWithChildren
+  '/creators/$handle': typeof CreatorsHandleRoute
   '/dashboard/admin': typeof DashboardAdminRoute
   '/dashboard/creator': typeof DashboardCreatorRoute
   '/dashboard/host': typeof DashboardHostRoute
@@ -254,17 +313,22 @@ export interface FileRoutesById {
   '/dashboard/traveler': typeof DashboardTravelerRoute
   '/explore/$slug': typeof ExploreSlugRoute
   '/host/$slug': typeof HostSlugRoute
+  '/hosts/$id': typeof HostsIdRoute
   '/invite/$code': typeof InviteCodeRoute
+  '/itineraries/$code': typeof ItinerariesCodeRoute
   '/itinerary/$code': typeof ItineraryCodeRoute
   '/packages/$id': typeof PackagesIdRoute
   '/planner/$subdomain': typeof PlannerSubdomainRoute
   '/stays/$id': typeof StaysIdRoute
   '/creator/$handle/$planId': typeof CreatorHandlePlanIdRoute
+  '/trip/$id/invite': typeof TripIdInviteRoute
+  '/trip/$id/sos': typeof TripIdSosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/auth'
     | '/builder'
     | '/cabs'
     | '/creators'
@@ -272,12 +336,14 @@ export interface FileRouteTypes {
     | '/demo-login'
     | '/flights'
     | '/invite'
+    | '/itineraries'
     | '/offers'
     | '/packages'
     | '/permits'
     | '/stays'
     | '/trains'
     | '/creator/$handle'
+    | '/creators/$handle'
     | '/dashboard/admin'
     | '/dashboard/creator'
     | '/dashboard/host'
@@ -285,15 +351,20 @@ export interface FileRouteTypes {
     | '/dashboard/traveler'
     | '/explore/$slug'
     | '/host/$slug'
+    | '/hosts/$id'
     | '/invite/$code'
+    | '/itineraries/$code'
     | '/itinerary/$code'
     | '/packages/$id'
     | '/planner/$subdomain'
     | '/stays/$id'
     | '/creator/$handle/$planId'
+    | '/trip/$id/invite'
+    | '/trip/$id/sos'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/auth'
     | '/builder'
     | '/cabs'
     | '/creators'
@@ -301,12 +372,14 @@ export interface FileRouteTypes {
     | '/demo-login'
     | '/flights'
     | '/invite'
+    | '/itineraries'
     | '/offers'
     | '/packages'
     | '/permits'
     | '/stays'
     | '/trains'
     | '/creator/$handle'
+    | '/creators/$handle'
     | '/dashboard/admin'
     | '/dashboard/creator'
     | '/dashboard/host'
@@ -314,15 +387,20 @@ export interface FileRouteTypes {
     | '/dashboard/traveler'
     | '/explore/$slug'
     | '/host/$slug'
+    | '/hosts/$id'
     | '/invite/$code'
+    | '/itineraries/$code'
     | '/itinerary/$code'
     | '/packages/$id'
     | '/planner/$subdomain'
     | '/stays/$id'
     | '/creator/$handle/$planId'
+    | '/trip/$id/invite'
+    | '/trip/$id/sos'
   id:
     | '__root__'
     | '/'
+    | '/auth'
     | '/builder'
     | '/cabs'
     | '/creators'
@@ -330,12 +408,14 @@ export interface FileRouteTypes {
     | '/demo-login'
     | '/flights'
     | '/invite'
+    | '/itineraries'
     | '/offers'
     | '/packages'
     | '/permits'
     | '/stays'
     | '/trains'
     | '/creator/$handle'
+    | '/creators/$handle'
     | '/dashboard/admin'
     | '/dashboard/creator'
     | '/dashboard/host'
@@ -343,23 +423,29 @@ export interface FileRouteTypes {
     | '/dashboard/traveler'
     | '/explore/$slug'
     | '/host/$slug'
+    | '/hosts/$id'
     | '/invite/$code'
+    | '/itineraries/$code'
     | '/itinerary/$code'
     | '/packages/$id'
     | '/planner/$subdomain'
     | '/stays/$id'
     | '/creator/$handle/$planId'
+    | '/trip/$id/invite'
+    | '/trip/$id/sos'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRoute
   BuilderRoute: typeof BuilderRoute
   CabsRoute: typeof CabsRoute
-  CreatorsRoute: typeof CreatorsRoute
+  CreatorsRoute: typeof CreatorsRouteWithChildren
   DashboardRoute: typeof DashboardRouteWithChildren
   DemoLoginRoute: typeof DemoLoginRoute
   FlightsRoute: typeof FlightsRoute
   InviteRoute: typeof InviteRouteWithChildren
+  ItinerariesRoute: typeof ItinerariesRouteWithChildren
   OffersRoute: typeof OffersRoute
   PackagesRoute: typeof PackagesRouteWithChildren
   PermitsRoute: typeof PermitsRoute
@@ -368,8 +454,11 @@ export interface RootRouteChildren {
   CreatorHandleRoute: typeof CreatorHandleRouteWithChildren
   ExploreSlugRoute: typeof ExploreSlugRoute
   HostSlugRoute: typeof HostSlugRoute
+  HostsIdRoute: typeof HostsIdRoute
   ItineraryCodeRoute: typeof ItineraryCodeRoute
   PlannerSubdomainRoute: typeof PlannerSubdomainRoute
+  TripIdInviteRoute: typeof TripIdInviteRoute
+  TripIdSosRoute: typeof TripIdSosRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -379,6 +468,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/builder': {
@@ -430,6 +526,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InviteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/itineraries': {
+      id: '/itineraries'
+      path: '/itineraries'
+      fullPath: '/itineraries'
+      preLoaderRoute: typeof ItinerariesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/offers': {
       id: '/offers'
       path: '/offers'
@@ -471,6 +574,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/creator/$handle'
       preLoaderRoute: typeof CreatorHandleRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/creators/$handle': {
+      id: '/creators/$handle'
+      path: '/$handle'
+      fullPath: '/creators/$handle'
+      preLoaderRoute: typeof CreatorsHandleRouteImport
+      parentRoute: typeof CreatorsRoute
     }
     '/dashboard/admin': {
       id: '/dashboard/admin'
@@ -521,12 +631,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HostSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/hosts/$id': {
+      id: '/hosts/$id'
+      path: '/hosts/$id'
+      fullPath: '/hosts/$id'
+      preLoaderRoute: typeof HostsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/invite/$code': {
       id: '/invite/$code'
       path: '/$code'
       fullPath: '/invite/$code'
       preLoaderRoute: typeof InviteCodeRouteImport
       parentRoute: typeof InviteRoute
+    }
+    '/itineraries/$code': {
+      id: '/itineraries/$code'
+      path: '/$code'
+      fullPath: '/itineraries/$code'
+      preLoaderRoute: typeof ItinerariesCodeRouteImport
+      parentRoute: typeof ItinerariesRoute
     }
     '/itinerary/$code': {
       id: '/itinerary/$code'
@@ -563,8 +687,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CreatorHandlePlanIdRouteImport
       parentRoute: typeof CreatorHandleRoute
     }
+    '/trip/$id/invite': {
+      id: '/trip/$id/invite'
+      path: '/trip/$id/invite'
+      fullPath: '/trip/$id/invite'
+      preLoaderRoute: typeof TripIdInviteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trip/$id/sos': {
+      id: '/trip/$id/sos'
+      path: '/trip/$id/sos'
+      fullPath: '/trip/$id/sos'
+      preLoaderRoute: typeof TripIdSosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
+
+interface CreatorsRouteChildren {
+  CreatorsHandleRoute: typeof CreatorsHandleRoute
+}
+
+const CreatorsRouteChildren: CreatorsRouteChildren = {
+  CreatorsHandleRoute: CreatorsHandleRoute,
+}
+
+const CreatorsRouteWithChildren = CreatorsRoute._addFileChildren(
+  CreatorsRouteChildren,
+)
 
 interface DashboardRouteChildren {
   DashboardAdminRoute: typeof DashboardAdminRoute
@@ -596,6 +746,18 @@ const InviteRouteChildren: InviteRouteChildren = {
 
 const InviteRouteWithChildren =
   InviteRoute._addFileChildren(InviteRouteChildren)
+
+interface ItinerariesRouteChildren {
+  ItinerariesCodeRoute: typeof ItinerariesCodeRoute
+}
+
+const ItinerariesRouteChildren: ItinerariesRouteChildren = {
+  ItinerariesCodeRoute: ItinerariesCodeRoute,
+}
+
+const ItinerariesRouteWithChildren = ItinerariesRoute._addFileChildren(
+  ItinerariesRouteChildren,
+)
 
 interface PackagesRouteChildren {
   PackagesIdRoute: typeof PackagesIdRoute
@@ -633,13 +795,15 @@ const CreatorHandleRouteWithChildren = CreatorHandleRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthRoute: AuthRoute,
   BuilderRoute: BuilderRoute,
   CabsRoute: CabsRoute,
-  CreatorsRoute: CreatorsRoute,
+  CreatorsRoute: CreatorsRouteWithChildren,
   DashboardRoute: DashboardRouteWithChildren,
   DemoLoginRoute: DemoLoginRoute,
   FlightsRoute: FlightsRoute,
   InviteRoute: InviteRouteWithChildren,
+  ItinerariesRoute: ItinerariesRouteWithChildren,
   OffersRoute: OffersRoute,
   PackagesRoute: PackagesRouteWithChildren,
   PermitsRoute: PermitsRoute,
@@ -648,8 +812,11 @@ const rootRouteChildren: RootRouteChildren = {
   CreatorHandleRoute: CreatorHandleRouteWithChildren,
   ExploreSlugRoute: ExploreSlugRoute,
   HostSlugRoute: HostSlugRoute,
+  HostsIdRoute: HostsIdRoute,
   ItineraryCodeRoute: ItineraryCodeRoute,
   PlannerSubdomainRoute: PlannerSubdomainRoute,
+  TripIdInviteRoute: TripIdInviteRoute,
+  TripIdSosRoute: TripIdSosRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
