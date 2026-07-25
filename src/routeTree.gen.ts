@@ -14,9 +14,13 @@ import { Route as StaysRouteImport } from './routes/stays'
 import { Route as PermitsRouteImport } from './routes/permits'
 import { Route as PackagesRouteImport } from './routes/packages'
 import { Route as OffersRouteImport } from './routes/offers'
+import { Route as ItinerariesRouteImport } from './routes/itineraries'
 import { Route as FlightsRouteImport } from './routes/flights'
 import { Route as CabsRouteImport } from './routes/cabs'
+import { Route as BuilderRouteImport } from './routes/builder'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ItinerariesCodeRouteImport } from './routes/itineraries.$code'
 import { Route as ExploreSlugRouteImport } from './routes/explore.$slug'
 
 const TrainsRoute = TrainsRouteImport.update({
@@ -44,6 +48,11 @@ const OffersRoute = OffersRouteImport.update({
   path: '/offers',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ItinerariesRoute = ItinerariesRouteImport.update({
+  id: '/itineraries',
+  path: '/itineraries',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FlightsRoute = FlightsRouteImport.update({
   id: '/flights',
   path: '/flights',
@@ -54,10 +63,25 @@ const CabsRoute = CabsRouteImport.update({
   path: '/cabs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BuilderRoute = BuilderRouteImport.update({
+  id: '/builder',
+  path: '/builder',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ItinerariesCodeRoute = ItinerariesCodeRouteImport.update({
+  id: '/$code',
+  path: '/$code',
+  getParentRoute: () => ItinerariesRoute,
 } as any)
 const ExploreSlugRoute = ExploreSlugRouteImport.update({
   id: '/explore/$slug',
@@ -67,78 +91,105 @@ const ExploreSlugRoute = ExploreSlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/builder': typeof BuilderRoute
   '/cabs': typeof CabsRoute
   '/flights': typeof FlightsRoute
+  '/itineraries': typeof ItinerariesRouteWithChildren
   '/offers': typeof OffersRoute
   '/packages': typeof PackagesRoute
   '/permits': typeof PermitsRoute
   '/stays': typeof StaysRoute
   '/trains': typeof TrainsRoute
   '/explore/$slug': typeof ExploreSlugRoute
+  '/itineraries/$code': typeof ItinerariesCodeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/builder': typeof BuilderRoute
   '/cabs': typeof CabsRoute
   '/flights': typeof FlightsRoute
+  '/itineraries': typeof ItinerariesRouteWithChildren
   '/offers': typeof OffersRoute
   '/packages': typeof PackagesRoute
   '/permits': typeof PermitsRoute
   '/stays': typeof StaysRoute
   '/trains': typeof TrainsRoute
   '/explore/$slug': typeof ExploreSlugRoute
+  '/itineraries/$code': typeof ItinerariesCodeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/builder': typeof BuilderRoute
   '/cabs': typeof CabsRoute
   '/flights': typeof FlightsRoute
+  '/itineraries': typeof ItinerariesRouteWithChildren
   '/offers': typeof OffersRoute
   '/packages': typeof PackagesRoute
   '/permits': typeof PermitsRoute
   '/stays': typeof StaysRoute
   '/trains': typeof TrainsRoute
   '/explore/$slug': typeof ExploreSlugRoute
+  '/itineraries/$code': typeof ItinerariesCodeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/auth'
+    | '/builder'
     | '/cabs'
     | '/flights'
+    | '/itineraries'
     | '/offers'
     | '/packages'
     | '/permits'
     | '/stays'
     | '/trains'
     | '/explore/$slug'
+    | '/itineraries/$code'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/auth'
+    | '/builder'
     | '/cabs'
     | '/flights'
+    | '/itineraries'
     | '/offers'
     | '/packages'
     | '/permits'
     | '/stays'
     | '/trains'
     | '/explore/$slug'
+    | '/itineraries/$code'
   id:
     | '__root__'
     | '/'
+    | '/auth'
+    | '/builder'
     | '/cabs'
     | '/flights'
+    | '/itineraries'
     | '/offers'
     | '/packages'
     | '/permits'
     | '/stays'
     | '/trains'
     | '/explore/$slug'
+    | '/itineraries/$code'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRoute
+  BuilderRoute: typeof BuilderRoute
   CabsRoute: typeof CabsRoute
   FlightsRoute: typeof FlightsRoute
+  ItinerariesRoute: typeof ItinerariesRouteWithChildren
   OffersRoute: typeof OffersRoute
   PackagesRoute: typeof PackagesRoute
   PermitsRoute: typeof PermitsRoute
@@ -184,6 +235,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OffersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/itineraries': {
+      id: '/itineraries'
+      path: '/itineraries'
+      fullPath: '/itineraries'
+      preLoaderRoute: typeof ItinerariesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/flights': {
       id: '/flights'
       path: '/flights'
@@ -198,12 +256,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CabsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/builder': {
+      id: '/builder'
+      path: '/builder'
+      fullPath: '/builder'
+      preLoaderRoute: typeof BuilderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/itineraries/$code': {
+      id: '/itineraries/$code'
+      path: '/$code'
+      fullPath: '/itineraries/$code'
+      preLoaderRoute: typeof ItinerariesCodeRouteImport
+      parentRoute: typeof ItinerariesRoute
     }
     '/explore/$slug': {
       id: '/explore/$slug'
@@ -215,10 +294,25 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ItinerariesRouteChildren {
+  ItinerariesCodeRoute: typeof ItinerariesCodeRoute
+}
+
+const ItinerariesRouteChildren: ItinerariesRouteChildren = {
+  ItinerariesCodeRoute: ItinerariesCodeRoute,
+}
+
+const ItinerariesRouteWithChildren = ItinerariesRoute._addFileChildren(
+  ItinerariesRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthRoute: AuthRoute,
+  BuilderRoute: BuilderRoute,
   CabsRoute: CabsRoute,
   FlightsRoute: FlightsRoute,
+  ItinerariesRoute: ItinerariesRouteWithChildren,
   OffersRoute: OffersRoute,
   PackagesRoute: PackagesRoute,
   PermitsRoute: PermitsRoute,

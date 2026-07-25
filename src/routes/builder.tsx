@@ -55,7 +55,7 @@ function Builder() {
   }, [places]);
 
   const addPlace = (p: Place) => {
-    if (cart.some((c) => c.placeId === p.id)) return;
+    if (cart.some((c: CartStop) => c.placeId === p.id)) return;
     setCart((c) => [...c, { placeId: p.id, day: Math.floor(c.length / 2) + 1 }]);
   };
   const skip = (idx: number) => {
@@ -121,8 +121,8 @@ function Builder() {
             key={p.id}
             place={p}
             idx={i}
-            ref={(el) => (slideRefs.current[i] = el)}
-            inCart={cart.some((c) => c.placeId === p.id)}
+            ref={(el: HTMLDivElement | null) => { slideRefs.current[i] = el; }}
+            inCart={cart.some((c: CartStop) => c.placeId === p.id)}
             swipeX={swipeXById[p.id] ?? 0}
             setSwipeX={(x) => setSwipeXById((m) => ({ ...m, [p.id]: x }))}
             onAdd={() => addPlace(p)}
