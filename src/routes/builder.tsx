@@ -244,7 +244,8 @@ function Builder() {
   );
 }
 
-const PlaceSlide = (({ place, idx, inCart, swipeX, setSwipeX, onAdd, onSkip, ...rest }: any) => {
+type SlideProps = { place: Place; idx: number; inCart: boolean; swipeX: number; setSwipeX: (n: number) => void; onAdd: () => void; onSkip: () => void; refCb: (el: HTMLDivElement | null) => void };
+function PlaceSlide({ place, idx, inCart, swipeX, setSwipeX, onAdd, onSkip, refCb }: SlideProps) {
   const startX = useRef(0);
   const dragging = useRef(false);
 
