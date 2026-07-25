@@ -98,13 +98,13 @@ function CreatorProfilePage() {
       <p className="mt-10 text-center text-[11px] font-bold uppercase tracking-[0.2em] text-neutral-400">
         Custom itinerary grid · tap to open
       </p>
-      <div className="mt-4 grid grid-cols-2 gap-1 md:grid-cols-3 md:gap-3">
+      <div className="mt-4 grid grid-cols-2 gap-1.5 md:grid-cols-3 md:gap-2">
         {plans.map((p) => (
           <Link
             key={p.id}
             to="/creator/$handle/$planId"
             params={{ handle, planId: p.id }}
-            className="group relative overflow-hidden bg-neutral-100"
+            className="nn-card-tile group relative overflow-hidden"
             style={{ aspectRatio: "1" }}
           >
             <img

@@ -286,7 +286,7 @@
   transform: scaleX(1);
 }
 
-/* Curved places carousel — 3D stage */
+/* Curved places carousel — 3D stage (legacy; homepage uses horizontal scroll) */
 .nn-places-stage {
   transform-style: preserve-3d;
 }
@@ -294,6 +294,35 @@
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   will-change: transform, opacity;
+}
+
+/* Shared catalog cards — profile-grid curves + boxed offer feel */
+.nn-card {
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: #fff;
+}
+.nn-card-tile {
+  overflow: hidden;
+  border-radius: 12px;
+  background: #e5e5e5;
+}
+.nn-h-scroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+}
+.nn-h-scroll::-webkit-scrollbar {
+  display: none;
+}
+.nn-h-scroll > * {
+  scroll-snap-align: start;
+  flex-shrink: 0;
 }
 
 /* Offers — small pocket cards + hover motion */
@@ -312,10 +341,34 @@
   overflow: hidden;
 }
 
-@media (max-width: 640px) {
+/* Phone / tablet: true immersive fullscreen reel (no phone-frame inset) */
+@media (max-width: 1023px) {
   .nn-shorts-stage {
-    --nn-stage-h: min(640px, calc(100dvh - 11rem));
-    border-radius: 14px;
+    --nn-stage-h: 100dvh;
+    width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+    margin-inline: 0;
+  }
+
+  .nn-builder-shell {
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+
+  .nn-builder-reel {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .nn-builder-reel .nn-shorts-stage {
+    --nn-stage-h: 100%;
+    height: 100%;
+    max-height: 100%;
   }
 }
 
@@ -407,6 +460,12 @@
 }
 .nn-offer-card:hover .nn-offer-thumb img {
   transform: scale(1.12);
+}
+
+/* Offer pocket cards — same small curve language as catalog tiles */
+.nn-offer-sheet,
+.nn-offer-pocket {
+  border-radius: 12px !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

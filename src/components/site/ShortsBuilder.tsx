@@ -134,9 +134,16 @@ export function ShortsBuilder({ onCartChange }: Props) {
   }, [index, clips, muted]);
 
   const runGenie = useCallback(async (slideEl: HTMLElement | null, poster: string, onStarted?: () => void) => {
-    const dock =
-      document.getElementById("nn-playlist-dock-icon") ??
-      document.getElementById("nn-playlist-dock");
+    /* Prefer on-screen floating cart (phone) so genie never flies off-viewport */
+    const fab = document.getElementById("nn-playlist-fab");
+    const dockIcon = document.getElementById("nn-playlist-dock-icon");
+    const dockPanel = document.getElementById("nn-playlist-dock");
+    const visible = (el: HTMLElement | null) => {
+      if (!el) return null;
+      const r = el.getBoundingClientRect();
+      return r.width >= 8 && r.height >= 8 ? el : null;
+    };
+    const dock = visible(fab) ?? visible(dockIcon) ?? visible(dockPanel);
     if (!slideEl || !dock) {
       onStarted?.();
       return;
@@ -246,6 +253,25 @@ export function ShortsBuilder({ onCartChange }: Props) {
     }
   };
 
+  /* Keep snap height in sync with viewport (mobile URL bar / rotate) */
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+    const resync = () => {
+      const i = index;
+      const top = i * scroller.clientHeight;
+      if (Math.abs(scroller.scrollTop - top) > 2) {
+        scroller.scrollTo({ top, behavior: "auto" });
+      }
+    };
+    window.addEventListener("resize", resync);
+    window.visualViewport?.addEventListener("resize", resync);
+    return () => {
+      window.removeEventListener("resize", resync);
+      window.visualViewport?.removeEventListener("resize", resync);
+    };
+  }, [index, clips.length]);
+
   if (!ready) {
     return (
       <div className="nn-shorts-stage grid place-items-center bg-[#121212] text-[14px] text-white/50">
@@ -263,8 +289,11 @@ export function ShortsBuilder({ onCartChange }: Props) {
   }
 
   return (
-    <div className="relative w-full max-w-[420px]">
-      <div ref={stageRef} className="nn-shorts-stage bg-black text-white shadow-[0_24px_60px_rgba(0,0,0,0.5)]">
+    <div className="relative h-full w-full lg:h-auto lg:max-w-[420px]">
+      <div
+        ref={stageRef}
+        className="nn-shorts-stage bg-black text-white lg:shadow-[0_24px_60px_rgba(0,0,0,0.5)]"
+      >
         <div ref={scrollerRef} className="nn-shorts-scroller">
           {clips.map((clip, i) => {
             const active = i === index;
@@ -322,7 +351,7 @@ export function ShortsBuilder({ onCartChange }: Props) {
 
                   {addHint && (
                     <div
-                      className="absolute right-5 top-24 rotate-12 rounded-xl border-[3px] px-3 py-1.5 text-[22px] font-black uppercase"
+                      className="absolute right-5 top-28 rotate-12 rounded-xl border-[3px] px-3 py-1.5 text-[22px] font-black uppercase lg:top-24"
                       style={{ borderColor: GREEN, color: GREEN, background: "rgba(0,0,0,0.35)" }}
                     >
                       Add
@@ -330,7 +359,7 @@ export function ShortsBuilder({ onCartChange }: Props) {
                   )}
                   {skipHint && (
                     <div
-                      className="absolute left-5 top-24 -rotate-12 rounded-xl border-[3px] px-3 py-1.5 text-[22px] font-black uppercase"
+                      className="absolute left-5 top-28 -rotate-12 rounded-xl border-[3px] px-3 py-1.5 text-[22px] font-black uppercase lg:top-24"
                       style={{ borderColor: RED, color: RED, background: "rgba(0,0,0,0.35)" }}
                     >
                       Skip
@@ -338,14 +367,20 @@ export function ShortsBuilder({ onCartChange }: Props) {
                   )}
 
                   {active && (
-                    <div className="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-3 pt-3">
-                      <div className="flex items-center gap-2">
+                    <div
+                      className="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-3 lg:pt-3"
+                      style={{ paddingTop: "max(4.25rem, calc(env(safe-area-inset-top) + 3.5rem))" }}
+                    >
+                      <div className="hidden items-center gap-2 lg:flex">
                         <span className="text-[15px] font-bold">Shorts</span>
                         <span className="rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-semibold text-white/80">
                           {i + 1}/{clips.length}
                         </span>
                       </div>
-                      <div className="flex items-center gap-1.5">
+                      <div className="ml-auto flex items-center gap-1.5">
+                        <span className="rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-semibold text-white/80 lg:hidden">
+                          {i + 1}/{clips.length}
+                        </span>
                         <IconBtn onClick={onUndo} label="Undo">
                           <Undo2 size={15} />
                         </IconBtn>
@@ -356,7 +391,10 @@ export function ShortsBuilder({ onCartChange }: Props) {
                     </div>
                   )}
 
-                  <div className="absolute bottom-36 right-2.5 z-20 flex flex-col items-center gap-4 sm:right-3">
+                  <div
+                    className="absolute right-2.5 z-20 flex flex-col items-center gap-3.5 sm:right-3 sm:gap-4"
+                    style={{ bottom: "max(8.75rem, calc(env(safe-area-inset-bottom) + 7.75rem))" }}
+                  >
                     <RailBtn
                       label={(clip.likes + (isLiked ? 1 : 0)).toLocaleString("en-IN")}
                       onClick={() => setLiked((p) => ({ ...p, [clip.id]: !p[clip.id] }))}
@@ -391,7 +429,13 @@ export function ShortsBuilder({ onCartChange }: Props) {
                     </div>
                   </div>
 
-                  <div className="absolute inset-x-0 bottom-0 z-20 p-4 pr-[4.75rem]">
+                  <div
+                    className="absolute inset-x-0 bottom-0 z-20 p-4 pr-[4.75rem]"
+                    style={{
+                      paddingBottom: "max(1rem, calc(env(safe-area-inset-bottom) + 0.75rem))",
+                      paddingRight: "max(4.75rem, calc(env(safe-area-inset-right) + 4.5rem))",
+                    }}
+                  >
                     <div className="flex items-center gap-2">
                       <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full ring-2 ring-white/80">
                         <img src={clip.poster} alt="" className="h-full w-full object-cover" />
@@ -429,7 +473,10 @@ export function ShortsBuilder({ onCartChange }: Props) {
         </div>
 
         {toast && (
-          <div className="pointer-events-none absolute left-1/2 top-14 z-30 -translate-x-1/2 rounded-full bg-white px-3.5 py-1.5 text-[12px] font-bold text-black shadow-lg">
+          <div
+            className="pointer-events-none absolute left-1/2 z-30 -translate-x-1/2 rounded-full bg-white px-3.5 py-1.5 text-[12px] font-bold text-black shadow-lg"
+            style={{ top: "max(5.5rem, calc(env(safe-area-inset-top) + 4.5rem))" }}
+          >
             {toast}
           </div>
         )}

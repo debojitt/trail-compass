@@ -216,7 +216,7 @@ function CreatorPlanPage() {
                 publisherId: plan.creatorId,
               })
             }
-            className="mt-5 w-full rounded-full py-3 text-[15px] font-bold text-white"
+            className="mt-5 hidden w-full rounded-full py-3 text-[15px] font-bold text-white lg:block"
             style={{ background: RED }}
           >
             Book this itinerary
@@ -240,6 +240,41 @@ function CreatorPlanPage() {
           </Link>
         </aside>
       </div>
+
+      {/* Mobile sticky book bar */}
+      <div
+        className="fixed inset-x-0 bottom-0 z-40 border-t bg-white/95 px-4 py-3 backdrop-blur lg:hidden"
+        style={{
+          borderColor: "rgba(0,0,0,0.08)",
+          paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
+        }}
+      >
+        <div className="mx-auto flex max-w-[1200px] items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[12px] text-neutral-500">{plan.days} days</p>
+            <p className="truncate text-[15px] font-bold">from {formatINR(plan.priceFrom)}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() =>
+              setDraft({
+                kind: "creator-plan",
+                title: plan.title,
+                detail: `Creator @${handle} · ${plan.days}D itinerary`,
+                unitPrice: plan.priceFrom,
+                sourceId: plan.id,
+                publisherId: plan.creatorId,
+              })
+            }
+            className="shrink-0 rounded-full px-5 py-3 text-[14px] font-bold text-white"
+            style={{ background: RED }}
+          >
+            Book itinerary
+          </button>
+        </div>
+      </div>
+      <div className="h-20 lg:hidden" aria-hidden />
+
       <BookingDialog draft={draft} onClose={() => setDraft(null)} />
     </SiteShell>
   );

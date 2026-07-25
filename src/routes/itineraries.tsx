@@ -56,18 +56,20 @@ function ItinerariesIndex() {
 
       <form
         onSubmit={submit}
-        className="mx-auto flex max-w-2xl items-center gap-2 rounded-full border bg-white p-2 shadow-sm"
+        className="mx-auto flex max-w-2xl flex-col gap-2 rounded-3xl border bg-white p-2 shadow-sm sm:flex-row sm:items-center sm:rounded-full"
         style={{ borderColor: "rgba(0,0,0,0.08)" }}
       >
-        <Search size={18} className="ml-3 text-neutral-400" />
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value.toUpperCase())}
-          placeholder="Try NN-MEGH-482 or search 'Tawang'"
-          className="flex-1 bg-transparent px-2 py-2 text-[14px] outline-none"
-        />
+        <div className="flex min-w-0 flex-1 items-center">
+          <Search size={18} className="ml-3 shrink-0 text-neutral-400" />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value.toUpperCase())}
+            placeholder="Try NN-MEGH-482 or search 'Tawang'"
+            className="min-w-0 flex-1 bg-transparent px-2 py-2.5 text-[14px] outline-none"
+          />
+        </div>
         <button
-          className="rounded-full px-5 py-2 text-[13px] font-bold text-white"
+          className="rounded-full px-5 py-2.5 text-[13px] font-bold text-white sm:py-2"
           style={{ background: RED }}
         >
           Load
@@ -82,7 +84,7 @@ function ItinerariesIndex() {
               key={it.code}
               to="/itineraries/$code"
               params={{ code: it.code }}
-              className="group overflow-hidden rounded-3xl border bg-white transition-all hover:-translate-y-1 hover:shadow-2xl"
+              className="nn-card group overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lg"
               style={{ borderColor: "rgba(0,0,0,0.07)" }}
             >
               <div className="relative aspect-[4/3]">

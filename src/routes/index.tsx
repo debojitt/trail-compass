@@ -17,7 +17,6 @@ import {
   WifiOff,
   Wallet,
   ChevronDown,
-  ChevronLeft,
   ChevronRight,
   BadgePercent,
   Quote,
@@ -568,9 +567,9 @@ function SearchHub() {
   };
 
   return (
-    <section className="relative -mt-[22vh] md:-mt-[26vh]">
+    <section className="relative -mt-[24vh] md:-mt-[26vh]">
       <div
-        className="rounded-3xl border bg-white/90 p-4 shadow-[0_24px_70px_rgba(0,0,0,0.12)] md:p-6"
+        className="rounded-3xl border bg-white/90 p-5 shadow-[0_24px_70px_rgba(0,0,0,0.12)] md:p-6"
         style={{ borderColor: "rgba(0,0,0,0.06)", backdropFilter: "blur(20px)" }}
       >
         {/* Tabs */}
@@ -585,7 +584,7 @@ function SearchHub() {
                   setTab(t.id);
                   setSwapped(false);
                 }}
-                className="flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-[13px] font-semibold transition-all"
+                className="flex shrink-0 items-center gap-2 rounded-full px-3.5 py-2 text-[13px] font-semibold transition-all md:px-4"
                 style={{
                   background: active ? "rgba(226,55,68,0.08)" : "transparent",
                   color: active ? RED : "#6b7280",
@@ -618,7 +617,7 @@ function SearchHub() {
             />
             <button
               type="submit"
-              className="flex items-center justify-center gap-2 rounded-full px-6 py-2.5 text-[13px] font-bold text-white shadow-lg transition-all hover:scale-[1.02]"
+              className="flex w-full items-center justify-center gap-2 rounded-full px-6 py-2.5 text-[13px] font-bold text-white shadow-lg transition-all hover:scale-[1.02] sm:w-auto"
               style={{ background: `linear-gradient(135deg, ${RED}, ${RED_DARK})`, boxShadow: "0 12px 30px rgba(226,55,68,0.35)" }}
             >
               <Search size={15} />
@@ -918,7 +917,7 @@ function OfferPocketCard({
         }}
       >
         <div
-          className="nn-offer-sheet relative z-10 flex flex-col rounded-[22px] border-2 border-dashed p-3 shadow-[0_10px_24px_rgba(90,40,80,0.12)]"
+          className="nn-offer-sheet relative z-10 flex flex-col rounded-xl border-2 border-dashed p-3 shadow-[0_10px_24px_rgba(90,40,80,0.12)]"
           style={{ background: offer.sheet, borderColor: offer.dash }}
         >
           <div className="flex items-start justify-between gap-2">
@@ -947,7 +946,7 @@ function OfferPocketCard({
           </span>
         </div>
         <div
-          className="nn-offer-pocket relative z-20 -mt-3 flex h-[52px] items-center justify-center rounded-[20px] border-[2.5px] border-dashed px-3 text-center"
+          className="nn-offer-pocket relative z-20 -mt-3 flex h-[52px] items-center justify-center rounded-xl border-[2.5px] border-dashed px-3 text-center"
           style={{ background: offer.pocket, borderColor: "rgba(255,255,255,0.85)" }}
         >
           {offer.pocketLabel ? (
@@ -1121,17 +1120,14 @@ function CultureStrip() {
         </div>
       </Reveal>
 
-      <div
-        className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 md:-mx-6 md:px-6"
-        style={{ scrollbarWidth: "none" }}
-      >
+      <div className="-mx-4 nn-h-scroll px-4 md:-mx-6 md:px-6">
         {culture.map((c, i) => (
-          <Reveal key={c.name} delay={Math.min(i, 3) * 110} className="snap-start">
+          <Reveal key={c.name} delay={Math.min(i, 3) * 110}>
             {c.to === "/packages/$id" && c.id ? (
               <Link
                 to="/packages/$id"
                 params={{ id: c.id }}
-                className="group relative block w-[240px] shrink-0 overflow-hidden rounded-3xl md:w-[300px]"
+                className="nn-card-tile group relative block w-[220px] overflow-hidden"
                 style={{ aspectRatio: "3/4" }}
               >
                 <CultureCardFace c={c} />
@@ -1140,7 +1136,7 @@ function CultureStrip() {
               <Link
                 to="/explore/$slug"
                 params={{ slug: c.id }}
-                className="group relative block w-[240px] shrink-0 overflow-hidden rounded-3xl md:w-[300px]"
+                className="nn-card-tile group relative block w-[220px] overflow-hidden"
                 style={{ aspectRatio: "3/4" }}
               >
                 <CultureCardFace c={c} />
@@ -1148,7 +1144,7 @@ function CultureStrip() {
             ) : (
               <Link
                 to="/packages"
-                className="group relative block w-[240px] shrink-0 overflow-hidden rounded-3xl md:w-[300px]"
+                className="nn-card-tile group relative block w-[220px] overflow-hidden"
                 style={{ aspectRatio: "3/4" }}
               >
                 <CultureCardFace c={c} />
@@ -1187,7 +1183,7 @@ function CultureCardFace({
         <p className="text-[11px] font-medium" style={{ color: "#7fe39a" }}>
           {c.place}
         </p>
-        <p className="mt-2 text-[12px] leading-relaxed text-white/75 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+        <p className="mt-2 text-[12px] leading-relaxed text-white/75 opacity-100 transition-opacity duration-500 md:opacity-0 md:group-hover:opacity-100">
           {c.note}
         </p>
       </div>
@@ -1195,61 +1191,13 @@ function CultureCardFace({
   );
 }
 
-/* ============ DESTINATIONS: curved 3D places carousel ============ */
+/* ============ DESTINATIONS: horizontal scroll (same on desktop + mobile) ============ */
 
 function StatesGrid() {
-  const n = destinations.length;
-  const [index, setIndex] = useState(0);
-  const [dragPx, setDragPx] = useState(0);
-  const [dragging, setDragging] = useState(false);
-  const [hovering, setHovering] = useState(false);
-  const dragRef = useRef<{
-    active: boolean;
-    startX: number;
-    lastX: number;
-    moved: boolean;
-  }>({ active: false, startX: 0, lastX: 0, moved: false });
-  const stepPx = 240;
-
-  useEffect(() => {
-    if (hovering || dragging) return;
-    const id = window.setInterval(() => {
-      setIndex((i) => (i + 1) % n);
-    }, 3200);
-    return () => window.clearInterval(id);
-  }, [hovering, dragging, n]);
-
-  const pos = index + dragPx / stepPx;
-
-  const wrapRel = (i: number) => {
-    let rel = i - pos;
-    while (rel > n / 2) rel -= n;
-    while (rel < -n / 2) rel += n;
-    return rel;
-  };
-
-  const endDrag = (clientX: number) => {
-    if (!dragRef.current.active) return;
-    const dx = clientX - dragRef.current.startX;
-    dragRef.current.active = false;
-    setDragging(false);
-    setDragPx(0);
-    if (Math.abs(dx) > 40) {
-      const dir = dx < 0 ? 1 : -1;
-      setIndex((i) => (i + dir + n) % n);
-      dragRef.current.moved = true;
-    }
-  };
-
   return (
     <section
       className="relative left-1/2 w-screen max-w-[100vw] -translate-x-1/2 overflow-hidden py-12 md:py-16"
       style={{ background: "#F3F0EA" }}
-      onMouseEnter={() => setHovering(true)}
-      onMouseLeave={() => {
-        setHovering(false);
-        endDrag(dragRef.current.lastX);
-      }}
     >
       <div className="mx-auto mb-8 max-w-[1200px] px-4 text-center md:px-6">
         <p className="text-[12px] font-semibold uppercase tracking-[0.25em]" style={{ color: RED }}>
@@ -1260,128 +1208,38 @@ function StatesGrid() {
         </h2>
       </div>
 
-      <div
-        className="nn-places-stage relative mx-auto h-[300px] touch-pan-y select-none md:h-[360px]"
-        style={{ perspective: "1400px", cursor: dragging ? "grabbing" : "grab" }}
-        onPointerDown={(e) => {
-          dragRef.current = { active: true, startX: e.clientX, lastX: e.clientX, moved: false };
-          setDragging(true);
-          (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-        }}
-        onPointerMove={(e) => {
-          if (!dragRef.current.active) return;
-          dragRef.current.lastX = e.clientX;
-          const dx = e.clientX - dragRef.current.startX;
-          if (Math.abs(dx) > 6) dragRef.current.moved = true;
-          setDragPx(dx);
-        }}
-        onPointerUp={(e) => endDrag(e.clientX)}
-        onPointerCancel={(e) => endDrag(e.clientX)}
-      >
-        <div
-          className="absolute inset-0 flex items-center justify-center"
-          style={{ transformStyle: "preserve-3d" }}
-        >
-          {destinations.map((s, i) => {
-            const rel = wrapRel(i);
-            const abs = Math.abs(rel);
-            if (abs > 3.2) return null;
-            const rotateY = rel * -38;
-            const x = rel * stepPx;
-            const z = -Math.abs(rel) * 90;
-            const scale = 1 - Math.min(abs, 3) * 0.06;
-            const opacity = abs > 2.6 ? Math.max(0, 1 - (abs - 2.6) * 2) : 1;
-            const active = abs < 0.45;
-
-            return (
-              <Link
-                key={s.slug}
-                to="/explore/$slug"
-                params={{ slug: s.slug }}
-                onClick={(e) => {
-                  if (dragRef.current.moved) {
-                    e.preventDefault();
-                    return;
-                  }
-                  if (!active) {
-                    e.preventDefault();
-                    setIndex(i);
-                  }
-                }}
-                className="nn-places-card group absolute overflow-hidden rounded-sm bg-neutral-200 shadow-[0_18px_40px_rgba(0,0,0,0.18)]"
-                style={{
-                  width: "min(42vw, 220px)",
-                  height: "min(62vw, 320px)",
-                  transform: `translateX(${x}px) translateZ(${z}px) rotateY(${rotateY}deg) scale(${scale})`,
-                  opacity,
-                  zIndex: Math.round(40 - abs * 10),
-                  transition: dragging
-                    ? "none"
-                    : "transform 520ms cubic-bezier(0.22, 1, 0.36, 1), opacity 420ms ease",
-                }}
-                aria-label={s.name}
-              >
-                <img
-                  src={s.heroImg}
-                  alt={s.name}
-                  draggable={false}
-                  loading="lazy"
-                  decoding="async"
-                  className="absolute inset-0 h-full w-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
-                <div className="absolute inset-x-0 bottom-0 p-3 md:p-4">
-                  <p className="text-[15px] font-bold tracking-tight text-white md:text-[17px]">{s.name}</p>
-                  <p className="mt-0.5 line-clamp-1 text-[10px] text-white/75 md:text-[11px]">{s.tag}</p>
-                  {active && (
-                    <span
-                      className="mt-2 inline-block rounded-full px-2 py-0.5 text-[10px] font-bold text-white"
-                      style={{ background: GREEN }}
-                    >
-                      {s.stays}
-                    </span>
-                  )}
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="mt-6 flex items-center justify-center gap-4">
-        <button
-          type="button"
-          aria-label="Previous place"
-          onClick={() => setIndex((i) => (i - 1 + n) % n)}
-          className="grid h-10 w-10 place-items-center rounded-full border bg-white/80 text-neutral-600 transition hover:bg-white"
-          style={{ borderColor: "rgba(0,0,0,0.08)" }}
-        >
-          <ChevronLeft size={18} />
-        </button>
-        <div className="flex items-center gap-1.5">
-          {destinations.map((s, i) => (
-            <button
-              key={s.slug}
-              type="button"
+      <div className="nn-h-scroll mx-auto max-w-[1200px] px-4 md:px-6">
+        {destinations.map((s, i) => (
+          <Reveal key={s.slug} delay={Math.min(i, 4) * 80}>
+            <Link
+              to="/explore/$slug"
+              params={{ slug: s.slug }}
+              className="nn-card-tile group relative block w-[220px] overflow-hidden shadow-[0_10px_28px_rgba(0,0,0,0.12)]"
+              style={{ aspectRatio: "3/4" }}
               aria-label={s.name}
-              onClick={() => setIndex(i)}
-              className="h-1.5 rounded-full transition-all"
-              style={{
-                width: i === index ? 22 : 6,
-                background: i === index ? RED : "rgba(0,0,0,0.2)",
-              }}
-            />
-          ))}
-        </div>
-        <button
-          type="button"
-          aria-label="Next place"
-          onClick={() => setIndex((i) => (i + 1) % n)}
-          className="grid h-10 w-10 place-items-center rounded-full border bg-white/80 text-neutral-600 transition hover:bg-white"
-          style={{ borderColor: "rgba(0,0,0,0.08)" }}
-        >
-          <ChevronRight size={18} />
-        </button>
+            >
+              <img
+                src={s.heroImg}
+                alt={s.name}
+                draggable={false}
+                loading="lazy"
+                decoding="async"
+                className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 p-3.5">
+                <p className="text-[15px] font-bold tracking-tight text-white">{s.name}</p>
+                <p className="mt-0.5 line-clamp-1 text-[11px] text-white/75">{s.tag}</p>
+                <span
+                  className="mt-2 inline-block rounded-md px-2 py-0.5 text-[10px] font-bold text-white"
+                  style={{ background: GREEN }}
+                >
+                  {s.stays}
+                </span>
+              </div>
+            </Link>
+          </Reveal>
+        ))}
       </div>
     </section>
   );
@@ -1421,13 +1279,13 @@ function VirtualToursSection() {
       actionExplore
       marquee="look around ·"
     >
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="-mx-4 nn-h-scroll px-4 md:-mx-6 md:px-6">
         {tours.map((t, i) => (
           <Reveal key={t.slug} delay={i * 100}>
             <Link
               to="/explore/$slug"
               params={{ slug: t.slug }}
-              className="group relative block overflow-hidden rounded-3xl"
+              className="nn-card-tile group relative block w-[280px] overflow-hidden"
               style={{ aspectRatio: "16/10" }}
             >
               <img
@@ -1484,13 +1342,13 @@ function HomestaysSection() {
       actionTo="/stays"
       marquee="homestays ·"
     >
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="-mx-4 nn-h-scroll px-4 md:-mx-6 md:px-6">
         {list.map((s, i) => (
           <Reveal key={s.id} delay={(i % 5) * 80}>
             <Link
               to="/stays/$id"
               params={{ id: s.id }}
-              className="group block overflow-hidden rounded-3xl border bg-white transition-all hover:-translate-y-1 hover:shadow-2xl"
+              className="nn-card group block w-[220px] overflow-hidden transition-transform hover:-translate-y-0.5"
               style={{ borderColor: "rgba(0,0,0,0.07)" }}
             >
               <div className="relative" style={{ aspectRatio: "4/5" }}>
@@ -1539,13 +1397,13 @@ function PackagesSection() {
       actionTo="/packages"
       marquee="journeys ·"
     >
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="-mx-4 nn-h-scroll px-4 md:-mx-6 md:px-6">
         {packages.map((pk, i) => (
           <Reveal key={pk.id} delay={(i % 5) * 80}>
             <Link
               to="/packages/$id"
               params={{ id: pk.id }}
-              className="group relative block overflow-hidden rounded-3xl border bg-white transition-all hover:-translate-y-1 hover:shadow-2xl"
+              className="nn-card group relative block w-[240px] overflow-hidden transition-transform hover:-translate-y-0.5"
               style={{ borderColor: "rgba(0,0,0,0.07)" }}
             >
               <div className="relative" style={{ aspectRatio: "16/11" }}>
@@ -1626,16 +1484,16 @@ function PublishedCodesTeaser() {
       actionTo="/packages"
       marquee="codes ·"
     >
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="-mx-4 nn-h-scroll px-4 md:-mx-6 md:px-6">
         {list.map((p, i) => (
           <Reveal key={p.id} delay={(i % 3) * 80}>
             <Link
               to="/itinerary/$code"
               params={{ code: p.code }}
-              className="group flex gap-3 overflow-hidden rounded-3xl border bg-white p-3 transition-all hover:-translate-y-0.5 hover:shadow-xl"
+              className="nn-card group flex w-[280px] gap-3 p-3 transition-all hover:-translate-y-0.5 hover:shadow-lg"
               style={{ borderColor: "rgba(0,0,0,0.07)" }}
             >
-              <img src={p.cover} alt="" className="h-20 w-20 shrink-0 rounded-2xl object-cover" />
+              <img src={p.cover} alt="" className="h-20 w-20 shrink-0 rounded-xl object-cover" />
               <div className="min-w-0">
                 <p className="font-mono text-[11px] font-bold" style={{ color: GREEN }}>
                   {p.code}
@@ -1671,7 +1529,7 @@ function CreatorsTeaser() {
           return (
             <Reveal key={c.id} delay={i * 90}>
               <div
-                className="overflow-hidden rounded-3xl border bg-white"
+                className="nn-card overflow-hidden"
                 style={{ borderColor: "rgba(0,0,0,0.07)" }}
               >
                 <Link
@@ -1697,7 +1555,7 @@ function CreatorsTeaser() {
                       key={p.id}
                       to="/creator/$handle/$planId"
                       params={{ handle, planId: p.id }}
-                      className="group relative aspect-square overflow-hidden bg-neutral-200"
+                      className="nn-card-tile group relative aspect-square overflow-hidden"
                       aria-label={p.title}
                     >
                       <img
@@ -1732,13 +1590,13 @@ function HostsTeaser() {
       action="Browse stays"
       actionTo="/stays"
     >
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="-mx-4 nn-h-scroll px-4 md:-mx-6 md:px-6">
         {homes.map((h, i) => (
           <Reveal key={h.id} delay={(i % 3) * 80}>
             <Link
               to="/host/$slug"
               params={{ slug: h.slug }}
-              className="group overflow-hidden rounded-3xl border bg-white transition-all hover:-translate-y-0.5 hover:shadow-xl"
+              className="nn-card group w-[260px] overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lg"
               style={{ borderColor: "rgba(0,0,0,0.07)" }}
             >
               <div className="relative" style={{ aspectRatio: "16/10" }}>
@@ -1823,10 +1681,10 @@ function PlannerTeaser() {
             <Link
               to="/planner/$subdomain"
               params={{ subdomain: p.subdomain ?? p.id }}
-              className="flex gap-4 rounded-3xl border bg-white p-5 transition-all hover:-translate-y-0.5 hover:shadow-xl"
+              className="nn-card flex gap-4 p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg"
               style={{ borderColor: "rgba(0,0,0,0.07)" }}
             >
-              <img src={p.avatar} alt="" className="h-16 w-16 rounded-2xl object-cover" />
+              <img src={p.avatar} alt="" className="h-16 w-16 rounded-xl object-cover" />
               <div>
                 <p className="flex items-center gap-1 text-[16px] font-bold">
                   {p.name}
@@ -1897,7 +1755,7 @@ function FeatureStrip() {
         {feats.map((f, i) => {
           const Icon = f.icon;
           return (
-            <Reveal key={f.title} delay={i * 100} className="rounded-3xl bg-neutral-50 p-6">
+            <Reveal key={f.title} delay={i * 100} className="nn-card bg-neutral-50 p-6">
               <div
                 className="grid h-11 w-11 place-items-center rounded-2xl"
                 style={{ background: GREEN_LIGHT }}
@@ -1928,7 +1786,7 @@ function Testimonials() {
         {quotes.map((q, i) => (
           <Reveal key={q.name} delay={i * 120}>
             <figure
-              className="h-full rounded-3xl border bg-white p-6"
+              className="nn-card h-full p-6"
               style={{ borderColor: "rgba(0,0,0,0.07)" }}
             >
               <Quote size={18} style={{ color: RED }} />
