@@ -1,5 +1,6 @@
+import { Outlet, createFileRoute, useChildMatches } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { BadgeCheck, Heart } from "lucide-react";
 import { SiteShell } from "@/components/site/SiteShell";
 import type { CreatorPlan, DemoAccount } from "@/data/demoUniverse";
@@ -8,8 +9,15 @@ import { GREEN, RED } from "@/lib/brand";
 
 export const Route = createFileRoute("/creator/$handle")({
   head: ({ params }) => ({ meta: [{ title: `@${params.handle} · NORTHNEST` }] }),
-  component: CreatorProfilePage,
+  component: CreatorHandleLayout,
 });
+
+/** Parent must render <Outlet /> or nested /creator/$handle/$planId never appears. */
+function CreatorHandleLayout() {
+  const childMatches = useChildMatches();
+  if (childMatches.length > 0) return <Outlet />;
+  return <CreatorProfilePage />;
+}
 
 function CreatorProfilePage() {
   const { handle } = Route.useParams();
@@ -87,8 +95,10 @@ function CreatorProfilePage() {
         </div>
       </div>
 
-      {/* Instagram-style grid of itineraries (not reels) */}
-      <div className="mt-10 grid grid-cols-2 gap-1 md:grid-cols-3 md:gap-3">
+      <p className="mt-10 text-center text-[11px] font-bold uppercase tracking-[0.2em] text-neutral-400">
+        Custom itinerary grid · tap to open
+      </p>
+      <div className="mt-4 grid grid-cols-2 gap-1 md:grid-cols-3 md:gap-3">
         {plans.map((p) => (
           <Link
             key={p.id}
@@ -107,13 +117,16 @@ function CreatorProfilePage() {
               <div className="text-left text-white">
                 <p className="text-[12px] font-bold leading-snug">{p.title}</p>
                 <p className="mt-0.5 flex items-center gap-2 text-[10px] text-white/80">
-                  <Heart size={10} fill="white" /> {p.likes} · from {formatINR(p.priceFrom)}
+                  <Heart size={10} fill="white" /> {p.likes} · {p.days}D · from {formatINR(p.priceFrom)}
                 </p>
               </div>
             </div>
           </Link>
         ))}
       </div>
+      {plans.length === 0 && (
+        <p className="mt-8 text-center text-[13px] text-neutral-500">No published itineraries yet.</p>
+      )}
     </SiteShell>
   );
 }

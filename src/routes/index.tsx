@@ -33,6 +33,7 @@ import { stays as catalogStays, travelPackages as catalogPackages } from "@/data
 import {
   DEMO_ACCOUNTS,
   HOST_HOMES,
+  CREATOR_PLANS,
   PUBLISHED_ITINERARIES,
 } from "@/data/demoUniverse";
 import { MobileMenu, NAV_LINKS, SiteFooter } from "@/components/site/SiteShell";
@@ -1663,29 +1664,58 @@ function CreatorsTeaser() {
       action="All creators"
       actionTo="/creators"
     >
-      <div className="grid gap-4 sm:grid-cols-2">
-        {creators.map((c, i) => (
-          <Reveal key={c.id} delay={i * 90}>
-            <Link
-              to="/creator/$handle"
-              params={{ handle: c.handle ?? c.id }}
-              className="flex items-center gap-4 rounded-3xl border bg-white p-4 transition-all hover:-translate-y-0.5 hover:shadow-xl"
-              style={{ borderColor: "rgba(0,0,0,0.07)" }}
-            >
-              <img src={c.avatar} alt="" className="h-16 w-16 rounded-full object-cover" />
-              <div>
-                <p className="flex items-center gap-1 text-[15px] font-bold">
-                  {c.name}
-                  {c.verified && <BadgeCheck size={15} style={{ color: GREEN }} />}
-                </p>
-                <p className="text-[13px]" style={{ color: RED }}>
-                  @{c.handle}
-                </p>
-                <p className="mt-1 line-clamp-2 text-[12px] text-neutral-500">{c.bio}</p>
+      <div className="grid gap-6 sm:grid-cols-2">
+        {creators.map((c, i) => {
+          const plans = CREATOR_PLANS.filter((p) => p.creatorId === c.id).slice(0, 6);
+          const handle = c.handle ?? c.id;
+          return (
+            <Reveal key={c.id} delay={i * 90}>
+              <div
+                className="overflow-hidden rounded-3xl border bg-white"
+                style={{ borderColor: "rgba(0,0,0,0.07)" }}
+              >
+                <Link
+                  to="/creator/$handle"
+                  params={{ handle }}
+                  className="flex items-center gap-4 p-4 transition-colors hover:bg-neutral-50"
+                >
+                  <img src={c.avatar} alt="" className="h-14 w-14 rounded-full object-cover" />
+                  <div className="min-w-0">
+                    <p className="flex items-center gap-1 text-[15px] font-bold">
+                      {c.name}
+                      {c.verified && <BadgeCheck size={15} style={{ color: GREEN }} />}
+                    </p>
+                    <p className="text-[13px]" style={{ color: RED }}>
+                      @{c.handle}
+                    </p>
+                    <p className="mt-1 line-clamp-1 text-[12px] text-neutral-500">{c.bio}</p>
+                  </div>
+                </Link>
+                <div className="grid grid-cols-3 gap-0.5 border-t bg-neutral-100" style={{ borderColor: "rgba(0,0,0,0.06)" }}>
+                  {plans.map((p) => (
+                    <Link
+                      key={p.id}
+                      to="/creator/$handle/$planId"
+                      params={{ handle, planId: p.id }}
+                      className="group relative aspect-square overflow-hidden bg-neutral-200"
+                      aria-label={p.title}
+                    >
+                      <img
+                        src={p.cover}
+                        alt={p.title}
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/65 to-transparent p-2 opacity-0 transition-opacity group-hover:opacity-100">
+                        <p className="line-clamp-2 text-[10px] font-bold leading-snug text-white">{p.title}</p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
               </div>
-            </Link>
-          </Reveal>
-        ))}
+            </Reveal>
+          );
+        })}
       </div>
     </Section>
   );

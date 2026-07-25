@@ -300,6 +300,83 @@
 .nn-offer-card {
   perspective: 900px;
 }
+
+/* YouTube Shorts stage — explicit height so snap slides work */
+.nn-shorts-stage {
+  --nn-stage-h: min(675px, calc(100dvh - 8rem));
+  position: relative;
+  height: var(--nn-stage-h);
+  width: min(100%, calc(var(--nn-stage-h) * 9 / 16));
+  border-radius: 16px;
+  margin-inline: auto;
+  overflow: hidden;
+}
+
+@media (max-width: 640px) {
+  .nn-shorts-stage {
+    --nn-stage-h: min(640px, calc(100dvh - 11rem));
+    border-radius: 14px;
+  }
+}
+
+.nn-shorts-scroller {
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.nn-shorts-scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.nn-shorts-slide {
+  position: relative;
+  height: 100%;
+  min-height: 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  touch-action: pan-y;
+}
+
+/* Hide the selected short while its genie clone flies to the dock */
+.nn-shorts-slide.nn-shorts-minimizing > * {
+  opacity: 0 !important;
+  transition: opacity 80ms linear;
+}
+
+/* Mac genie minimize strips */
+.nn-genie-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  pointer-events: none;
+  overflow: hidden;
+}
+.nn-genie-strip {
+  position: fixed;
+  background-repeat: no-repeat;
+  will-change: transform, opacity;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.12);
+}
+
+@keyframes nn-playlist-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(226, 55, 68, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  }
+  40% {
+    box-shadow: 0 0 0 10px rgba(226, 55, 68, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(226, 55, 68, 0), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  }
+}
+
+.nn-playlist-pulse {
+  animation: nn-playlist-pulse 0.95s cubic-bezier(0.2, 0.85, 0.2, 1);
+}
 .nn-offer-card-inner {
   transform-style: preserve-3d;
   will-change: transform;

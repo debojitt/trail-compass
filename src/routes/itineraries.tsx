@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Link, Outlet, createFileRoute, useChildMatches, useNavigate } from "@tanstack/react-router";
 import { Heart, MapPin, Search, ShieldCheck, Sparkles } from "lucide-react";
 import { PageHero, SiteShell } from "@/components/site/SiteShell";
 import { formatINR, useStore } from "@/lib/store";
@@ -12,8 +12,15 @@ export const Route = createFileRoute("/itineraries")({
       { name: "description", content: "Search verified traveler itineraries by short code (NN-MEGH-804 style)." },
     ],
   }),
-  component: ItinerariesIndex,
+  component: ItinerariesLayout,
 });
+
+/** Nested /itineraries/$code needs an Outlet or the detail page never mounts. */
+function ItinerariesLayout() {
+  const childMatches = useChildMatches();
+  if (childMatches.length > 0) return <Outlet />;
+  return <ItinerariesIndex />;
+}
 
 function ItinerariesIndex() {
   const its = useStore((s) => s.publicItineraries);
@@ -81,9 +88,7 @@ function ItinerariesIndex() {
               <div className="relative aspect-[4/3]">
                 <img src={it.cover} alt="" className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3">
-                  <span
-                    className="rounded-full bg-white/95 px-2 py-0.5 text-[10px] font-black tracking-widest text-neutral-900"
-                  >
+                  <span className="rounded-full bg-white/95 px-2 py-0.5 text-[10px] font-black tracking-widest text-neutral-900">
                     {it.code}
                   </span>
                 </div>
@@ -120,9 +125,13 @@ function ItinerariesIndex() {
         <div className="flex items-start gap-3">
           <Sparkles size={22} style={{ color: GREEN }} />
           <div>
-            <p className="text-[15px] font-bold" style={{ color: GREEN }}>How codes get minted</p>
+            <p className="text-[15px] font-bold" style={{ color: GREEN }}>
+              How codes get minted
+            </p>
             <p className="mt-1 text-[13px] leading-relaxed text-neutral-700">
-              Codes are minted only after a booking hits <strong>COMPLETED</strong>. Publish from your dashboard to receive one — solves Instagram's no-clickable-link problem and gives you a share-worthy artefact.
+              Codes are minted only after a booking hits <strong>COMPLETED</strong>. Publish from your
+              dashboard to receive one — solves Instagram's no-clickable-link problem and gives you a
+              share-worthy artefact.
             </p>
           </div>
         </div>
