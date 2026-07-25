@@ -121,10 +121,10 @@ function Builder() {
             key={p.id}
             place={p}
             idx={i}
-            ref={(el: HTMLDivElement | null) => { slideRefs.current[i] = el; }}
+            refCb={(el: HTMLDivElement | null) => { slideRefs.current[i] = el; }}
             inCart={cart.some((c: CartStop) => c.placeId === p.id)}
             swipeX={swipeXById[p.id] ?? 0}
-            setSwipeX={(x) => setSwipeXById((m) => ({ ...m, [p.id]: x }))}
+            setSwipeX={(x: number) => setSwipeXById((m) => ({ ...m, [p.id]: x }))}
             onAdd={() => addPlace(p)}
             onSkip={() => skip(i)}
           />
