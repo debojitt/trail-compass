@@ -17,6 +17,7 @@ import {
   WifiOff,
   Wallet,
   ChevronDown,
+  ChevronLeft,
   ChevronRight,
   BadgePercent,
   Quote,
@@ -1191,13 +1192,73 @@ function CultureCardFace({
   );
 }
 
-/* ============ DESTINATIONS: horizontal scroll (same on desktop + mobile) ============ */
+/* ============ DESTINATIONS: curved 3D places carousel ============ */
 
 function StatesGrid() {
+  const n = destinations.length;
+  const [index, setIndex] = useState(0);
+  const [dragPx, setDragPx] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const [hovering, setHovering] = useState(false);
+  const [stepPx, setStepPx] = useState(240);
+  const dragRef = useRef<{
+    active: boolean;
+    startX: number;
+    lastX: number;
+    moved: boolean;
+  }>({ active: false, startX: 0, lastX: 0, moved: false });
+
+  /* Keep the same 3D arc density on phone as desktop */
+  useEffect(() => {
+    const update = () => {
+      const w = window.innerWidth;
+      const cardW = Math.min(220, Math.round(w * 0.48));
+      setStepPx(Math.round(cardW + (w < 768 ? 32 : 20)));
+    };
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  useEffect(() => {
+    if (hovering || dragging) return;
+    const id = window.setInterval(() => {
+      setIndex((i) => (i + 1) % n);
+    }, 3200);
+    return () => window.clearInterval(id);
+  }, [hovering, dragging, n]);
+
+  const pos = index + dragPx / stepPx;
+
+  const wrapRel = (i: number) => {
+    let rel = i - pos;
+    while (rel > n / 2) rel -= n;
+    while (rel < -n / 2) rel += n;
+    return rel;
+  };
+
+  const endDrag = (clientX: number) => {
+    if (!dragRef.current.active) return;
+    const dx = clientX - dragRef.current.startX;
+    dragRef.current.active = false;
+    setDragging(false);
+    setDragPx(0);
+    if (Math.abs(dx) > 40) {
+      const dir = dx < 0 ? 1 : -1;
+      setIndex((i) => (i + dir + n) % n);
+      dragRef.current.moved = true;
+    }
+  };
+
   return (
     <section
       className="relative left-1/2 w-screen max-w-[100vw] -translate-x-1/2 overflow-hidden py-12 md:py-16"
       style={{ background: "#F3F0EA" }}
+      onMouseEnter={() => setHovering(true)}
+      onMouseLeave={() => {
+        setHovering(false);
+        endDrag(dragRef.current.lastX);
+      }}
     >
       <div className="mx-auto mb-8 max-w-[1200px] px-4 text-center md:px-6">
         <p className="text-[12px] font-semibold uppercase tracking-[0.25em]" style={{ color: RED }}>
@@ -1208,38 +1269,128 @@ function StatesGrid() {
         </h2>
       </div>
 
-      <div className="nn-h-scroll mx-auto max-w-[1200px] px-4 md:px-6">
-        {destinations.map((s, i) => (
-          <Reveal key={s.slug} delay={Math.min(i, 4) * 80}>
-            <Link
-              to="/explore/$slug"
-              params={{ slug: s.slug }}
-              className="nn-card-tile group relative block w-[220px] overflow-hidden shadow-[0_10px_28px_rgba(0,0,0,0.12)]"
-              style={{ aspectRatio: "3/4" }}
+      <div
+        className="nn-places-stage relative mx-auto h-[340px] touch-none select-none md:h-[360px]"
+        style={{ perspective: "1400px", cursor: dragging ? "grabbing" : "grab" }}
+        onPointerDown={(e) => {
+          dragRef.current = { active: true, startX: e.clientX, lastX: e.clientX, moved: false };
+          setDragging(true);
+          (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+        }}
+        onPointerMove={(e) => {
+          if (!dragRef.current.active) return;
+          dragRef.current.lastX = e.clientX;
+          const dx = e.clientX - dragRef.current.startX;
+          if (Math.abs(dx) > 6) dragRef.current.moved = true;
+          setDragPx(dx);
+        }}
+        onPointerUp={(e) => endDrag(e.clientX)}
+        onPointerCancel={(e) => endDrag(e.clientX)}
+      >
+        <div
+          className="absolute inset-0 flex items-center justify-center"
+          style={{ transformStyle: "preserve-3d" }}
+        >
+          {destinations.map((s, i) => {
+            const rel = wrapRel(i);
+            const abs = Math.abs(rel);
+            if (abs > 3.2) return null;
+            const rotateY = rel * -38;
+            const x = rel * stepPx;
+            const z = -Math.abs(rel) * 90;
+            const scale = 1 - Math.min(abs, 3) * 0.06;
+            const opacity = abs > 2.6 ? Math.max(0, 1 - (abs - 2.6) * 2) : 1;
+            const active = abs < 0.45;
+
+            return (
+              <Link
+                key={s.slug}
+                to="/explore/$slug"
+                params={{ slug: s.slug }}
+                onClick={(e) => {
+                  if (dragRef.current.moved) {
+                    e.preventDefault();
+                    return;
+                  }
+                  if (!active) {
+                    e.preventDefault();
+                    setIndex(i);
+                  }
+                }}
+                className="nn-places-card group absolute overflow-hidden rounded-sm bg-neutral-200 shadow-[0_18px_40px_rgba(0,0,0,0.18)]"
+                style={{
+                  width: "min(48vw, 220px)",
+                  height: "min(70vw, 320px)",
+                  transform: `translateX(${x}px) translateZ(${z}px) rotateY(${rotateY}deg) scale(${scale})`,
+                  opacity,
+                  zIndex: Math.round(40 - abs * 10),
+                  transition: dragging
+                    ? "none"
+                    : "transform 520ms cubic-bezier(0.22, 1, 0.36, 1), opacity 420ms ease",
+                }}
+                aria-label={s.name}
+              >
+                <img
+                  src={s.heroImg}
+                  alt={s.name}
+                  draggable={false}
+                  loading="lazy"
+                  decoding="async"
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+                <div className="absolute inset-x-0 bottom-0 p-3 md:p-4">
+                  <p className="text-[15px] font-bold tracking-tight text-white md:text-[17px]">{s.name}</p>
+                  <p className="mt-0.5 line-clamp-1 text-[10px] text-white/75 md:text-[11px]">{s.tag}</p>
+                  {active && (
+                    <span
+                      className="mt-2 inline-block rounded-full px-2 py-0.5 text-[10px] font-bold text-white"
+                      style={{ background: GREEN }}
+                    >
+                      {s.stays}
+                    </span>
+                  )}
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="mt-6 flex items-center justify-center gap-4">
+        <button
+          type="button"
+          aria-label="Previous place"
+          onClick={() => setIndex((i) => (i - 1 + n) % n)}
+          className="grid h-10 w-10 place-items-center rounded-full border bg-white/80 text-neutral-600 transition hover:bg-white"
+          style={{ borderColor: "rgba(0,0,0,0.08)" }}
+        >
+          <ChevronLeft size={18} />
+        </button>
+        <div className="flex items-center gap-1.5">
+          {destinations.map((s, i) => (
+            <button
+              key={s.slug}
+              type="button"
               aria-label={s.name}
-            >
-              <img
-                src={s.heroImg}
-                alt={s.name}
-                draggable={false}
-                loading="lazy"
-                decoding="async"
-                className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
-              <div className="absolute inset-x-0 bottom-0 p-3.5">
-                <p className="text-[15px] font-bold tracking-tight text-white">{s.name}</p>
-                <p className="mt-0.5 line-clamp-1 text-[11px] text-white/75">{s.tag}</p>
-                <span
-                  className="mt-2 inline-block rounded-md px-2 py-0.5 text-[10px] font-bold text-white"
-                  style={{ background: GREEN }}
-                >
-                  {s.stays}
-                </span>
-              </div>
-            </Link>
-          </Reveal>
-        ))}
+              onClick={() => setIndex(i)}
+              className="h-1.5 rounded-full transition-all"
+              style={{
+                width: i === index ? 22 : 6,
+                background: i === index ? RED : "rgba(0,0,0,0.2)",
+              }}
+            />
+          ))}
+        </div>
+        <button
+          type="button"
+          aria-label="Next place"
+          onClick={() => setIndex((i) => (i + 1) % n)}
+          className="grid h-10 w-10 place-items-center rounded-full border bg-white/80 text-neutral-600 transition hover:bg-white"
+          style={{ borderColor: "rgba(0,0,0,0.08)" }}
+        >
+          <ChevronRight size={18} />
+        </button>
       </div>
     </section>
   );
