@@ -3,8 +3,9 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import { Car, MapPin, Utensils } from "lucide-react";
 import { SiteShell } from "@/components/site/SiteShell";
 import { BookingDialog, type BookingDraft } from "@/components/site/BookingDialog";
-import { PhotoStrip, RatingLikes, PriceBlock } from "@/components/site/DetailMedia";
+import { PhotoGallery, VideoRow, RatingLikes, PriceBlock } from "@/components/site/DetailMedia";
 import type { DemoAccount, HostHome, HostTrip48h } from "@/data/demoUniverse";
+import { SAMPLE_VIDEOS } from "@/data/demoUniverse";
 import { fetchHostBySlug, fetchHostTrips, formatINR } from "@/lib/demoApi";
 import { GREEN, GREEN_LIGHT, RED } from "@/lib/brand";
 
@@ -70,9 +71,25 @@ function HostProfilePage() {
         <RatingLikes rating={home.rating} reviews={home.reviews} />
       </div>
 
-      <div className="mt-6 grid gap-8 lg:grid-cols-[1.4fr_1fr]">
+      <div className="mt-5">
+        <PhotoGallery
+          photos={
+            home.photos.length >= 4
+              ? home.photos
+              : [
+                  ...home.photos,
+                  "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1200",
+                  "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1200",
+                  "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1200",
+                ]
+          }
+          alt={home.name}
+        />
+      </div>
+
+      <div className="mt-8 grid gap-8 lg:grid-cols-[1.4fr_1fr]">
         <div className="space-y-8">
-          <PhotoStrip photos={home.photos} alt={home.name} />
+          <VideoRow videos={[SAMPLE_VIDEOS[0], SAMPLE_VIDEOS[2]]} />
           <p className="text-[14px] leading-relaxed text-neutral-600">{home.description}</p>
 
           <section>

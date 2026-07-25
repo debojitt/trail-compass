@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { SiteShell } from "@/components/site/SiteShell";
 import { BookingDialog, type BookingDraft } from "@/components/site/BookingDialog";
-import { PhotoStrip, VideoRow, RatingLikes, PriceBlock } from "@/components/site/DetailMedia";
+import { PhotoGallery, VideoRow, RatingLikes, PriceBlock } from "@/components/site/DetailMedia";
 import type { PublishedItinerary } from "@/data/demoUniverse";
 import { fetchPublishedByCode, addToCart, PLACE_CLIPS } from "@/lib/demoApi";
 import { GREEN, RED } from "@/lib/brand";
@@ -59,9 +59,12 @@ function ItineraryByCodePage() {
         <RatingLikes rating={pub.rating} likes={pub.likes} reviews={pub.reviews} />
       </div>
 
-      <div className="mt-6 grid gap-8 lg:grid-cols-[1.4fr_1fr]">
+      <div className="mt-5">
+        <PhotoGallery photos={pub.photos?.length ? pub.photos : [pub.cover]} alt={pub.title} />
+      </div>
+
+      <div className="mt-8 grid gap-8 lg:grid-cols-[1.4fr_1fr]">
         <div className="space-y-6">
-          <PhotoStrip photos={pub.photos} alt={pub.title} />
           <VideoRow videos={pub.videos} />
           <div>
             <h2 className="text-[16px] font-bold">Experience</h2>
@@ -84,7 +87,7 @@ function ItineraryByCodePage() {
           </div>
         </div>
         <aside
-          className="h-fit rounded-3xl border p-6 shadow-lg lg:sticky lg:top-24"
+          className="h-fit rounded-3xl border p-6 shadow-xl lg:sticky lg:top-24"
           style={{ borderColor: "rgba(0,0,0,0.07)" }}
         >
           <PriceBlock price={pub.priceFrom} />

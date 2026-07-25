@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { MapPin, Rotate3d } from "lucide-react";
+import { MapPin, Rotate3d, Check } from "lucide-react";
 import { SiteShell } from "@/components/site/SiteShell";
 import { BookingDialog, type BookingDraft } from "@/components/site/BookingDialog";
-import { PhotoStrip, VideoRow, RatingLikes, PriceBlock } from "@/components/site/DetailMedia";
+import { PhotoGallery, VideoRow, RatingLikes, PriceBlock } from "@/components/site/DetailMedia";
 import type { Stay } from "@/data/catalog";
 import { SAMPLE_VIDEOS } from "@/data/demoUniverse";
 import { fetchStay } from "@/lib/demoApi";
@@ -46,54 +46,65 @@ function StayDetailPage() {
   const photos = stay.photos?.length
     ? stay.photos
     : [stay.img, stay.img, "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=900"];
-  const videos = stay.videos ?? [SAMPLE_VIDEOS[0], SAMPLE_VIDEOS[1]];
+  const videos = stay.videos?.length ? stay.videos : [SAMPLE_VIDEOS[0], SAMPLE_VIDEOS[1]];
 
   return (
     <SiteShell>
       <Link to="/stays" className="text-[13px] font-semibold text-neutral-500">
         ← All stays
       </Link>
-      <div className="mt-4 grid gap-8 lg:grid-cols-[1.4fr_1fr]">
-        <div className="space-y-6">
-          <PhotoStrip photos={photos} alt={stay.name} />
-          <VideoRow videos={videos} />
+
+      <div className="mt-4">
+        <h1 className="text-[26px] font-bold tracking-tight md:text-[32px]">{stay.name}</h1>
+        <div className="mt-2 flex flex-wrap items-center gap-3">
+          <p className="flex items-center gap-1 text-[13px] text-neutral-500">
+            <MapPin size={13} /> {stay.place}
+          </p>
+          <RatingLikes rating={stay.rating} reviews={stay.reviews} likes={stay.reviews * 3} />
+        </div>
+      </div>
+
+      <div className="mt-5">
+        <PhotoGallery photos={photos} alt={stay.name} />
+      </div>
+
+      <div className="mt-8 grid gap-8 lg:grid-cols-[1.45fr_1fr]">
+        <div className="space-y-8">
           <div>
-            <h2 className="text-[16px] font-bold">About this stay</h2>
+            <h2 className="text-[18px] font-bold tracking-tight">About this stay</h2>
             <p className="mt-2 text-[14px] leading-relaxed text-neutral-600">{stay.hostNote}</p>
             <p className="mt-3 text-[14px] leading-relaxed text-neutral-600">
               {stay.experience ??
                 "Host-verified village stay with true-cost pricing. Meals, local tips and permit help available on request."}
             </p>
           </div>
+
+          <VideoRow videos={videos} />
+
           <div>
-            <h2 className="text-[16px] font-bold">Amenities</h2>
-            <div className="mt-3 flex flex-wrap gap-2">
+            <h2 className="text-[18px] font-bold tracking-tight">What this place offers</h2>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
               {stay.amenities.map((a) => (
-                <span
-                  key={a}
-                  className="rounded-full px-3 py-1 text-[12px] font-semibold"
-                  style={{ background: GREEN_LIGHT, color: GREEN }}
-                >
+                <div key={a} className="flex items-center gap-2 text-[14px] text-neutral-700">
+                  <span
+                    className="grid h-7 w-7 place-items-center rounded-full"
+                    style={{ background: GREEN_LIGHT }}
+                  >
+                    <Check size={14} style={{ color: GREEN }} />
+                  </span>
                   {a}
-                </span>
+                </div>
               ))}
             </div>
           </div>
         </div>
+
         <aside
-          className="h-fit rounded-3xl border bg-white p-6 shadow-lg lg:sticky lg:top-24"
+          className="h-fit rounded-3xl border bg-white p-6 shadow-xl lg:sticky lg:top-24"
           style={{ borderColor: "rgba(0,0,0,0.07)" }}
         >
-          <h1 className="text-[24px] font-bold tracking-tight">{stay.name}</h1>
-          <p className="mt-1 flex items-center gap-1 text-[13px] text-neutral-500">
-            <MapPin size={13} /> {stay.place}
-          </p>
-          <div className="mt-3">
-            <RatingLikes rating={stay.rating} reviews={stay.reviews} likes={stay.reviews * 3} />
-          </div>
-          <div className="mt-5">
-            <PriceBlock price={stay.pricePerNight} suffix="/ night" />
-          </div>
+          <PriceBlock price={stay.pricePerNight} suffix="/ night" />
+          <p className="mt-1 text-[12px] text-neutral-500">Includes taxes & host fees · demo booking</p>
           <button
             onClick={() =>
               setDraft({
@@ -105,11 +116,18 @@ function StayDetailPage() {
                 sourceId: stay.id,
               })
             }
-            className="mt-5 w-full rounded-full py-3 text-[15px] font-bold text-white"
+            className="mt-5 w-full rounded-full py-3.5 text-[15px] font-bold text-white shadow-lg transition-transform hover:scale-[1.02]"
             style={{ background: RED }}
           >
             Book this stay
           </button>
+          <Link
+            to="/builder"
+            className="mt-3 flex w-full items-center justify-center rounded-full border py-2.5 text-[13px] font-semibold"
+            style={{ borderColor: "rgba(0,0,0,0.1)" }}
+          >
+            Add to itinerary builder
+          </Link>
           <Link
             to="/explore/$slug"
             params={{ slug: stay.stateSlug }}

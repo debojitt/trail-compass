@@ -41,15 +41,72 @@ import {
 const simulate = <T>(data: T, ms = 280): Promise<T> =>
   new Promise((resolve) => setTimeout(() => resolve(data), ms));
 
+/** Extra Northeast-feel Unsplash photos for marketplace galleries */
+const GALLERY_POOL = [
+  "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1200&q=80&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1200&q=80&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1439066615861-d1af74d74000?w=1200&q=80&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1200&q=80&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200&q=80&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1200&q=80&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=1200&q=80&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1571089336682-9f8d6c1671da?w=1200&q=80&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=1200&q=80&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1587061949409-02df41d5e562?w=1200&q=80&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=1200&q=80&auto=format&fit=crop",
+] as const;
+
+function pickGallery(cover: string, seed: number, count = 5): string[] {
+  const out = [cover];
+  for (let i = 0; out.length < count; i++) {
+    const next = GALLERY_POOL[(seed + i) % GALLERY_POOL.length];
+    if (!out.includes(next)) out.push(next);
+  }
+  return out;
+}
+
+function pickVideos(seed: number, count = 2): string[] {
+  const out: string[] = [];
+  for (let i = 0; out.length < count; i++) {
+    out.push(SAMPLE_VIDEOS[(seed + i) % SAMPLE_VIDEOS.length]);
+  }
+  return out;
+}
+
+function enrichStay(s: Stay, index: number): Stay {
+  return {
+    ...s,
+    photos: s.photos?.length ? s.photos : pickGallery(s.img, index),
+    videos: s.videos?.length ? s.videos : pickVideos(index),
+    experience:
+      s.experience ??
+      `${s.hostNote} Guests love the ${s.amenities.slice(0, 2).join(" and ").toLowerCase()}. True-cost nightly rate includes host fees — what you see is what you pay.`,
+  };
+}
+
+function enrichPackage(p: TravelPackage, index: number): TravelPackage {
+  return {
+    ...p,
+    photos: p.photos?.length ? p.photos : pickGallery(p.img, index + 3),
+    videos: p.videos?.length ? p.videos : pickVideos(index + 2),
+    experience:
+      p.experience ??
+      `Permit-ready ${p.days} circuit covering ${p.states.join(", ").replace(/-/g, " ")}. Includes ${p.perks.slice(0, 2).join(" and ").toLowerCase()}. Fixed departures — no checkout surprises.`,
+  };
+}
+
 /* ============ CATALOG ============ */
 
 export function fetchStays(stateSlug?: string): Promise<Stay[]> {
   const list = stateSlug ? stays.filter((s) => s.stateSlug === stateSlug) : stays;
-  return simulate(list);
+  return simulate(list.map(enrichStay));
 }
 
 export function fetchStay(id: string): Promise<Stay | undefined> {
-  return simulate(stays.find((s) => s.id === id));
+  const idx = stays.findIndex((s) => s.id === id);
+  if (idx < 0) return simulate(undefined);
+  return simulate(enrichStay(stays[idx], idx));
 }
 
 export function fetchRoutes(mode: TransportMode, query?: string): Promise<TransportRoute[]> {
@@ -69,11 +126,13 @@ export function fetchRoutes(mode: TransportMode, query?: string): Promise<Transp
 }
 
 export function fetchPackages(): Promise<TravelPackage[]> {
-  return simulate(travelPackages);
+  return simulate(travelPackages.map(enrichPackage));
 }
 
 export function fetchPackage(id: string): Promise<TravelPackage | undefined> {
-  return simulate(travelPackages.find((p) => p.id === id));
+  const idx = travelPackages.findIndex((p) => p.id === id);
+  if (idx < 0) return simulate(undefined);
+  return simulate(enrichPackage(travelPackages[idx], idx));
 }
 
 export function fetchOffers(): Promise<Offer[]> {

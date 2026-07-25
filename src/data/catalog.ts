@@ -76,6 +76,22 @@ export type PermitRule = {
   note: string;
 };
 
+/* Marketplace media helpers — Unsplash + public sample videos */
+const img = (id: string, w = 900) =>
+  `https://images.unsplash.com/${id}?w=${w}&q=80&auto=format&fit=crop`;
+const DEMO_VIDEOS = [
+  "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+  "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+  "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+  "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
+  "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4",
+  "https://storage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4",
+  "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4",
+  "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm",
+  "https://www.w3schools.com/html/mov_bbb.mp4",
+  "https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+] as const;
+
 /* ============ STAYS ============ */
 
 export const stays: Stay[] = [
@@ -87,9 +103,19 @@ export const stays: Stay[] = [
     pricePerNight: 2400,
     rating: 4.8,
     reviews: 312,
-    img: "https://images.unsplash.com/photo-1587061949409-02df41d5e562?w=700",
+    img: img("photo-1587061949409-02df41d5e562", 700),
+    photos: [
+      img("photo-1587061949409-02df41d5e562"),
+      img("photo-1501785888041-af3ef285b470"),
+      img("photo-1441974231531-c6227db76b6e"),
+      img("photo-1470071459604-3b5ec3a7fe05"),
+      img("photo-1464822759023-fed622ff2c3b"),
+    ],
+    videos: [DEMO_VIDEOS[0], DEMO_VIDEOS[1]],
     amenities: ["Valley view", "Home-cooked Khasi meals", "Bonfire", "Guide on call"],
     hostNote: "Run by the Lyngdoh family, 20 minutes from Nohkalikai Falls.",
+    experience:
+      "Wake to cloud valleys, jadoh breakfasts, and a short walk to Nohkalikai overlooks. Hosts help with local Sumo timings and monsoon trail tips.",
   },
   {
     id: "stay-living-root",
@@ -99,9 +125,19 @@ export const stays: Stay[] = [
     pricePerNight: 1400,
     rating: 4.9,
     reviews: 505,
-    img: "https://images.unsplash.com/photo-1571089336682-9f8d6c1671da?w=700",
+    img: img("photo-1571089336682-9f8d6c1671da", 700),
+    photos: [
+      img("photo-1571089336682-9f8d6c1671da"),
+      img("photo-1439066615861-d1af74d74000"),
+      img("photo-1519681393784-d120267933ba"),
+      img("photo-1506905925346-21bda4d32df4"),
+      img("photo-1441974231531-c6227db76b6e"),
+    ],
+    videos: [DEMO_VIDEOS[2], DEMO_VIDEOS[3]],
     amenities: ["Root-bridge trailhead", "Organic kitchen", "Porter support"],
     hostNote: "3,500 steps down into the jungle — worth every one of them.",
+    experience:
+      "Sleep at the trailhead of the double-decker living root bridge. Porter support, organic meals, and dawn starts for the swim hole.",
   },
   {
     id: "stay-tawang-gompa",
@@ -111,9 +147,19 @@ export const stays: Stay[] = [
     pricePerNight: 2900,
     rating: 4.7,
     reviews: 188,
-    img: "https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=700",
+    img: img("photo-1544966503-7cc5ac882d5f", 700),
+    photos: [
+      img("photo-1544966503-7cc5ac882d5f"),
+      img("photo-1506905925346-21bda4d32df4"),
+      img("photo-1464822759023-fed622ff2c3b"),
+      img("photo-1519681393784-d120267933ba"),
+      img("photo-1470071459604-3b5ec3a7fe05"),
+    ],
+    videos: [DEMO_VIDEOS[1], DEMO_VIDEOS[4]],
     amenities: ["Monastery view", "Yak-butter tea", "Heated rooms", "ILP help"],
     hostNote: "Sunrise over the 400-year-old gompa from your window.",
+    experience:
+      "Heated rooms facing Tawang Monastery, yak-butter tea at dawn, and hosts who file your ILP paperwork before you arrive.",
   },
   {
     id: "stay-ziro-valley",
@@ -123,9 +169,19 @@ export const stays: Stay[] = [
     pricePerNight: 1900,
     rating: 4.6,
     reviews: 264,
-    img: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=700",
+    img: img("photo-1470071459604-3b5ec3a7fe05", 700),
+    photos: [
+      img("photo-1470071459604-3b5ec3a7fe05"),
+      img("photo-1501785888041-af3ef285b470"),
+      img("photo-1533105079780-92b9be482077"),
+      img("photo-1441974231531-c6227db76b6e"),
+      img("photo-1587061949409-02df41d5e562"),
+    ],
+    videos: [DEMO_VIDEOS[5], DEMO_VIDEOS[0]],
     amenities: ["Paddy-field deck", "Apatani host family", "Cycle rental"],
     hostNote: "Walk into the rice fields straight from the veranda.",
+    experience:
+      "Bamboo eco-huts on the Apatani paddy edge — cycles for village loops, host dinners, and festival-week tips for Ziro Music.",
   },
   {
     id: "stay-gangtok-ridge",
@@ -135,9 +191,19 @@ export const stays: Stay[] = [
     pricePerNight: 3200,
     rating: 4.7,
     reviews: 421,
-    img: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=700",
+    img: img("photo-1506905925346-21bda4d32df4", 700),
+    photos: [
+      img("photo-1506905925346-21bda4d32df4"),
+      img("photo-1464822759023-fed622ff2c3b"),
+      img("photo-1519681393784-d120267933ba"),
+      img("photo-1544966503-7cc5ac882d5f"),
+      img("photo-1501785888041-af3ef285b470"),
+    ],
+    videos: [DEMO_VIDEOS[3], DEMO_VIDEOS[7]],
     amenities: ["Kanchenjunga view", "5 min to MG Marg", "Breakfast included"],
     hostNote: "Clear mornings show the third-highest peak on earth.",
+    experience:
+      "Ridge-facing rooms with Kanchenjunga mornings, walkable MG Marg evenings, and hosts who arrange North Sikkim permits.",
   },
   {
     id: "stay-kisama-morung",
@@ -147,9 +213,19 @@ export const stays: Stay[] = [
     pricePerNight: 1700,
     rating: 4.5,
     reviews: 146,
-    img: "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=700",
+    img: img("photo-1533105079780-92b9be482077", 700),
+    photos: [
+      img("photo-1533105079780-92b9be482077"),
+      img("photo-1564760055775-d63b17a55c44"),
+      img("photo-1501785888041-af3ef285b470"),
+      img("photo-1441974231531-c6227db76b6e"),
+      img("photo-1470071459604-3b5ec3a7fe05"),
+    ],
+    videos: [DEMO_VIDEOS[9], DEMO_VIDEOS[2]],
     amenities: ["Hornbill venue walk", "Tribal kitchen", "Log-drum evenings"],
     hostNote: "Book early for December — Hornbill sells the village out.",
+    experience:
+      "Stay steps from the Hornbill venue in a heritage morung — tribal kitchen, log-drum evenings, and ILP-friendly check-in.",
   },
   {
     id: "stay-kaziranga-edge",
@@ -159,9 +235,19 @@ export const stays: Stay[] = [
     pricePerNight: 2600,
     rating: 4.6,
     reviews: 389,
-    img: "https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=700",
+    img: img("photo-1564760055775-d63b17a55c44", 700),
+    photos: [
+      img("photo-1564760055775-d63b17a55c44"),
+      img("photo-1441974231531-c6227db76b6e"),
+      img("photo-1470071459604-3b5ec3a7fe05"),
+      img("photo-1501785888041-af3ef285b470"),
+      img("photo-1439066615861-d1af74d74000"),
+    ],
+    videos: [DEMO_VIDEOS[6], DEMO_VIDEOS[5]],
     amenities: ["Safari desk", "Tea-garden walk", "Machan dining"],
     hostNote: "Jeep safaris leave from the gate 900 m away at dawn.",
+    experience:
+      "Forest-edge cottages with a safari desk, tea-garden walks, and machan dining after dusk jeep returns.",
   },
   {
     id: "stay-loktak-float",
@@ -171,9 +257,19 @@ export const stays: Stay[] = [
     pricePerNight: 2100,
     rating: 4.8,
     reviews: 97,
-    img: "https://images.unsplash.com/photo-1439066615861-d1af74d74000?w=700",
+    img: img("photo-1439066615861-d1af74d74000", 700),
+    photos: [
+      img("photo-1439066615861-d1af74d74000"),
+      img("photo-1501785888041-af3ef285b470"),
+      img("photo-1464822759023-fed622ff2c3b"),
+      img("photo-1519681393784-d120267933ba"),
+      img("photo-1571089336682-9f8d6c1671da"),
+    ],
+    videos: [DEMO_VIDEOS[0], DEMO_VIDEOS[8]],
     amenities: ["Phumdi boat rides", "Fisherman breakfast", "Sangai deck"],
     hostNote: "Sleep on the world's only floating national park.",
+    experience:
+      "Phumdi nights on Loktak — fisherman breakfasts, Sangai deck sunsets, and boat transfers arranged by the host.",
   },
   {
     id: "stay-aizawl-ridge",
@@ -183,9 +279,19 @@ export const stays: Stay[] = [
     pricePerNight: 1800,
     rating: 4.6,
     reviews: 124,
-    img: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=700",
+    img: img("photo-1501785888041-af3ef285b470", 700),
+    photos: [
+      img("photo-1501785888041-af3ef285b470"),
+      img("photo-1464822759023-fed622ff2c3b"),
+      img("photo-1441974231531-c6227db76b6e"),
+      img("photo-1470071459604-3b5ec3a7fe05"),
+      img("photo-1587061949409-02df41d5e562"),
+    ],
+    videos: [DEMO_VIDEOS[4], DEMO_VIDEOS[1]],
     amenities: ["City view", "Mizo kitchen", "ILP desk"],
     hostNote: "Sunday silence over the ridges — church bells at dusk.",
+    experience:
+      "Ridge views over Aizawl, Mizo kitchen meals, and an ILP desk that handles Lengpui arrivals without fuss.",
   },
   {
     id: "stay-agartala-courtyard",
@@ -195,9 +301,19 @@ export const stays: Stay[] = [
     pricePerNight: 1600,
     rating: 4.4,
     reviews: 89,
-    img: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=700",
+    img: img("photo-1441974231531-c6227db76b6e", 700),
+    photos: [
+      img("photo-1441974231531-c6227db76b6e"),
+      img("photo-1587061949409-02df41d5e562"),
+      img("photo-1501785888041-af3ef285b470"),
+      img("photo-1439066615861-d1af74d74000"),
+      img("photo-1470071459604-3b5ec3a7fe05"),
+    ],
+    videos: [DEMO_VIDEOS[2], DEMO_VIDEOS[7]],
     amenities: ["Courtyard", "Ujjayanta walk", "Home thali"],
     hostNote: "Walk to the palace grounds after breakfast.",
+    experience:
+      "Quiet courtyard rooms near Ujjayanta Palace — home thalis, temple walks, and easy airport transfers.",
   },
 ];
 
@@ -240,7 +356,15 @@ export const travelPackages: TravelPackage[] = [
     oldPrice: 21900,
     price: 18400,
     perks: ["Homestay chain", "Root-bridge trek", "All permits filed"],
-    img: "https://images.unsplash.com/photo-1571089336682-9f8d6c1671da?w=700",
+    img: img("photo-1571089336682-9f8d6c1671da", 700),
+    photos: [
+      img("photo-1571089336682-9f8d6c1671da"),
+      img("photo-1439066615861-d1af74d74000"),
+      img("photo-1464822759023-fed622ff2c3b"),
+      img("photo-1501785888041-af3ef285b470"),
+      img("photo-1441974231531-c6227db76b6e"),
+    ],
+    videos: [DEMO_VIDEOS[0], DEMO_VIDEOS[2]],
     itinerary: [
       "Day 1 — Guwahati → Shillong, Ward's Lake evening walk",
       "Day 2 — Sohra: Nohkalikai Falls + Arwah caves",
@@ -249,6 +373,8 @@ export const travelPackages: TravelPackage[] = [
       "Day 5 — Laitlum canyon sunrise, drop at Guwahati",
     ],
     states: ["meghalaya"],
+    experience:
+      "Monsoon-ready circuit with village homestays, living-root trekking, and crystal Dawki boats — permits and transfers included.",
   },
   {
     id: "pkg-tawang-circuit",
@@ -259,7 +385,15 @@ export const travelPackages: TravelPackage[] = [
     oldPrice: 36500,
     price: 31200,
     perks: ["4×4 with driver", "ILP included", "Altitude buffer day"],
-    img: "https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=700",
+    img: img("photo-1544966503-7cc5ac882d5f", 700),
+    photos: [
+      img("photo-1544966503-7cc5ac882d5f"),
+      img("photo-1506905925346-21bda4d32df4"),
+      img("photo-1464822759023-fed622ff2c3b"),
+      img("photo-1519681393784-d120267933ba"),
+      img("photo-1470071459604-3b5ec3a7fe05"),
+    ],
+    videos: [DEMO_VIDEOS[1], DEMO_VIDEOS[4]],
     itinerary: [
       "Day 1 — Guwahati → Bhalukpong (ILP checkpost)",
       "Day 2 — Bomdila → Dirang dzong",
@@ -270,6 +404,8 @@ export const travelPackages: TravelPackage[] = [
       "Day 7 — Drop at Tezpur or Guwahati",
     ],
     states: ["arunachal-pradesh"],
+    experience:
+      "High-altitude 4×4 circuit over Sela Pass with ILP handled, buffer day for acclimatisation, and monastery mornings in Tawang.",
   },
   {
     id: "pkg-ziro-festival",
@@ -280,7 +416,15 @@ export const travelPackages: TravelPackage[] = [
     oldPrice: 28900,
     price: 24800,
     perks: ["Festival pass", "Camping + meals", "Shuttle from Naharlagun"],
-    img: "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=700",
+    img: img("photo-1533105079780-92b9be482077", 700),
+    photos: [
+      img("photo-1533105079780-92b9be482077"),
+      img("photo-1470071459604-3b5ec3a7fe05"),
+      img("photo-1501785888041-af3ef285b470"),
+      img("photo-1519681393784-d120267933ba"),
+      img("photo-1441974231531-c6227db76b6e"),
+    ],
+    videos: [DEMO_VIDEOS[5], DEMO_VIDEOS[9]],
     itinerary: [
       "Day 1 — Overnight Donyi Polo Express to Naharlagun",
       "Day 2 — Shuttle to Ziro, camp check-in, first acts",
@@ -288,6 +432,8 @@ export const travelPackages: TravelPackage[] = [
       "Day 4 — Morning sets, shuttle back",
     ],
     states: ["arunachal-pradesh"],
+    experience:
+      "Festival pass, valley camping, Apatani village walk, and Naharlagun shuttle — the full Ziro Music weekend handled.",
   },
   {
     id: "pkg-kaziranga-safari",
@@ -298,13 +444,23 @@ export const travelPackages: TravelPackage[] = [
     oldPrice: 15900,
     price: 13200,
     perks: ["2 jeep safaris", "Naturalist guide", "Tea-estate lunch"],
-    img: "https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=700",
+    img: img("photo-1564760055775-d63b17a55c44", 700),
+    photos: [
+      img("photo-1564760055775-d63b17a55c44"),
+      img("photo-1441974231531-c6227db76b6e"),
+      img("photo-1470071459604-3b5ec3a7fe05"),
+      img("photo-1501785888041-af3ef285b470"),
+      img("photo-1439066615861-d1af74d74000"),
+    ],
+    videos: [DEMO_VIDEOS[6], DEMO_VIDEOS[5]],
     itinerary: [
       "Day 1 — Guwahati → Kohora, orchid park evening",
       "Day 2 — Dawn central-range safari + western range at dusk",
       "Day 3 — Tea-garden breakfast, drop at Guwahati",
     ],
     states: ["assam"],
+    experience:
+      "Two jeep ranges with a naturalist, tea-estate lunch, and forest-edge stay — rhino country without the logistics scramble.",
   },
   {
     id: "pkg-sikkim-lakes",
@@ -315,7 +471,15 @@ export const travelPackages: TravelPackage[] = [
     oldPrice: 27500,
     price: 23900,
     perks: ["Tsomgo + Gurudongmar", "PAP filed for you", "Oxygen backup"],
-    img: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=700",
+    img: img("photo-1506905925346-21bda4d32df4", 700),
+    photos: [
+      img("photo-1506905925346-21bda4d32df4"),
+      img("photo-1464822759023-fed622ff2c3b"),
+      img("photo-1519681393784-d120267933ba"),
+      img("photo-1544966503-7cc5ac882d5f"),
+      img("photo-1501785888041-af3ef285b470"),
+    ],
+    videos: [DEMO_VIDEOS[3], DEMO_VIDEOS[7]],
     itinerary: [
       "Day 1 — Bagdogra → Gangtok, MG Marg evening",
       "Day 2 — Tsomgo Lake + Baba Mandir",
@@ -325,6 +489,8 @@ export const travelPackages: TravelPackage[] = [
       "Day 6 — Drop at Bagdogra",
     ],
     states: ["sikkim"],
+    experience:
+      "Tsomgo to Gurudongmar with PAP filed, oxygen backup, and Lachen–Lachung stays for high-pass mornings.",
   },
   {
     id: "pkg-hornbill",
@@ -335,7 +501,15 @@ export const travelPackages: TravelPackage[] = [
     oldPrice: 32000,
     price: 27800,
     perks: ["Kisama day passes", "Morung stay", "ILP included"],
-    img: "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=700",
+    img: img("photo-1533105079780-92b9be482077", 700),
+    photos: [
+      img("photo-1533105079780-92b9be482077"),
+      img("photo-1564760055775-d63b17a55c44"),
+      img("photo-1501785888041-af3ef285b470"),
+      img("photo-1441974231531-c6227db76b6e"),
+      img("photo-1470071459604-3b5ec3a7fe05"),
+    ],
+    videos: [DEMO_VIDEOS[9], DEMO_VIDEOS[2]],
     itinerary: [
       "Day 1 — Dimapur → Kohima, WWII cemetery",
       "Day 2 — Hornbill: morning dances + night carnival",
@@ -344,6 +518,8 @@ export const travelPackages: TravelPackage[] = [
       "Day 5 — Drop at Dimapur",
     ],
     states: ["nagaland"],
+    experience:
+      "Kisama day passes, morung stay, Khonoma green village, and ILP included — Hornbill without the scramble for beds.",
   },
   {
     id: "pkg-loktak",
@@ -354,13 +530,23 @@ export const travelPackages: TravelPackage[] = [
     oldPrice: 14500,
     price: 11800,
     perks: ["Phumdi stay", "Sangai park", "ILP help"],
-    img: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=700",
+    img: img("photo-1501785888041-af3ef285b470", 700),
+    photos: [
+      img("photo-1501785888041-af3ef285b470"),
+      img("photo-1439066615861-d1af74d74000"),
+      img("photo-1464822759023-fed622ff2c3b"),
+      img("photo-1519681393784-d120267933ba"),
+      img("photo-1571089336682-9f8d6c1671da"),
+    ],
+    videos: [DEMO_VIDEOS[0], DEMO_VIDEOS[8]],
     itinerary: [
       "Day 1 — Imphal arrival, market walk",
       "Day 2 — Loktak boats + floating night",
       "Day 3 — Keibul Lamjao, drop",
     ],
     states: ["manipur"],
+    experience:
+      "Floating phumdi night on Loktak, Sangai park dawn, and ILP help — a compact Manipur lake weekend.",
   },
   {
     id: "pkg-mizo-ridges",
@@ -371,7 +557,15 @@ export const travelPackages: TravelPackage[] = [
     oldPrice: 18900,
     price: 15900,
     perks: ["ILP included", "City + Reiek", "Host meals"],
-    img: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=700",
+    img: img("photo-1464822759023-fed622ff2c3b", 700),
+    photos: [
+      img("photo-1464822759023-fed622ff2c3b"),
+      img("photo-1501785888041-af3ef285b470"),
+      img("photo-1441974231531-c6227db76b6e"),
+      img("photo-1470071459604-3b5ec3a7fe05"),
+      img("photo-1587061949409-02df41d5e562"),
+    ],
+    videos: [DEMO_VIDEOS[4], DEMO_VIDEOS[1]],
     itinerary: [
       "Day 1 — Lengpui → Aizawl",
       "Day 2 — Reiek peak day trek",
@@ -379,6 +573,8 @@ export const travelPackages: TravelPackage[] = [
       "Day 4 — Drop at airport",
     ],
     states: ["mizoram"],
+    experience:
+      "Aizawl ridges, Reiek peak trek, host meals, and ILP included — quiet Mizoram without paperwork stress.",
   },
   {
     id: "pkg-tripura-heritage",
@@ -389,13 +585,23 @@ export const travelPackages: TravelPackage[] = [
     oldPrice: 12900,
     price: 10900,
     perks: ["Palace + temples", "Local thali", "Airport transfers"],
-    img: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=700",
+    img: img("photo-1441974231531-c6227db76b6e", 700),
+    photos: [
+      img("photo-1441974231531-c6227db76b6e"),
+      img("photo-1587061949409-02df41d5e562"),
+      img("photo-1501785888041-af3ef285b470"),
+      img("photo-1439066615861-d1af74d74000"),
+      img("photo-1470071459604-3b5ec3a7fe05"),
+    ],
+    videos: [DEMO_VIDEOS[2], DEMO_VIDEOS[7]],
     itinerary: [
       "Day 1 — Agartala, Ujjayanta Palace",
       "Day 2 — Neermahal + Sepahijala",
       "Day 3 — Markets and drop",
     ],
     states: ["tripura"],
+    experience:
+      "Ujjayanta, Neermahal, and Sepahijala with local thalis and airport transfers — Tripura heritage in three days.",
   },
   {
     id: "pkg-dawki-weekend",
@@ -406,12 +612,22 @@ export const travelPackages: TravelPackage[] = [
     oldPrice: 9900,
     price: 7900,
     perks: ["Boat rides", "Riverside camp", "Shillong pickup"],
-    img: "https://images.unsplash.com/photo-1439066615861-d1af74d74000?w=700",
+    img: img("photo-1439066615861-d1af74d74000", 700),
+    photos: [
+      img("photo-1439066615861-d1af74d74000"),
+      img("photo-1571089336682-9f8d6c1671da"),
+      img("photo-1501785888041-af3ef285b470"),
+      img("photo-1464822759023-fed622ff2c3b"),
+      img("photo-1441974231531-c6227db76b6e"),
+    ],
+    videos: [DEMO_VIDEOS[0], DEMO_VIDEOS[3]],
     itinerary: [
       "Day 1 — Shillong → Dawki boats + camp",
       "Day 2 — Shnongpdeng swim, return",
     ],
     states: ["meghalaya"],
+    experience:
+      "Crystal-water boats, riverside camp, and Shnongpdeng swim — a short Meghalaya weekend with Shillong pickup.",
   },
 ];
 

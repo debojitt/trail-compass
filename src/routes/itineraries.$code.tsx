@@ -1,6 +1,8 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { Calendar, Copy, Heart, MapPin, Share2, ShieldCheck, ShoppingCart, Users } from "lucide-react";
 import { SiteShell } from "@/components/site/SiteShell";
+import { VideoRow } from "@/components/site/DetailMedia";
+import { SAMPLE_VIDEOS } from "@/data/demoUniverse";
 import {
   bookItinerary,
   createGroupTrip,
@@ -112,6 +114,19 @@ function ItineraryDetail() {
             {it.gallery.slice(0, 4).map((g, i) => (
               <img key={i} src={g} alt="" className="h-full w-full object-cover" style={{ minHeight: 140 }} />
             ))}
+          </div>
+
+          <div className="mt-6">
+            <VideoRow
+              videos={
+                it.stops
+                  .map((s) => places.find((x) => x.id === s.placeId)?.video)
+                  .filter((v): v is string => Boolean(v))
+                  .slice(0, 3)
+                  .concat([SAMPLE_VIDEOS[0], SAMPLE_VIDEOS[1]])
+                  .slice(0, 3)
+              }
+            />
           </div>
 
           <div className="mt-6 flex items-center gap-3">

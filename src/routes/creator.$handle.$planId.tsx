@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { SiteShell } from "@/components/site/SiteShell";
 import { BookingDialog, type BookingDraft } from "@/components/site/BookingDialog";
-import { PhotoStrip, VideoRow, RatingLikes, PriceBlock } from "@/components/site/DetailMedia";
+import { PhotoGallery, VideoRow, RatingLikes, PriceBlock } from "@/components/site/DetailMedia";
 import type { CreatorPlan } from "@/data/demoUniverse";
 import { addToCart, fetchCreatorPlan, PLACE_CLIPS } from "@/lib/demoApi";
 import { GREEN, RED } from "@/lib/brand";
@@ -51,7 +51,7 @@ function CreatorPlanPage() {
       </div>
       <div className="mt-6 grid gap-8 lg:grid-cols-[1.4fr_1fr]">
         <div className="space-y-6">
-          <PhotoStrip photos={plan.photos} alt={plan.title} />
+          <PhotoGallery photos={plan.photos} alt={plan.title} />
           <VideoRow videos={plan.videos} />
           <div>
             <h2 className="text-[16px] font-bold">Experience</h2>

@@ -83,10 +83,11 @@ function StaysPage() {
           {stays.map((s) => (
             <article
               key={s.id}
-              className="group overflow-hidden rounded-3xl border bg-white transition-all hover:-translate-y-1 hover:shadow-2xl"
+              className="group relative overflow-hidden rounded-3xl border bg-white transition-all hover:-translate-y-1 hover:shadow-2xl"
               style={{ borderColor: "rgba(0,0,0,0.07)" }}
             >
-              <Link to="/stays/$id" params={{ id: s.id }} className="block">
+              <Link to="/stays/$id" params={{ id: s.id }} className="absolute inset-0 z-0" aria-label={`View ${s.name}`} />
+              <div className="relative pointer-events-none">
                 <div className="relative" style={{ aspectRatio: "16/10" }}>
                   <img
                     src={s.img}
@@ -102,59 +103,58 @@ function StaysPage() {
                     {s.rating} <Star size={9} fill="white" />
                   </span>
                 </div>
-              </Link>
-              <div className="p-4">
-                <Link to="/stays/$id" params={{ id: s.id }}>
+                <div className="p-4">
                   <p className="text-[16px] font-bold leading-snug tracking-tight">{s.name}</p>
                   <p className="mt-0.5 flex items-center gap-1 text-[12px] text-neutral-500">
                     <MapPin size={11} /> {s.place}
                   </p>
-                </Link>
-                <p className="mt-2 text-[12px] leading-relaxed text-neutral-500">{s.hostNote}</p>
-                <div className="mt-3 flex flex-wrap gap-1.5">
-                  {s.amenities.slice(0, 3).map((a) => (
-                    <span
-                      key={a}
-                      className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
-                      style={{ background: GREEN_LIGHT, color: GREEN }}
-                    >
-                      {a}
-                    </span>
-                  ))}
-                </div>
-                <div className="mt-4 flex items-end justify-between">
-                  <div>
-                    <p className="text-[11px] text-neutral-400">{s.reviews} reviews</p>
-                    <p className="text-[19px] font-bold tracking-tight" style={{ color: RED }}>
-                      {formatINR(s.pricePerNight)}
-                      <span className="ml-1 text-[11px] font-medium text-neutral-400">/ night</span>
-                    </p>
+                  <p className="mt-2 text-[12px] leading-relaxed text-neutral-500">{s.hostNote}</p>
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {s.amenities.slice(0, 3).map((a) => (
+                      <span
+                        key={a}
+                        className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                        style={{ background: GREEN_LIGHT, color: GREEN }}
+                      >
+                        {a}
+                      </span>
+                    ))}
                   </div>
-                  <div className="flex gap-2">
-                    <Link
-                      to="/stays/$id"
-                      params={{ id: s.id }}
-                      className="rounded-full border px-3 py-2 text-[12px] font-bold"
-                      style={{ borderColor: "rgba(0,0,0,0.12)" }}
-                    >
-                      View
-                    </Link>
-                    <button
-                      onClick={() =>
-                        setDraft({
-                          kind: "stay",
-                          title: s.name,
-                          detail: `${s.place} · per-night rate`,
-                          unitPrice: s.pricePerNight,
-                          perPerson: false,
-                          sourceId: s.id,
-                        })
-                      }
-                      className="rounded-full px-5 py-2 text-[13px] font-bold text-white transition-transform hover:scale-105"
-                      style={{ background: RED }}
-                    >
-                      Book
-                    </button>
+                  <div className="mt-4 flex items-end justify-between">
+                    <div>
+                      <p className="text-[11px] text-neutral-400">{s.reviews} reviews</p>
+                      <p className="text-[19px] font-bold tracking-tight" style={{ color: RED }}>
+                        {formatINR(s.pricePerNight)}
+                        <span className="ml-1 text-[11px] font-medium text-neutral-400">/ night</span>
+                      </p>
+                    </div>
+                    <div className="pointer-events-auto relative z-10 flex gap-2">
+                      <Link
+                        to="/stays/$id"
+                        params={{ id: s.id }}
+                        className="rounded-full border px-3 py-2 text-[12px] font-bold"
+                        style={{ borderColor: "rgba(0,0,0,0.12)" }}
+                      >
+                        View
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setDraft({
+                            kind: "stay",
+                            title: s.name,
+                            detail: `${s.place} · per-night rate`,
+                            unitPrice: s.pricePerNight,
+                            perPerson: false,
+                            sourceId: s.id,
+                          })
+                        }
+                        className="rounded-full px-5 py-2 text-[13px] font-bold text-white transition-transform hover:scale-105"
+                        style={{ background: RED }}
+                      >
+                        Book
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

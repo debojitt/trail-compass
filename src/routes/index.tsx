@@ -24,6 +24,7 @@ import {
   Rotate3d,
 } from "lucide-react";
 import { destinations } from "@/data/destinations";
+import { stays as catalogStays, travelPackages as catalogPackages } from "@/data/catalog";
 import { MobileMenu, NAV_LINKS, SiteFooter } from "@/components/site/SiteShell";
 import { SignInButton } from "@/components/site/SignInButton";
 
@@ -82,6 +83,7 @@ function Index() {
         <StatesGrid />
         <VirtualToursSection />
         <CultureStrip />
+        <HomestaysSection />
         <PackagesSection />
         <FeatureStrip />
         <Testimonials />
@@ -844,6 +846,8 @@ function CultureStrip() {
       note: "Seventeen tribes, one December. War dances, log drums and smoked-pork feasts.",
       img: "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=700",
       month: "DEC",
+      to: "/packages/$id" as const,
+      id: "pkg-hornbill",
     },
     {
       name: "Bihu",
@@ -851,6 +855,8 @@ function CultureStrip() {
       note: "The harvest heartbeat of the Brahmaputra valley — dhol, pepa and gamosa red.",
       img: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=700",
       month: "APR",
+      to: "/explore/$slug" as const,
+      id: "assam",
     },
     {
       name: "Living Root Bridges",
@@ -858,6 +864,8 @@ function CultureStrip() {
       note: "Bridges grown, not built — ficus roots trained across rivers for 50 years.",
       img: "https://images.unsplash.com/photo-1571089336682-9f8d6c1671da?w=700",
       month: "ALL YEAR",
+      to: "/packages/$id" as const,
+      id: "pkg-monsoon-trail",
     },
     {
       name: "Cheraw Dance",
@@ -865,6 +873,8 @@ function CultureStrip() {
       note: "Bamboo staves clap at ankle height while dancers step between the beats.",
       img: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=700",
       month: "MAR",
+      to: "/explore/$slug" as const,
+      id: "mizoram",
     },
     {
       name: "Sangai Festival",
@@ -872,6 +882,8 @@ function CultureStrip() {
       note: "Named for the dancing deer of Loktak — polo, Ras Leela and floating villages.",
       img: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=700",
       month: "NOV",
+      to: "/packages/$id" as const,
+      id: "pkg-loktak",
     },
     {
       name: "Losar at Tawang",
@@ -879,6 +891,8 @@ function CultureStrip() {
       note: "Monpa new year in India's largest monastery, 3,048 metres into the clouds.",
       img: "https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=700",
       month: "FEB",
+      to: "/packages/$id" as const,
+      id: "pkg-tawang-circuit",
     },
     {
       name: "Kharchi Puja",
@@ -886,6 +900,8 @@ function CultureStrip() {
       note: "Fourteen deities bathed in the Saidra river — a week of royal ritual.",
       img: "https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5?w=700",
       month: "JUL",
+      to: "/packages/$id" as const,
+      id: "pkg-tripura-heritage",
     },
     {
       name: "Eri Silk & Bamboo",
@@ -893,6 +909,8 @@ function CultureStrip() {
       note: "Ahimsa silk spun without harm, and a craft culture built on bamboo.",
       img: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=700",
       month: "CRAFT",
+      to: "/packages" as const,
+      id: undefined,
     },
   ];
 
@@ -911,56 +929,87 @@ function CultureStrip() {
               <SplitHead text="Festivals, crafts and the people who keep them." />
             </h2>
           </div>
-          <a
-            href="#"
+          <Link
+            to="/packages"
             className="nn-link hidden shrink-0 items-center gap-1 text-[13px] font-semibold md:flex"
             style={{ color: RED }}
           >
-            Full culture calendar <ChevronRight size={15} />
-          </a>
+            Browse related packages <ChevronRight size={15} />
+          </Link>
         </div>
       </Reveal>
 
-      {/* Horizontal strip — drag/scroll sideways like tile.pt's project row */}
       <div
         className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 md:-mx-6 md:px-6"
         style={{ scrollbarWidth: "none" }}
       >
         {culture.map((c, i) => (
           <Reveal key={c.name} delay={Math.min(i, 3) * 110} className="snap-start">
-            <a
-              href="#"
-              className="group relative block w-[240px] shrink-0 overflow-hidden rounded-3xl md:w-[300px]"
-              style={{ aspectRatio: "3/4" }}
-            >
-              <img
-                src={c.img}
-                alt={c.name}
-                loading="lazy"
-                decoding="async"
-                className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
-              <span
-                className="absolute left-4 top-4 rounded-full px-2.5 py-1 text-[10px] font-bold tracking-widest text-white"
-                style={{ background: GREEN }}
+            {c.to === "/packages/$id" && c.id ? (
+              <Link
+                to="/packages/$id"
+                params={{ id: c.id }}
+                className="group relative block w-[240px] shrink-0 overflow-hidden rounded-3xl md:w-[300px]"
+                style={{ aspectRatio: "3/4" }}
               >
-                {c.month}
-              </span>
-              <div className="absolute inset-x-0 bottom-0 p-5">
-                <p className="text-[18px] font-bold tracking-tight text-white">{c.name}</p>
-                <p className="text-[11px] font-medium" style={{ color: "#7fe39a" }}>
-                  {c.place}
-                </p>
-                <p className="mt-2 text-[12px] leading-relaxed text-white/75 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
-                  {c.note}
-                </p>
-              </div>
-            </a>
+                <CultureCardFace c={c} />
+              </Link>
+            ) : c.to === "/explore/$slug" && c.id ? (
+              <Link
+                to="/explore/$slug"
+                params={{ slug: c.id }}
+                className="group relative block w-[240px] shrink-0 overflow-hidden rounded-3xl md:w-[300px]"
+                style={{ aspectRatio: "3/4" }}
+              >
+                <CultureCardFace c={c} />
+              </Link>
+            ) : (
+              <Link
+                to="/packages"
+                className="group relative block w-[240px] shrink-0 overflow-hidden rounded-3xl md:w-[300px]"
+                style={{ aspectRatio: "3/4" }}
+              >
+                <CultureCardFace c={c} />
+              </Link>
+            )}
           </Reveal>
         ))}
       </div>
     </section>
+  );
+}
+
+function CultureCardFace({
+  c,
+}: {
+  c: { name: string; place: string; note: string; img: string; month: string };
+}) {
+  return (
+    <>
+      <img
+        src={c.img}
+        alt={c.name}
+        loading="lazy"
+        decoding="async"
+        className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
+      <span
+        className="absolute left-4 top-4 rounded-full px-2.5 py-1 text-[10px] font-bold tracking-widest text-white"
+        style={{ background: GREEN }}
+      >
+        {c.month}
+      </span>
+      <div className="absolute inset-x-0 bottom-0 p-5">
+        <p className="text-[18px] font-bold tracking-tight text-white">{c.name}</p>
+        <p className="text-[11px] font-medium" style={{ color: "#7fe39a" }}>
+          {c.place}
+        </p>
+        <p className="mt-2 text-[12px] leading-relaxed text-white/75 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+          {c.note}
+        </p>
+      </div>
+    </>
   );
 }
 
@@ -1099,44 +1148,64 @@ function VirtualToursSection() {
   );
 }
 
+/* ============ HOMESTAYS MARKETPLACE ============ */
+
+function HomestaysSection() {
+  const list = catalogStays.slice(0, 10);
+
+  return (
+    <Section
+      eyebrow="Verified homestays"
+      title="Sleep where the locals live."
+      action="All stays"
+      actionTo="/stays"
+      marquee="homestays ·"
+    >
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
+        {list.map((s, i) => (
+          <Reveal key={s.id} delay={(i % 5) * 80}>
+            <Link
+              to="/stays/$id"
+              params={{ id: s.id }}
+              className="group block overflow-hidden rounded-3xl border bg-white transition-all hover:-translate-y-1 hover:shadow-2xl"
+              style={{ borderColor: "rgba(0,0,0,0.07)" }}
+            >
+              <div className="relative" style={{ aspectRatio: "4/5" }}>
+                <img
+                  src={s.img}
+                  alt={s.name}
+                  loading="lazy"
+                  decoding="async"
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                <span
+                  className="absolute left-3 top-3 flex items-center gap-1 rounded-lg px-1.5 py-0.5 text-[11px] font-bold text-white"
+                  style={{ background: GREEN }}
+                >
+                  {s.rating} <Star size={9} fill="white" />
+                </span>
+                <div className="absolute inset-x-0 bottom-0 p-3 text-white">
+                  <p className="text-[14px] font-bold leading-snug">{s.name}</p>
+                  <p className="mt-0.5 truncate text-[11px] text-white/75">{s.place}</p>
+                  <p className="mt-2 text-[15px] font-bold">
+                    ₹ {s.pricePerNight.toLocaleString("en-IN")}
+                    <span className="ml-1 text-[10px] font-medium text-white/70">/ night</span>
+                  </p>
+                </div>
+              </div>
+            </Link>
+          </Reveal>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
 /* ============ PACKAGES ============ */
 
 function PackagesSection() {
-  const packages = [
-    {
-      id: "pkg-monsoon-trail",
-      title: "Meghalaya Monsoon Trail",
-      days: "5D · 4N",
-      rating: "4.8",
-      reviews: "1.2k",
-      oldPrice: "₹ 21,900",
-      price: "₹ 18,400",
-      perks: ["Homestay chain", "Root-bridge trek", "All permits filed"],
-      img: "https://images.unsplash.com/photo-1571089336682-9f8d6c1671da?w=700",
-    },
-    {
-      id: "pkg-tawang-circuit",
-      title: "Tawang Alpine Circuit",
-      days: "7D · 6N",
-      rating: "4.7",
-      reviews: "860",
-      oldPrice: "₹ 36,500",
-      price: "₹ 31,200",
-      perks: ["4×4 with driver", "ILP included", "Altitude buffer day"],
-      img: "https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=700",
-    },
-    {
-      id: "pkg-ziro-festival",
-      title: "Ziro Music Festival",
-      days: "4D · 3N",
-      rating: "4.5",
-      reviews: "2.1k",
-      oldPrice: "₹ 28,900",
-      price: "₹ 24,800",
-      perks: ["Festival pass", "Camping + meals", "Shuttle from Naharlagun"],
-      img: "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=700",
-    },
-  ];
+  const packages = catalogPackages.slice(0, 10);
   const [liked, setLiked] = useState<Record<string, boolean>>({});
 
   return (
@@ -1147,75 +1216,74 @@ function PackagesSection() {
       actionTo="/packages"
       marquee="journeys ·"
     >
-      <div className="grid gap-5 md:grid-cols-3">
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
         {packages.map((pk, i) => (
-          <Reveal
-            key={pk.title}
-            delay={i * 120}
-            className="group overflow-hidden rounded-3xl border bg-white transition-all hover:-translate-y-1 hover:shadow-2xl"
-          >
-            <div className="relative" style={{ aspectRatio: "16/10" }}>
-              <img
-                src={pk.img}
-                alt={pk.title}
-                loading="lazy"
-                decoding="async"
-                className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-              <button
-                onClick={() => setLiked((l) => ({ ...l, [pk.title]: !l[pk.title] }))}
-                className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/90 shadow backdrop-blur transition-transform hover:scale-110"
-                aria-label="Save"
-              >
-                <Heart
-                  size={16}
-                  style={{
-                    color: liked[pk.title] ? RED : "#9ca3af",
-                    fill: liked[pk.title] ? RED : "none",
-                  }}
+          <Reveal key={pk.id} delay={(i % 5) * 80}>
+            <Link
+              to="/packages/$id"
+              params={{ id: pk.id }}
+              className="group relative block overflow-hidden rounded-3xl border bg-white transition-all hover:-translate-y-1 hover:shadow-2xl"
+              style={{ borderColor: "rgba(0,0,0,0.07)" }}
+            >
+              <div className="relative" style={{ aspectRatio: "16/11" }}>
+                <img
+                  src={pk.img}
+                  alt={pk.title}
+                  loading="lazy"
+                  decoding="async"
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
-              </button>
-              <span className="absolute left-3 top-3 rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur">
-                {pk.days}
-              </span>
-            </div>
-            <div className="p-4">
-              <div className="flex items-start justify-between gap-3">
-                <p className="text-[16px] font-bold leading-snug tracking-tight">{pk.title}</p>
-                <span
-                  className="flex shrink-0 items-center gap-1 rounded-lg px-1.5 py-0.5 text-[11px] font-bold text-white"
-                  style={{ background: GREEN }}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setLiked((l) => ({ ...l, [pk.id]: !l[pk.id] }));
+                  }}
+                  className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/90 shadow backdrop-blur transition-transform hover:scale-110"
+                  aria-label="Save"
                 >
-                  {pk.rating} <Star size={9} fill="white" />
+                  <Heart
+                    size={16}
+                    style={{
+                      color: liked[pk.id] ? RED : "#9ca3af",
+                      fill: liked[pk.id] ? RED : "none",
+                    }}
+                  />
+                </button>
+                <span className="absolute left-3 top-3 rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur">
+                  {pk.days}
                 </span>
               </div>
-              <p className="mt-0.5 text-[11px] text-neutral-400">{pk.reviews} verified reviews</p>
-              <ul className="mt-3 space-y-1">
-                {pk.perks.map((perk) => (
-                  <li key={perk} className="flex items-center gap-2 text-[12px] text-neutral-600">
-                    <span className="h-1 w-1 rounded-full" style={{ background: GREEN }} />
-                    {perk}
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-4 flex items-end justify-between">
-                <div>
-                  <p className="text-[11px] text-neutral-400 line-through">{pk.oldPrice}</p>
-                  <p className="text-[20px] font-bold tracking-tight" style={{ color: RED }}>
-                    {pk.price}
-                    <span className="ml-1 text-[11px] font-medium text-neutral-400">/ person</span>
-                  </p>
+              <div className="p-3.5">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-[14px] font-bold leading-snug tracking-tight">{pk.title}</p>
+                  <span
+                    className="flex shrink-0 items-center gap-1 rounded-lg px-1.5 py-0.5 text-[11px] font-bold text-white"
+                    style={{ background: GREEN }}
+                  >
+                    {pk.rating} <Star size={9} fill="white" />
+                  </span>
                 </div>
-                <Link
-                  to="/packages/$id"
-                  params={{ id: pk.id }}
-                  className="rounded-full px-5 py-2 text-[13px] font-bold text-white transition-transform hover:scale-105"
-                  style={{ background: RED }}
-                >
-                  View
-                </Link>
+                <p className="mt-0.5 text-[11px] text-neutral-400">{pk.reviews} reviews</p>
+                <div className="mt-3 flex items-end justify-between gap-2">
+                  <div>
+                    <p className="text-[10px] text-neutral-400 line-through">
+                      ₹ {pk.oldPrice.toLocaleString("en-IN")}
+                    </p>
+                    <p className="text-[17px] font-bold tracking-tight" style={{ color: RED }}>
+                      ₹ {pk.price.toLocaleString("en-IN")}
+                    </p>
+                  </div>
+                  <span
+                    className="rounded-full px-3 py-1.5 text-[11px] font-bold text-white"
+                    style={{ background: RED }}
+                  >
+                    View
+                  </span>
+                </div>
               </div>
-            </div>
+            </Link>
           </Reveal>
         ))}
       </div>
@@ -1344,15 +1412,7 @@ function Section({
               >
                 {action} <ChevronRight size={15} />
               </Link>
-            ) : (
-              <a
-                href="#"
-                className="nn-link hidden shrink-0 items-center gap-1 text-[13px] font-semibold md:flex"
-                style={{ color: RED }}
-              >
-                {action} <ChevronRight size={15} />
-              </a>
-            ))}
+            ) : null)}
         </div>
       </Reveal>
       {children}
