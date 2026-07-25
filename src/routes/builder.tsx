@@ -343,4 +343,4 @@ function PlaceSlide({ place, idx, inCart, swipeX, setSwipeX, onAdd, onSkip, refC
       </div>
     </div>
   );
-}) as any;
+}
