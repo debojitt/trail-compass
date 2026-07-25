@@ -50,11 +50,7 @@ function StayDetailPage() {
 
   return (
     <SiteShell backFallback="/stays">
-      <Link to="/stays" className="text-[13px] font-semibold text-neutral-500">
-        ← All stays
-      </Link>
-
-      <div className="mt-4">
+      <div>
         <h1 className="text-[26px] font-bold tracking-tight md:text-[32px]">{stay.name}</h1>
         <div className="mt-2 flex flex-wrap items-center gap-3">
           <p className="flex items-center gap-1 text-[13px] text-neutral-500">

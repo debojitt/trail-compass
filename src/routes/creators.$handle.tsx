@@ -34,9 +34,6 @@ function CreatorProfile() {
   return (
     <SiteShell backFallback="/creators">
       <div className="mx-auto max-w-3xl">
-        <Link to="/creators" className="mb-4 inline-block text-[13px] font-semibold text-neutral-500">
-          ← All creators
-        </Link>
         {/* Instagram-style header */}
         <div className="flex flex-col items-center gap-5 md:flex-row md:items-start">
           <div className="rounded-full p-1" style={{ background: "linear-gradient(45deg, #FF385C, #F59E0B, #8B5CF6)" }}>

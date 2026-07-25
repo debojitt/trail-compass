@@ -74,15 +74,7 @@ function CreatorPlanPage() {
 
   return (
     <SiteShell backFallback={`/creator/${handle}`}>
-      <Link
-        to="/creator/$handle"
-        params={{ handle }}
-        className="text-[13px] font-semibold text-neutral-500"
-      >
-        ← @{handle}'s itineraries
-      </Link>
-
-      <div className="mt-4 flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         {creator && (
           <Link
             to="/creator/$handle"

@@ -147,8 +147,8 @@ function BuilderPage() {
         id="nn-playlist-fab"
         aria-label={`Open playlist · ${places.length} stops`}
         onClick={() => setPlaylistOpen(true)}
-        className={`fixed z-40 grid h-14 w-14 place-items-center overflow-hidden rounded-2xl border border-white/20 bg-[#212121] shadow-[0_12px_40px_rgba(0,0,0,0.55)] transition-opacity lg:hidden ${
-          playlistOpen ? "pointer-events-none opacity-0" : "opacity-100"
+        className={`fixed z-40 grid h-14 w-14 place-items-center overflow-hidden rounded-2xl border border-white/20 bg-[#212121] shadow-[0_12px_40px_rgba(0,0,0,0.55)] lg:hidden ${
+          playlistOpen ? "hidden" : ""
         }`}
         style={{
           right: "max(1rem, env(safe-area-inset-right))",
@@ -156,20 +156,20 @@ function BuilderPage() {
         }}
       >
         {places[0] ? (
-          <img src={places[0].poster} alt="" className="absolute inset-0 h-full w-full object-cover" />
-        ) : (
-          <ShoppingBag size={22} className="relative z-[1] text-white/80" />
-        )}
+          <img
+            src={places[0].poster}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        ) : null}
+        <span className="absolute inset-0 bg-black/40" />
+        <ShoppingBag size={22} className="relative z-[1] text-white drop-shadow" />
         <span
           className="absolute -right-1 -top-1 z-[2] grid h-5 min-w-5 place-items-center rounded-full px-1 text-[10px] font-bold text-white"
           style={{ background: RED }}
         >
           {places.length}
         </span>
-        {places[0] && <span className="absolute inset-0 bg-black/35" />}
-        {places[0] && (
-          <ShoppingBag size={18} className="relative z-[1] text-white drop-shadow" />
-        )}
       </button>
 
       <Sheet open={playlistOpen} onOpenChange={setPlaylistOpen}>

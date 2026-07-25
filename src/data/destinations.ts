@@ -41,7 +41,7 @@ export const destinations: Destination[] = [
     stays: "480+ stays",
     description:
       "Five famous Meghalaya wonders stitched into one virtual trip — Nohkalikai Falls, the Double Decker Root Bridge, Dawki's Umngot River, Mawsmai Cave and Laitlum Canyon. Each place includes rare angles people can't normally reach, recreated with AI from real location references.",
-    heroImg: "https://images.unsplash.com/photo-1571089336682-9f8d6c1671da?w=700",
+    heroImg: "/elements/meghalaya-cover-ai.jpg",
     lookSource: "own",
     nodes: [
       {
@@ -165,7 +165,7 @@ export const destinations: Destination[] = [
     stays: "310+ stays",
     description:
       "India's largest monastery perched above the Tawang Chu valley. Auto mode tries Google Street View on the access road, then falls back to an AI courtyard walk.",
-    heroImg: "https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=700",
+    heroImg: "/panoramas/tawang-courtyard.jpg",
     lookSource: "auto",
     googleMapsUrl: "https://www.google.com/maps/@27.5864,91.8575,3a,75y,180h,90t/data=!3m6!1e1",
     lat: 27.5864,

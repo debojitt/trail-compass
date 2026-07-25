@@ -90,12 +90,7 @@ function InviteDetailPage() {
 
   return (
     <SiteShell backFallback="/invite">
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        <Link to="/invite" className="text-[13px] font-semibold text-neutral-500">
-          ← All crew invites
-        </Link>
-      </div>
-      <div className="mt-4 overflow-hidden rounded-3xl">
+      <div className="overflow-hidden rounded-3xl">
         <img src={invite.cover} alt="" className="h-48 w-full object-cover md:h-64" />
       </div>
       <div className="mt-4 flex flex-wrap items-center gap-3">

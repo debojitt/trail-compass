@@ -40,9 +40,6 @@ function HostPage() {
 
   return (
     <SiteShell backFallback="/stays">
-      <Link to="/stays" className="mb-4 inline-block text-[13px] font-semibold text-neutral-500">
-        ← All stays / hosts
-      </Link>
       <div className="grid gap-6 md:grid-cols-[220px_minmax(0,1fr)]">
         <aside className="text-center md:text-left">
           <img src={host.avatar} className="mx-auto h-32 w-32 rounded-full object-cover md:mx-0" alt="" />

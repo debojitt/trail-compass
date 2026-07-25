@@ -50,11 +50,7 @@ function PackageDetailPage() {
 
   return (
     <SiteShell backFallback="/packages">
-      <Link to="/packages" className="text-[13px] font-semibold text-neutral-500">
-        ← All packages
-      </Link>
-
-      <div className="mt-4">
+      <div>
         <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-neutral-400">{pk.days}</p>
         <h1 className="mt-1 text-[26px] font-bold tracking-tight md:text-[32px]">{pk.title}</h1>
         <div className="mt-2">

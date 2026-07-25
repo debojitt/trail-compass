@@ -19,12 +19,13 @@ export function macGenieMinimize(
 
   const from = sourceEl.getBoundingClientRect();
   const to = targetEl.getBoundingClientRect();
-  if (from.width < 8 || from.height < 8) {
+  if (from.width < 8 || from.height < 8 || to.width < 8 || to.height < 8) {
     options?.onStarted?.();
     return Promise.resolve();
   }
 
-  const stripCount = 32;
+  const mobile = window.matchMedia("(max-width: 1023px)").matches;
+  const stripCount = mobile ? 22 : 32;
   const stripH = from.height / stripCount;
   const safeUrl = imgSrc.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
   const layer = document.createElement("div");
@@ -43,6 +44,7 @@ export function macGenieMinimize(
   window.setTimeout(() => targetEl.classList.remove("nn-playlist-pulse"), 1100);
 
   const animations: Animation[] = [];
+  const duration = mobile ? 680 : 780;
 
   for (let i = 0; i < stripCount; i++) {
     const strip = document.createElement("div");
@@ -53,7 +55,7 @@ export function macGenieMinimize(
     /* Strips closer to dock start first (classic genie lead) */
     const t = i / (stripCount - 1);
     const verticalBias = targetCY > sourceCY(from) ? t : 1 - t;
-    const delay = verticalBias * 160 + (1 - Math.abs(0.5 - t) * 2) * 40;
+    const delay = verticalBias * (mobile ? 110 : 160) + (1 - Math.abs(0.5 - t) * 2) * 30;
 
     strip.style.left = `${sourceLeft}px`;
     strip.style.top = `${top}px`;
@@ -104,7 +106,7 @@ export function macGenieMinimize(
         },
       ],
       {
-        duration: 780,
+        duration,
         delay,
         easing: "cubic-bezier(0.4, 0.0, 0.2, 1)",
         fill: "forwards",

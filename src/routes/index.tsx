@@ -785,7 +785,7 @@ function OffersRow() {
       dash: "#E2C96A",
       pocket: "#F5D76E",
       pocketLabel: "In your nest",
-      img: "https://images.unsplash.com/photo-1571089336682-9f8d6c1671da?w=200",
+      img: "https://images.unsplash.com/photo-1520962880247-cfaf541c8724?w=200",
       tilt: 1.5,
     },
     {
@@ -809,7 +809,7 @@ function OffersRow() {
       dash: "#8FCBAA",
       pocket: "#24963F",
       pocketLabel: "Always on",
-      img: "https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=200",
+      img: "https://images.unsplash.com/photo-1516815231560-8f41ec531527?w=200",
       tilt: 2,
     },
   ];
@@ -1044,7 +1044,7 @@ function CultureStrip() {
       name: "Living Root Bridges",
       place: "Khasi Hills, Meghalaya",
       note: "Bridges grown, not built — ficus roots trained across rivers for 50 years.",
-      img: "https://images.unsplash.com/photo-1571089336682-9f8d6c1671da?w=700",
+      img: "https://images.unsplash.com/photo-1520962880247-cfaf541c8724?w=700",
       month: "ALL YEAR",
       to: "/packages/$id" as const,
       id: "pkg-monsoon-trail",
@@ -1071,7 +1071,7 @@ function CultureStrip() {
       name: "Losar at Tawang",
       place: "Arunachal Pradesh",
       note: "Monpa new year in India's largest monastery, 3,048 metres into the clouds.",
-      img: "https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=700",
+      img: "https://images.unsplash.com/photo-1516815231560-8f41ec531527?w=700",
       month: "FEB",
       to: "/packages/$id" as const,
       id: "pkg-tawang-circuit",
@@ -1200,25 +1200,15 @@ function StatesGrid() {
   const [dragPx, setDragPx] = useState(0);
   const [dragging, setDragging] = useState(false);
   const [hovering, setHovering] = useState(false);
-  const [stepPx, setStepPx] = useState(240);
   const dragRef = useRef<{
     active: boolean;
     startX: number;
     lastX: number;
     moved: boolean;
-  }>({ active: false, startX: 0, lastX: 0, moved: false });
-
-  /* Keep the same 3D arc density on phone as desktop */
-  useEffect(() => {
-    const update = () => {
-      const w = window.innerWidth;
-      const cardW = Math.min(220, Math.round(w * 0.48));
-      setStepPx(Math.round(cardW + (w < 768 ? 32 : 20)));
-    };
-    update();
-    window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
-  }, []);
+    axis: "none" | "x";
+  }>({ active: false, startX: 0, lastX: 0, moved: false, axis: "none" });
+  /* Same card spacing as desktop on every viewport */
+  const stepPx = 240;
 
   useEffect(() => {
     if (hovering || dragging) return;
@@ -1240,10 +1230,12 @@ function StatesGrid() {
   const endDrag = (clientX: number) => {
     if (!dragRef.current.active) return;
     const dx = clientX - dragRef.current.startX;
+    const wasDragging = dragRef.current.axis === "x";
     dragRef.current.active = false;
+    dragRef.current.axis = "none";
     setDragging(false);
     setDragPx(0);
-    if (Math.abs(dx) > 40) {
+    if (wasDragging && Math.abs(dx) > 48) {
       const dir = dx < 0 ? 1 : -1;
       setIndex((i) => (i + dir + n) % n);
       dragRef.current.moved = true;
@@ -1270,18 +1262,30 @@ function StatesGrid() {
       </div>
 
       <div
-        className="nn-places-stage relative mx-auto h-[340px] touch-none select-none md:h-[360px]"
+        className="nn-places-stage relative mx-auto h-[360px] touch-none select-none"
         style={{ perspective: "1400px", cursor: dragging ? "grabbing" : "grab" }}
         onPointerDown={(e) => {
-          dragRef.current = { active: true, startX: e.clientX, lastX: e.clientX, moved: false };
-          setDragging(true);
-          (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+          if (e.button !== 0) return;
+          dragRef.current = {
+            active: true,
+            startX: e.clientX,
+            lastX: e.clientX,
+            moved: false,
+            axis: "none",
+          };
         }}
         onPointerMove={(e) => {
           if (!dragRef.current.active) return;
           dragRef.current.lastX = e.clientX;
           const dx = e.clientX - dragRef.current.startX;
-          if (Math.abs(dx) > 6) dragRef.current.moved = true;
+          if (dragRef.current.axis === "none") {
+            if (Math.abs(dx) < 12) return;
+            dragRef.current.axis = "x";
+            setDragging(true);
+            (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+          }
+          if (dragRef.current.axis !== "x") return;
+          dragRef.current.moved = true;
           setDragPx(dx);
         }}
         onPointerUp={(e) => endDrag(e.clientX)}
@@ -1319,8 +1323,8 @@ function StatesGrid() {
                 }}
                 className="nn-places-card group absolute overflow-hidden rounded-sm bg-neutral-200 shadow-[0_18px_40px_rgba(0,0,0,0.18)]"
                 style={{
-                  width: "min(48vw, 220px)",
-                  height: "min(70vw, 320px)",
+                  width: 220,
+                  height: 320,
                   transform: `translateX(${x}px) translateZ(${z}px) rotateY(${rotateY}deg) scale(${scale})`,
                   opacity,
                   zIndex: Math.round(40 - abs * 10),

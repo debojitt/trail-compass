@@ -27,10 +27,13 @@ export function BackButton({
   fallback = "/",
   label = "Back",
   className = "",
+  iconOnly = false,
 }: {
   fallback?: string;
   label?: string;
   className?: string;
+  /** Compact header control — icon only, no label chip */
+  iconOnly?: boolean;
 }) {
   const navigate = useNavigate();
 
@@ -46,6 +49,19 @@ export function BackButton({
     }
     void navigate({ to: fallback });
   };
+
+  if (iconOnly) {
+    return (
+      <button
+        type="button"
+        onClick={goBack}
+        className={`grid h-9 w-9 shrink-0 place-items-center rounded-full text-neutral-600 transition hover:bg-neutral-100 ${className}`}
+        aria-label={label}
+      >
+        <ArrowLeft size={18} />
+      </button>
+    );
+  }
 
   return (
     <button
@@ -90,7 +106,7 @@ export function SiteHeader({ backFallback = "/" }: { backFallback?: string }) {
     >
       <div className="mx-auto flex h-14 max-w-[1200px] items-center justify-between gap-2 px-4 md:px-6">
         <div className="flex min-w-0 items-center gap-2 md:gap-3">
-          {showBack && <BackButton fallback={backFallback} className="shrink-0" />}
+          {showBack && <BackButton fallback={backFallback} iconOnly className="shrink-0" />}
           <Link to="/" className="flex min-w-0 items-center gap-2">
             <img
               src="/elements/northnest-logo.png"
@@ -98,7 +114,7 @@ export function SiteHeader({ backFallback = "/" }: { backFallback?: string }) {
               className="h-8 w-8 shrink-0 rounded-full object-cover shadow-sm"
               draggable={false}
             />
-            <span className="truncate text-[17px] font-bold tracking-tight" style={{ color: RED }}>
+            <span className="truncate text-[16px] font-bold tracking-tight sm:text-[17px]" style={{ color: RED }}>
               NORTHNEST
             </span>
           </Link>
@@ -300,26 +316,20 @@ export function PageHero({
   eyebrow,
   title,
   sub,
-  backFallback,
-  backLabel = "Back",
 }: {
   eyebrow: string;
   title: string;
   sub: string;
+  /** @deprecated Header already provides back — kept for call-site compat */
   backFallback?: string;
   backLabel?: string;
 }) {
   return (
-    <div className="pb-8 pt-6 md:pb-10">
-      {backFallback && (
-        <div className="mb-4">
-          <BackButton fallback={backFallback} label={backLabel} />
-        </div>
-      )}
+    <div className="pb-8 pt-2 md:pb-10 md:pt-4">
       <p className="text-[12px] font-semibold uppercase tracking-[0.25em]" style={{ color: RED }}>
         {eyebrow}
       </p>
-      <h1 className="mt-2 text-[30px] font-bold leading-tight tracking-tight md:text-[44px]">
+      <h1 className="mt-2 text-[28px] font-bold leading-tight tracking-tight md:text-[44px]">
         {title}
       </h1>
       <p className="mt-3 max-w-[560px] text-[14px] leading-relaxed text-neutral-500 md:text-[15px]">

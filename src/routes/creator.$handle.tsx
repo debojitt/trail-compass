@@ -67,9 +67,6 @@ function CreatorProfilePage() {
 
   return (
     <SiteShell backFallback="/creators">
-      <Link to="/creators" className="mb-4 inline-block text-[13px] font-semibold text-neutral-500">
-        ← All creators
-      </Link>
       {creator.cover && (
         <div className="mb-6 overflow-hidden rounded-3xl" style={{ aspectRatio: "3/1" }}>
           <img src={creator.cover} alt="" className="h-full w-full object-cover" />

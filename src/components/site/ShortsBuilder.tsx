@@ -134,16 +134,24 @@ export function ShortsBuilder({ onCartChange }: Props) {
   }, [index, clips, muted]);
 
   const runGenie = useCallback(async (slideEl: HTMLElement | null, poster: string, onStarted?: () => void) => {
-    /* Prefer on-screen floating cart (phone) so genie never flies off-viewport */
     const fab = document.getElementById("nn-playlist-fab");
     const dockIcon = document.getElementById("nn-playlist-dock-icon");
     const dockPanel = document.getElementById("nn-playlist-dock");
     const visible = (el: HTMLElement | null) => {
       if (!el) return null;
+      const style = window.getComputedStyle(el);
+      if (style.display === "none" || style.visibility === "hidden" || Number(style.opacity) === 0) {
+        return null;
+      }
       const r = el.getBoundingClientRect();
-      return r.width >= 8 && r.height >= 8 ? el : null;
+      if (r.width < 8 || r.height < 8) return null;
+      if (r.bottom < 8 || r.top > window.innerHeight - 8) return null;
+      return el;
     };
-    const dock = visible(fab) ?? visible(dockIcon) ?? visible(dockPanel);
+    const desktop = window.matchMedia("(min-width: 1024px)").matches;
+    const dock = desktop
+      ? visible(dockIcon) ?? visible(dockPanel)
+      : visible(fab) ?? visible(dockIcon) ?? visible(dockPanel);
     if (!slideEl || !dock) {
       onStarted?.();
       return;
@@ -165,16 +173,13 @@ export function ShortsBuilder({ onCartChange }: Props) {
       dragXRef.current = 0;
 
       const slide = slideRefs.current.get(i) ?? null;
-      /* Freeze frame for genie, then jump to next Shorts frame immediately */
       if (slide) slide.classList.add("nn-shorts-minimizing");
 
-      /* Cart updates right away so playlist shows the selected stop */
-      syncCart(addToCart(clip.id));
-      flash(`Added · ${clip.place}`);
-
       try {
+        /* Genie first into the cart icon, then commit cart + advance */
         await runGenie(slide, clip.poster, () => {
-          /* Next short appears directly while genie is still sucking away */
+          syncCart(addToCart(clip.id));
+          flash(`Added · ${clip.place}`);
           scrollToIndex(i + 1, false);
         });
       } finally {

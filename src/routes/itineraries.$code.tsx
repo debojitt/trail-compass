@@ -119,9 +119,6 @@ function ItineraryDetail() {
 
   return (
     <SiteShell backFallback="/itineraries">
-      <Link to="/itineraries" className="mb-4 inline-block text-[13px] font-semibold text-neutral-500">
-        ← All itineraries
-      </Link>
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
         <div>
           {/* Gallery */}

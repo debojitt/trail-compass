@@ -25,14 +25,14 @@ const img = (id: string, w = 900) => `https://images.unsplash.com/${id}?w=${w}&q
 
 const IMG = {
   cherra: "photo-1587061949409-02df41d5e562",
-  livingRoot: "photo-1571089336682-9f8d6c1671da",
-  tawang: "photo-1544966503-7cc5ac882d5f",
+  livingRoot: "photo-1520962880247-cfaf541c8724",
+  tawang: "photo-1516815231560-8f41ec531527",
   ziro: "photo-1470071459604-3b5ec3a7fe05",
   gangtok: "photo-1506905925346-21bda4d32df4",
   kisama: "photo-1533105079780-92b9be482077",
   kaziranga: "photo-1564760055775-d63b17a55c44",
   loktak: "photo-1439066615861-d1af74d74000",
-  dawki: "photo-1600001731-f4a3e7c3f2c9",
+  dawki: "photo-1508739773434-c26b3d09e071",
   waterfall: "photo-1501594907352-04cda38ebc29",
   monastery: "photo-1516815231560-8f41ec531527",
   mountain: "photo-1464822759023-fed622ff2c3b",
@@ -46,7 +46,7 @@ const IMG = {
   bridge: "photo-1520962880247-cfaf541c8724",
   lake: "photo-1500530855697-b586d89ba3ee",
   road: "photo-1470071459604-3b5ec3a7fe05",
-  night: "photo-1449057059253-2ec5b2a53d3f",
+  night: "photo-1519681393784-d120267933ba",
   food: "photo-1504674900247-0877df9cc836",
   spice: "photo-1596797038530-2c107229654b",
   handloom: "photo-1524863479829-916d8e77f114",
@@ -55,7 +55,7 @@ const IMG = {
   loft: "photo-1502672260266-1c1ef2d93688",
   boat: "photo-1502920917128-1aa500764cbd",
   cave: "photo-1517486808906-6ca8b3f04846",
-  peak: "photo-1486022976003-b06ddd7cfd9a",
+  peak: "photo-1464822759023-fed622ff2c3b",
 } as const;
 
 function accounts(): Account[] {
