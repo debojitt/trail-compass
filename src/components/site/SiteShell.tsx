@@ -14,11 +14,11 @@ import { GREEN, RED } from "@/lib/brand";
 export const NAV_LINKS = [
   { label: "Explore", to: "/explore/$slug", params: { slug: "meghalaya" }, badge: "360°" },
   { label: "Stays", to: "/stays" },
-  { label: "Flights", to: "/flights" },
-  { label: "Trains", to: "/trains" },
-  { label: "Cabs", to: "/cabs" },
   { label: "Packages", to: "/packages" },
-  { label: "Permits", to: "/permits" },
+  { label: "Builder", to: "/builder", badge: "Shorts" },
+  { label: "Creators", to: "/creators" },
+  { label: "Invite Crew", to: "/invite" },
+  { label: "Flights", to: "/flights" },
   { label: "Offers", to: "/offers" },
 ] as const;
 
@@ -165,10 +165,12 @@ export function SiteFooter() {
     {
       h: "Company",
       items: [
+        { label: "Demo login", to: "/demo-login" },
+        { label: "Invite Crew", to: "/invite" },
+        { label: "Creators", to: "/creators" },
+        { label: "Builder", to: "/builder" },
         { label: "Offers", to: "/offers" },
         { label: "Permits", to: "/permits" },
-        { label: "About" },
-        { label: "Support 24×7" },
       ],
     },
   ];

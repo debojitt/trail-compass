@@ -14,8 +14,11 @@ export type Stay = {
   rating: number;
   reviews: number;
   img: string;
+  photos?: string[];
+  videos?: string[];
   amenities: string[];
   hostNote: string;
+  experience?: string;
 };
 
 export type TransportMode = "flights" | "trains" | "cabs";
@@ -46,8 +49,11 @@ export type TravelPackage = {
   price: number;
   perks: string[];
   img: string;
+  photos?: string[];
+  videos?: string[];
   itinerary: string[];
   states: string[];
+  experience?: string;
 };
 
 export type Offer = {
@@ -168,6 +174,30 @@ export const stays: Stay[] = [
     img: "https://images.unsplash.com/photo-1439066615861-d1af74d74000?w=700",
     amenities: ["Phumdi boat rides", "Fisherman breakfast", "Sangai deck"],
     hostNote: "Sleep on the world's only floating national park.",
+  },
+  {
+    id: "stay-aizawl-ridge",
+    name: "Aizawl Ridge Homestay",
+    stateSlug: "mizoram",
+    place: "Aizawl, Mizoram",
+    pricePerNight: 1800,
+    rating: 4.6,
+    reviews: 124,
+    img: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=700",
+    amenities: ["City view", "Mizo kitchen", "ILP desk"],
+    hostNote: "Sunday silence over the ridges — church bells at dusk.",
+  },
+  {
+    id: "stay-agartala-courtyard",
+    name: "Agartala Courtyard Nest",
+    stateSlug: "tripura",
+    place: "Agartala, Tripura",
+    pricePerNight: 1600,
+    rating: 4.4,
+    reviews: 89,
+    img: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=700",
+    amenities: ["Courtyard", "Ujjayanta walk", "Home thali"],
+    hostNote: "Walk to the palace grounds after breakfast.",
   },
 ];
 
@@ -314,6 +344,74 @@ export const travelPackages: TravelPackage[] = [
       "Day 5 — Drop at Dimapur",
     ],
     states: ["nagaland"],
+  },
+  {
+    id: "pkg-loktak",
+    title: "Loktak Floating Escape",
+    days: "3D · 2N",
+    rating: 4.7,
+    reviews: "410",
+    oldPrice: 14500,
+    price: 11800,
+    perks: ["Phumdi stay", "Sangai park", "ILP help"],
+    img: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=700",
+    itinerary: [
+      "Day 1 — Imphal arrival, market walk",
+      "Day 2 — Loktak boats + floating night",
+      "Day 3 — Keibul Lamjao, drop",
+    ],
+    states: ["manipur"],
+  },
+  {
+    id: "pkg-mizo-ridges",
+    title: "Mizoram Ridge Weekend",
+    days: "4D · 3N",
+    rating: 4.5,
+    reviews: "290",
+    oldPrice: 18900,
+    price: 15900,
+    perks: ["ILP included", "City + Reiek", "Host meals"],
+    img: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=700",
+    itinerary: [
+      "Day 1 — Lengpui → Aizawl",
+      "Day 2 — Reiek peak day trek",
+      "Day 3 — Durtlang viewpoints",
+      "Day 4 — Drop at airport",
+    ],
+    states: ["mizoram"],
+  },
+  {
+    id: "pkg-tripura-heritage",
+    title: "Tripura Heritage Circuit",
+    days: "3D · 2N",
+    rating: 4.4,
+    reviews: "180",
+    oldPrice: 12900,
+    price: 10900,
+    perks: ["Palace + temples", "Local thali", "Airport transfers"],
+    img: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=700",
+    itinerary: [
+      "Day 1 — Agartala, Ujjayanta Palace",
+      "Day 2 — Neermahal + Sepahijala",
+      "Day 3 — Markets and drop",
+    ],
+    states: ["tripura"],
+  },
+  {
+    id: "pkg-dawki-weekend",
+    title: "Dawki Crystal Weekend",
+    days: "2D · 1N",
+    rating: 4.6,
+    reviews: "520",
+    oldPrice: 9900,
+    price: 7900,
+    perks: ["Boat rides", "Riverside camp", "Shillong pickup"],
+    img: "https://images.unsplash.com/photo-1439066615861-d1af74d74000?w=700",
+    itinerary: [
+      "Day 1 — Shillong → Dawki boats + camp",
+      "Day 2 — Shnongpdeng swim, return",
+    ],
+    states: ["meghalaya"],
   },
 ];
 

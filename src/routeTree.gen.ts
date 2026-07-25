@@ -10,18 +10,41 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BuilderRouteImport } from './routes/builder'
 import { Route as CabsRouteImport } from './routes/cabs'
+import { Route as CreatorsRouteImport } from './routes/creators'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as DemoLoginRouteImport } from './routes/demo-login'
 import { Route as FlightsRouteImport } from './routes/flights'
+import { Route as InviteRouteImport } from './routes/invite'
 import { Route as OffersRouteImport } from './routes/offers'
 import { Route as PackagesRouteImport } from './routes/packages'
 import { Route as PermitsRouteImport } from './routes/permits'
 import { Route as StaysRouteImport } from './routes/stays'
 import { Route as TrainsRouteImport } from './routes/trains'
+import { Route as CreatorHandleRouteImport } from './routes/creator.$handle'
+import { Route as DashboardAdminRouteImport } from './routes/dashboard.admin'
+import { Route as DashboardCreatorRouteImport } from './routes/dashboard.creator'
+import { Route as DashboardHostRouteImport } from './routes/dashboard.host'
+import { Route as DashboardPlannerRouteImport } from './routes/dashboard.planner'
+import { Route as DashboardTravelerRouteImport } from './routes/dashboard.traveler'
 import { Route as ExploreSlugRouteImport } from './routes/explore.$slug'
+import { Route as HostSlugRouteImport } from './routes/host.$slug'
+import { Route as InviteCodeRouteImport } from './routes/invite.$code'
+import { Route as ItineraryCodeRouteImport } from './routes/itinerary.$code'
+import { Route as PackagesIdRouteImport } from './routes/packages.$id'
+import { Route as PlannerSubdomainRouteImport } from './routes/planner.$subdomain'
+import { Route as StaysIdRouteImport } from './routes/stays.$id'
+import { Route as CreatorHandlePlanIdRouteImport } from './routes/creator.$handle.$planId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BuilderRoute = BuilderRouteImport.update({
+  id: '/builder',
+  path: '/builder',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CabsRoute = CabsRouteImport.update({
@@ -29,9 +52,29 @@ const CabsRoute = CabsRouteImport.update({
   path: '/cabs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CreatorsRoute = CreatorsRouteImport.update({
+  id: '/creators',
+  path: '/creators',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemoLoginRoute = DemoLoginRouteImport.update({
+  id: '/demo-login',
+  path: '/demo-login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FlightsRoute = FlightsRouteImport.update({
   id: '/flights',
   path: '/flights',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InviteRoute = InviteRouteImport.update({
+  id: '/invite',
+  path: '/invite',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OffersRoute = OffersRouteImport.update({
@@ -59,92 +102,274 @@ const TrainsRoute = TrainsRouteImport.update({
   path: '/trains',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CreatorHandleRoute = CreatorHandleRouteImport.update({
+  id: '/creator/$handle',
+  path: '/creator/$handle',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardAdminRoute = DashboardAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardCreatorRoute = DashboardCreatorRouteImport.update({
+  id: '/creator',
+  path: '/creator',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardHostRoute = DashboardHostRouteImport.update({
+  id: '/host',
+  path: '/host',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardPlannerRoute = DashboardPlannerRouteImport.update({
+  id: '/planner',
+  path: '/planner',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardTravelerRoute = DashboardTravelerRouteImport.update({
+  id: '/traveler',
+  path: '/traveler',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const ExploreSlugRoute = ExploreSlugRouteImport.update({
   id: '/explore/$slug',
   path: '/explore/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HostSlugRoute = HostSlugRouteImport.update({
+  id: '/host/$slug',
+  path: '/host/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InviteCodeRoute = InviteCodeRouteImport.update({
+  id: '/$code',
+  path: '/$code',
+  getParentRoute: () => InviteRoute,
+} as any)
+const ItineraryCodeRoute = ItineraryCodeRouteImport.update({
+  id: '/itinerary/$code',
+  path: '/itinerary/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PackagesIdRoute = PackagesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => PackagesRoute,
+} as any)
+const PlannerSubdomainRoute = PlannerSubdomainRouteImport.update({
+  id: '/planner/$subdomain',
+  path: '/planner/$subdomain',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StaysIdRoute = StaysIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => StaysRoute,
+} as any)
+const CreatorHandlePlanIdRoute = CreatorHandlePlanIdRouteImport.update({
+  id: '/$planId',
+  path: '/$planId',
+  getParentRoute: () => CreatorHandleRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/builder': typeof BuilderRoute
   '/cabs': typeof CabsRoute
+  '/creators': typeof CreatorsRoute
+  '/dashboard': typeof DashboardRouteWithChildren
+  '/demo-login': typeof DemoLoginRoute
   '/flights': typeof FlightsRoute
+  '/invite': typeof InviteRouteWithChildren
   '/offers': typeof OffersRoute
-  '/packages': typeof PackagesRoute
+  '/packages': typeof PackagesRouteWithChildren
   '/permits': typeof PermitsRoute
-  '/stays': typeof StaysRoute
+  '/stays': typeof StaysRouteWithChildren
   '/trains': typeof TrainsRoute
+  '/creator/$handle': typeof CreatorHandleRouteWithChildren
+  '/dashboard/admin': typeof DashboardAdminRoute
+  '/dashboard/creator': typeof DashboardCreatorRoute
+  '/dashboard/host': typeof DashboardHostRoute
+  '/dashboard/planner': typeof DashboardPlannerRoute
+  '/dashboard/traveler': typeof DashboardTravelerRoute
   '/explore/$slug': typeof ExploreSlugRoute
+  '/host/$slug': typeof HostSlugRoute
+  '/invite/$code': typeof InviteCodeRoute
+  '/itinerary/$code': typeof ItineraryCodeRoute
+  '/packages/$id': typeof PackagesIdRoute
+  '/planner/$subdomain': typeof PlannerSubdomainRoute
+  '/stays/$id': typeof StaysIdRoute
+  '/creator/$handle/$planId': typeof CreatorHandlePlanIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/builder': typeof BuilderRoute
   '/cabs': typeof CabsRoute
+  '/creators': typeof CreatorsRoute
+  '/dashboard': typeof DashboardRouteWithChildren
+  '/demo-login': typeof DemoLoginRoute
   '/flights': typeof FlightsRoute
+  '/invite': typeof InviteRouteWithChildren
   '/offers': typeof OffersRoute
-  '/packages': typeof PackagesRoute
+  '/packages': typeof PackagesRouteWithChildren
   '/permits': typeof PermitsRoute
-  '/stays': typeof StaysRoute
+  '/stays': typeof StaysRouteWithChildren
   '/trains': typeof TrainsRoute
+  '/creator/$handle': typeof CreatorHandleRouteWithChildren
+  '/dashboard/admin': typeof DashboardAdminRoute
+  '/dashboard/creator': typeof DashboardCreatorRoute
+  '/dashboard/host': typeof DashboardHostRoute
+  '/dashboard/planner': typeof DashboardPlannerRoute
+  '/dashboard/traveler': typeof DashboardTravelerRoute
   '/explore/$slug': typeof ExploreSlugRoute
+  '/host/$slug': typeof HostSlugRoute
+  '/invite/$code': typeof InviteCodeRoute
+  '/itinerary/$code': typeof ItineraryCodeRoute
+  '/packages/$id': typeof PackagesIdRoute
+  '/planner/$subdomain': typeof PlannerSubdomainRoute
+  '/stays/$id': typeof StaysIdRoute
+  '/creator/$handle/$planId': typeof CreatorHandlePlanIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/builder': typeof BuilderRoute
   '/cabs': typeof CabsRoute
+  '/creators': typeof CreatorsRoute
+  '/dashboard': typeof DashboardRouteWithChildren
+  '/demo-login': typeof DemoLoginRoute
   '/flights': typeof FlightsRoute
+  '/invite': typeof InviteRouteWithChildren
   '/offers': typeof OffersRoute
-  '/packages': typeof PackagesRoute
+  '/packages': typeof PackagesRouteWithChildren
   '/permits': typeof PermitsRoute
-  '/stays': typeof StaysRoute
+  '/stays': typeof StaysRouteWithChildren
   '/trains': typeof TrainsRoute
+  '/creator/$handle': typeof CreatorHandleRouteWithChildren
+  '/dashboard/admin': typeof DashboardAdminRoute
+  '/dashboard/creator': typeof DashboardCreatorRoute
+  '/dashboard/host': typeof DashboardHostRoute
+  '/dashboard/planner': typeof DashboardPlannerRoute
+  '/dashboard/traveler': typeof DashboardTravelerRoute
   '/explore/$slug': typeof ExploreSlugRoute
+  '/host/$slug': typeof HostSlugRoute
+  '/invite/$code': typeof InviteCodeRoute
+  '/itinerary/$code': typeof ItineraryCodeRoute
+  '/packages/$id': typeof PackagesIdRoute
+  '/planner/$subdomain': typeof PlannerSubdomainRoute
+  '/stays/$id': typeof StaysIdRoute
+  '/creator/$handle/$planId': typeof CreatorHandlePlanIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/builder'
     | '/cabs'
+    | '/creators'
+    | '/dashboard'
+    | '/demo-login'
     | '/flights'
+    | '/invite'
     | '/offers'
     | '/packages'
     | '/permits'
     | '/stays'
     | '/trains'
+    | '/creator/$handle'
+    | '/dashboard/admin'
+    | '/dashboard/creator'
+    | '/dashboard/host'
+    | '/dashboard/planner'
+    | '/dashboard/traveler'
     | '/explore/$slug'
+    | '/host/$slug'
+    | '/invite/$code'
+    | '/itinerary/$code'
+    | '/packages/$id'
+    | '/planner/$subdomain'
+    | '/stays/$id'
+    | '/creator/$handle/$planId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/builder'
     | '/cabs'
+    | '/creators'
+    | '/dashboard'
+    | '/demo-login'
     | '/flights'
+    | '/invite'
     | '/offers'
     | '/packages'
     | '/permits'
     | '/stays'
     | '/trains'
+    | '/creator/$handle'
+    | '/dashboard/admin'
+    | '/dashboard/creator'
+    | '/dashboard/host'
+    | '/dashboard/planner'
+    | '/dashboard/traveler'
     | '/explore/$slug'
+    | '/host/$slug'
+    | '/invite/$code'
+    | '/itinerary/$code'
+    | '/packages/$id'
+    | '/planner/$subdomain'
+    | '/stays/$id'
+    | '/creator/$handle/$planId'
   id:
     | '__root__'
     | '/'
+    | '/builder'
     | '/cabs'
+    | '/creators'
+    | '/dashboard'
+    | '/demo-login'
     | '/flights'
+    | '/invite'
     | '/offers'
     | '/packages'
     | '/permits'
     | '/stays'
     | '/trains'
+    | '/creator/$handle'
+    | '/dashboard/admin'
+    | '/dashboard/creator'
+    | '/dashboard/host'
+    | '/dashboard/planner'
+    | '/dashboard/traveler'
     | '/explore/$slug'
+    | '/host/$slug'
+    | '/invite/$code'
+    | '/itinerary/$code'
+    | '/packages/$id'
+    | '/planner/$subdomain'
+    | '/stays/$id'
+    | '/creator/$handle/$planId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BuilderRoute: typeof BuilderRoute
   CabsRoute: typeof CabsRoute
+  CreatorsRoute: typeof CreatorsRoute
+  DashboardRoute: typeof DashboardRouteWithChildren
+  DemoLoginRoute: typeof DemoLoginRoute
   FlightsRoute: typeof FlightsRoute
+  InviteRoute: typeof InviteRouteWithChildren
   OffersRoute: typeof OffersRoute
-  PackagesRoute: typeof PackagesRoute
+  PackagesRoute: typeof PackagesRouteWithChildren
   PermitsRoute: typeof PermitsRoute
-  StaysRoute: typeof StaysRoute
+  StaysRoute: typeof StaysRouteWithChildren
   TrainsRoute: typeof TrainsRoute
+  CreatorHandleRoute: typeof CreatorHandleRouteWithChildren
   ExploreSlugRoute: typeof ExploreSlugRoute
+  HostSlugRoute: typeof HostSlugRoute
+  ItineraryCodeRoute: typeof ItineraryCodeRoute
+  PlannerSubdomainRoute: typeof PlannerSubdomainRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -156,6 +381,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/builder': {
+      id: '/builder'
+      path: '/builder'
+      fullPath: '/builder'
+      preLoaderRoute: typeof BuilderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/cabs': {
       id: '/cabs'
       path: '/cabs'
@@ -163,11 +395,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CabsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/creators': {
+      id: '/creators'
+      path: '/creators'
+      fullPath: '/creators'
+      preLoaderRoute: typeof CreatorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demo-login': {
+      id: '/demo-login'
+      path: '/demo-login'
+      fullPath: '/demo-login'
+      preLoaderRoute: typeof DemoLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/flights': {
       id: '/flights'
       path: '/flights'
       fullPath: '/flights'
       preLoaderRoute: typeof FlightsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invite': {
+      id: '/invite'
+      path: '/invite'
+      fullPath: '/invite'
+      preLoaderRoute: typeof InviteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/offers': {
@@ -205,6 +465,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TrainsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/creator/$handle': {
+      id: '/creator/$handle'
+      path: '/creator/$handle'
+      fullPath: '/creator/$handle'
+      preLoaderRoute: typeof CreatorHandleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/admin': {
+      id: '/dashboard/admin'
+      path: '/admin'
+      fullPath: '/dashboard/admin'
+      preLoaderRoute: typeof DashboardAdminRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/creator': {
+      id: '/dashboard/creator'
+      path: '/creator'
+      fullPath: '/dashboard/creator'
+      preLoaderRoute: typeof DashboardCreatorRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/host': {
+      id: '/dashboard/host'
+      path: '/host'
+      fullPath: '/dashboard/host'
+      preLoaderRoute: typeof DashboardHostRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/planner': {
+      id: '/dashboard/planner'
+      path: '/planner'
+      fullPath: '/dashboard/planner'
+      preLoaderRoute: typeof DashboardPlannerRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/traveler': {
+      id: '/dashboard/traveler'
+      path: '/traveler'
+      fullPath: '/dashboard/traveler'
+      preLoaderRoute: typeof DashboardTravelerRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/explore/$slug': {
       id: '/explore/$slug'
       path: '/explore/$slug'
@@ -212,19 +514,142 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExploreSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/host/$slug': {
+      id: '/host/$slug'
+      path: '/host/$slug'
+      fullPath: '/host/$slug'
+      preLoaderRoute: typeof HostSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invite/$code': {
+      id: '/invite/$code'
+      path: '/$code'
+      fullPath: '/invite/$code'
+      preLoaderRoute: typeof InviteCodeRouteImport
+      parentRoute: typeof InviteRoute
+    }
+    '/itinerary/$code': {
+      id: '/itinerary/$code'
+      path: '/itinerary/$code'
+      fullPath: '/itinerary/$code'
+      preLoaderRoute: typeof ItineraryCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/packages/$id': {
+      id: '/packages/$id'
+      path: '/$id'
+      fullPath: '/packages/$id'
+      preLoaderRoute: typeof PackagesIdRouteImport
+      parentRoute: typeof PackagesRoute
+    }
+    '/planner/$subdomain': {
+      id: '/planner/$subdomain'
+      path: '/planner/$subdomain'
+      fullPath: '/planner/$subdomain'
+      preLoaderRoute: typeof PlannerSubdomainRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/stays/$id': {
+      id: '/stays/$id'
+      path: '/$id'
+      fullPath: '/stays/$id'
+      preLoaderRoute: typeof StaysIdRouteImport
+      parentRoute: typeof StaysRoute
+    }
+    '/creator/$handle/$planId': {
+      id: '/creator/$handle/$planId'
+      path: '/$planId'
+      fullPath: '/creator/$handle/$planId'
+      preLoaderRoute: typeof CreatorHandlePlanIdRouteImport
+      parentRoute: typeof CreatorHandleRoute
+    }
   }
 }
 
+interface DashboardRouteChildren {
+  DashboardAdminRoute: typeof DashboardAdminRoute
+  DashboardCreatorRoute: typeof DashboardCreatorRoute
+  DashboardHostRoute: typeof DashboardHostRoute
+  DashboardPlannerRoute: typeof DashboardPlannerRoute
+  DashboardTravelerRoute: typeof DashboardTravelerRoute
+}
+
+const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardAdminRoute: DashboardAdminRoute,
+  DashboardCreatorRoute: DashboardCreatorRoute,
+  DashboardHostRoute: DashboardHostRoute,
+  DashboardPlannerRoute: DashboardPlannerRoute,
+  DashboardTravelerRoute: DashboardTravelerRoute,
+}
+
+const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
+  DashboardRouteChildren,
+)
+
+interface InviteRouteChildren {
+  InviteCodeRoute: typeof InviteCodeRoute
+}
+
+const InviteRouteChildren: InviteRouteChildren = {
+  InviteCodeRoute: InviteCodeRoute,
+}
+
+const InviteRouteWithChildren =
+  InviteRoute._addFileChildren(InviteRouteChildren)
+
+interface PackagesRouteChildren {
+  PackagesIdRoute: typeof PackagesIdRoute
+}
+
+const PackagesRouteChildren: PackagesRouteChildren = {
+  PackagesIdRoute: PackagesIdRoute,
+}
+
+const PackagesRouteWithChildren = PackagesRoute._addFileChildren(
+  PackagesRouteChildren,
+)
+
+interface StaysRouteChildren {
+  StaysIdRoute: typeof StaysIdRoute
+}
+
+const StaysRouteChildren: StaysRouteChildren = {
+  StaysIdRoute: StaysIdRoute,
+}
+
+const StaysRouteWithChildren = StaysRoute._addFileChildren(StaysRouteChildren)
+
+interface CreatorHandleRouteChildren {
+  CreatorHandlePlanIdRoute: typeof CreatorHandlePlanIdRoute
+}
+
+const CreatorHandleRouteChildren: CreatorHandleRouteChildren = {
+  CreatorHandlePlanIdRoute: CreatorHandlePlanIdRoute,
+}
+
+const CreatorHandleRouteWithChildren = CreatorHandleRoute._addFileChildren(
+  CreatorHandleRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BuilderRoute: BuilderRoute,
   CabsRoute: CabsRoute,
+  CreatorsRoute: CreatorsRoute,
+  DashboardRoute: DashboardRouteWithChildren,
+  DemoLoginRoute: DemoLoginRoute,
   FlightsRoute: FlightsRoute,
+  InviteRoute: InviteRouteWithChildren,
   OffersRoute: OffersRoute,
-  PackagesRoute: PackagesRoute,
+  PackagesRoute: PackagesRouteWithChildren,
   PermitsRoute: PermitsRoute,
-  StaysRoute: StaysRoute,
+  StaysRoute: StaysRouteWithChildren,
   TrainsRoute: TrainsRoute,
+  CreatorHandleRoute: CreatorHandleRouteWithChildren,
   ExploreSlugRoute: ExploreSlugRoute,
+  HostSlugRoute: HostSlugRoute,
+  ItineraryCodeRoute: ItineraryCodeRoute,
+  PlannerSubdomainRoute: PlannerSubdomainRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

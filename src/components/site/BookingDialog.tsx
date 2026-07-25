@@ -18,6 +18,8 @@ export type BookingDraft = {
   unitPrice: number;
   /** If false the total does not multiply by travellers (e.g. cabs) */
   perPerson?: boolean;
+  sourceId?: string;
+  publisherId?: string;
 };
 
 type Props = {
@@ -57,6 +59,8 @@ export function BookingDialog({ draft, onClose }: Props) {
       detail: draft.detail,
       amount: total,
       travellers,
+      sourceId: draft.sourceId,
+      publisherId: draft.publisherId,
     });
     setBusy(false);
     setConfirmed(booking);

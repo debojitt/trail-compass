@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { Link, createFileRoute } from "@tanstack/react-router";
-import { ChevronDown, Rotate3d, Star } from "lucide-react";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
+import { ChevronDown, Heart, Rotate3d, Search, Star } from "lucide-react";
 import { PageHero, SiteShell } from "@/components/site/SiteShell";
 import { BookingDialog, type BookingDraft } from "@/components/site/BookingDialog";
 import type { TravelPackage } from "@/data/catalog";
-import { fetchPackages, formatINR } from "@/lib/demoApi";
+import type { PublishedItinerary } from "@/data/demoUniverse";
+import { fetchPackages, fetchPublishedItineraries, formatINR } from "@/lib/demoApi";
 import { GREEN, GREEN_LIGHT, RED } from "@/lib/brand";
 
 export const Route = createFileRoute("/packages")({
@@ -13,7 +14,7 @@ export const Route = createFileRoute("/packages")({
       { title: "Packages · NORTHNEST" },
       {
         name: "description",
-        content: "Permit-ready travel packages across the eight sister states.",
+        content: "Permit-ready packages and published itineraries with special codes.",
       },
     ],
   }),
@@ -21,27 +22,121 @@ export const Route = createFileRoute("/packages")({
 });
 
 function PackagesPage() {
+  const navigate = useNavigate();
   const [packages, setPackages] = useState<TravelPackage[] | null>(null);
+  const [published, setPublished] = useState<PublishedItinerary[]>([]);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [draft, setDraft] = useState<BookingDraft | null>(null);
+  const [codeQuery, setCodeQuery] = useState("");
 
   useEffect(() => {
     let alive = true;
     fetchPackages().then((list) => {
       if (alive) setPackages(list);
     });
+    fetchPublishedItineraries().then((list) => {
+      if (alive) setPublished(list);
+    });
     return () => {
       alive = false;
     };
   }, []);
+
+  const searchCode = (e: React.FormEvent) => {
+    e.preventDefault();
+    const code = codeQuery.trim();
+    if (!code) return;
+    navigate({ to: "/itinerary/$code", params: { code } });
+  };
 
   return (
     <SiteShell>
       <PageHero
         eyebrow="Curated packages"
         title="Everything included. Even the permits."
-        sub="Fixed departures with homestays, transport, guides and every ILP or PAP filed before you land. Tap a package to see the day-by-day plan."
+        sub="Fixed departures plus traveler-published itineraries with special codes. Search a code to load a full route instantly."
       />
+
+      <form
+        onSubmit={searchCode}
+        className="mb-10 flex flex-col gap-3 rounded-3xl border bg-gradient-to-br from-neutral-50 to-white p-4 shadow-sm sm:flex-row sm:items-center"
+        style={{ borderColor: "rgba(0,0,0,0.07)" }}
+      >
+        <div className="flex flex-1 items-center gap-2 rounded-2xl border bg-white px-4 py-3" style={{ borderColor: "rgba(0,0,0,0.1)" }}>
+          <Search size={16} className="text-neutral-400" />
+          <input
+            value={codeQuery}
+            onChange={(e) => setCodeQuery(e.target.value)}
+            placeholder="Load route by code — try NN-MEGH-804"
+            className="w-full text-[14px] outline-none"
+          />
+        </div>
+        <button
+          type="submit"
+          className="rounded-full px-6 py-3 text-[13px] font-bold text-white"
+          style={{ background: RED }}
+        >
+          Load itinerary
+        </button>
+      </form>
+
+      {/* Published itineraries */}
+      <section className="mb-14">
+        <div className="mb-5 flex items-end justify-between gap-4">
+          <div>
+            <p className="text-[12px] font-semibold uppercase tracking-[0.2em]" style={{ color: GREEN }}>
+              Published itineraries
+            </p>
+            <h2 className="mt-1 text-[22px] font-bold tracking-tight">Routes with special codes</h2>
+            <p className="mt-1 text-[13px] text-neutral-500">
+              Codes generate only after COMPLETED bookings (creators/hosts/planners can publish earlier).
+            </p>
+          </div>
+        </div>
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {published.slice(0, 12).map((p) => (
+            <Link
+              key={p.id}
+              to="/itinerary/$code"
+              params={{ code: p.code }}
+              className="group overflow-hidden rounded-3xl border bg-white transition-all hover:-translate-y-1 hover:shadow-2xl"
+              style={{ borderColor: "rgba(0,0,0,0.07)" }}
+            >
+              <div className="relative" style={{ aspectRatio: "4/5" }}>
+                <img
+                  src={p.cover}
+                  alt={p.title}
+                  loading="lazy"
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/20" />
+                <span className="absolute left-3 top-3 rounded-full bg-black/55 px-2.5 py-1 font-mono text-[11px] font-bold text-white backdrop-blur">
+                  {p.code}
+                </span>
+                <span
+                  className="absolute right-3 top-3 flex items-center gap-1 rounded-lg px-1.5 py-0.5 text-[11px] font-bold text-white"
+                  style={{ background: GREEN }}
+                >
+                  {p.rating} <Star size={9} fill="white" />
+                </span>
+                <span className="absolute bottom-16 right-3 flex items-center gap-1 rounded-lg bg-black/50 px-2 py-1 text-[11px] font-semibold text-white">
+                  <Heart size={11} fill="white" /> {p.likes}
+                </span>
+                <div className="absolute inset-x-0 bottom-0 p-4 text-white">
+                  <p className="text-[15px] font-bold leading-snug">{p.title}</p>
+                  <p className="mt-0.5 text-[11px] text-white/70">
+                    by {p.publisherName} · {p.days}D · from {formatINR(p.priceFrom)}
+                  </p>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <div className="mb-5">
+        <h2 className="text-[22px] font-bold tracking-tight">Curated NORTHNEST packages</h2>
+      </div>
 
       {packages === null ? (
         <div className="grid gap-5 md:grid-cols-2">
@@ -63,40 +158,38 @@ function PackagesPage() {
                 className="group overflow-hidden rounded-3xl border bg-white transition-all hover:shadow-2xl"
                 style={{ borderColor: "rgba(0,0,0,0.07)" }}
               >
-                <div className="relative" style={{ aspectRatio: "16/8" }}>
-                  <img
-                    src={pk.img}
-                    alt={pk.title}
-                    loading="lazy"
-                    decoding="async"
-                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-                  <span className="absolute left-3 top-3 rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur">
-                    {pk.days}
-                  </span>
-                  {pk.states[0] && (
-                    <Link
-                      to="/explore/$slug"
-                      params={{ slug: pk.states[0] }}
-                      className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-black/55 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur transition-colors hover:bg-black/75"
-                    >
-                      <Rotate3d size={12} /> Preview in 360°
-                    </Link>
-                  )}
-                </div>
-                <div className="p-5">
-                  <div className="flex items-start justify-between gap-3">
-                    <p className="text-[18px] font-bold leading-snug tracking-tight">{pk.title}</p>
-                    <span
-                      className="flex shrink-0 items-center gap-1 rounded-lg px-1.5 py-0.5 text-[11px] font-bold text-white"
-                      style={{ background: GREEN }}
-                    >
-                      {pk.rating} <Star size={9} fill="white" />
+                <Link to="/packages/$id" params={{ id: pk.id }} className="block">
+                  <div className="relative" style={{ aspectRatio: "16/8" }}>
+                    <img
+                      src={pk.img}
+                      alt={pk.title}
+                      loading="lazy"
+                      decoding="async"
+                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                    <span className="absolute left-3 top-3 rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur">
+                      {pk.days}
                     </span>
+                    {pk.states[0] && (
+                      <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-black/55 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur">
+                        <Rotate3d size={12} /> Preview
+                      </span>
+                    )}
                   </div>
-                  <p className="mt-0.5 text-[11px] text-neutral-400">
-                    {pk.reviews} verified reviews
-                  </p>
+                </Link>
+                <div className="p-5">
+                  <Link to="/packages/$id" params={{ id: pk.id }}>
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="text-[18px] font-bold leading-snug tracking-tight">{pk.title}</p>
+                      <span
+                        className="flex shrink-0 items-center gap-1 rounded-lg px-1.5 py-0.5 text-[11px] font-bold text-white"
+                        style={{ background: GREEN }}
+                      >
+                        {pk.rating} <Star size={9} fill="white" />
+                      </span>
+                    </div>
+                  </Link>
+                  <p className="mt-0.5 text-[11px] text-neutral-400">{pk.reviews} verified reviews</p>
                   <div className="mt-3 flex flex-wrap gap-1.5">
                     {pk.perks.map((perk) => (
                       <span
@@ -108,11 +201,9 @@ function PackagesPage() {
                       </span>
                     ))}
                   </div>
-
-                  {/* Itinerary accordion */}
                   <button
                     onClick={() => setExpanded(open ? null : pk.id)}
-                    className="mt-4 flex w-full items-center justify-between rounded-2xl bg-neutral-50 px-4 py-2.5 text-[13px] font-semibold text-neutral-700 transition-colors hover:bg-neutral-100"
+                    className="mt-4 flex w-full items-center justify-between rounded-2xl bg-neutral-50 px-4 py-2.5 text-[13px] font-semibold text-neutral-700"
                   >
                     Day-by-day itinerary
                     <ChevronDown
@@ -125,43 +216,45 @@ function PackagesPage() {
                     <ol className="mt-3 space-y-1.5 px-1">
                       {pk.itinerary.map((day) => (
                         <li key={day} className="flex gap-2 text-[12px] leading-relaxed text-neutral-600">
-                          <span
-                            className="mt-[7px] h-1 w-1 shrink-0 rounded-full"
-                            style={{ background: GREEN }}
-                          />
+                          <span className="mt-[7px] h-1 w-1 shrink-0 rounded-full" style={{ background: GREEN }} />
                           {day}
                         </li>
                       ))}
                     </ol>
                   )}
-
                   <div className="mt-4 flex items-end justify-between">
                     <div>
-                      <p className="text-[11px] text-neutral-400 line-through">
-                        {formatINR(pk.oldPrice)}
-                      </p>
+                      <p className="text-[11px] text-neutral-400 line-through">{formatINR(pk.oldPrice)}</p>
                       <p className="text-[22px] font-bold tracking-tight" style={{ color: RED }}>
                         {formatINR(pk.price)}
-                        <span className="ml-1 text-[11px] font-medium text-neutral-400">
-                          / person
-                        </span>
+                        <span className="ml-1 text-[11px] font-medium text-neutral-400">/ person</span>
                       </p>
                     </div>
-                    <button
-                      onClick={() =>
-                        setDraft({
-                          kind: "package",
-                          title: pk.title,
-                          detail: `${pk.days} · permits + stays + transport included`,
-                          unitPrice: pk.price,
-                          perPerson: true,
-                        })
-                      }
-                      className="rounded-full px-6 py-2.5 text-[13px] font-bold text-white transition-transform hover:scale-105"
-                      style={{ background: RED }}
-                    >
-                      Reserve
-                    </button>
+                    <div className="flex gap-2">
+                      <Link
+                        to="/packages/$id"
+                        params={{ id: pk.id }}
+                        className="rounded-full border px-4 py-2 text-[13px] font-bold"
+                        style={{ borderColor: "rgba(0,0,0,0.12)" }}
+                      >
+                        Details
+                      </Link>
+                      <button
+                        onClick={() =>
+                          setDraft({
+                            kind: "package",
+                            title: pk.title,
+                            detail: `${pk.days} · curated package`,
+                            unitPrice: pk.price,
+                            sourceId: pk.id,
+                          })
+                        }
+                        className="rounded-full px-5 py-2 text-[13px] font-bold text-white"
+                        style={{ background: RED }}
+                      >
+                        Book
+                      </button>
+                    </div>
                   </div>
                 </div>
               </article>
@@ -169,7 +262,6 @@ function PackagesPage() {
           })}
         </div>
       )}
-
       <BookingDialog draft={draft} onClose={() => setDraft(null)} />
     </SiteShell>
   );

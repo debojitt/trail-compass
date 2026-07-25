@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { MapPin, Rotate3d, Star } from "lucide-react";
+import { MapPin, Star } from "lucide-react";
 import { PageHero, SiteShell } from "@/components/site/SiteShell";
 import { BookingDialog, type BookingDraft } from "@/components/site/BookingDialog";
 import { destinations } from "@/data/destinations";
@@ -86,33 +86,30 @@ function StaysPage() {
               className="group overflow-hidden rounded-3xl border bg-white transition-all hover:-translate-y-1 hover:shadow-2xl"
               style={{ borderColor: "rgba(0,0,0,0.07)" }}
             >
-              <div className="relative" style={{ aspectRatio: "16/10" }}>
-                <img
-                  src={s.img}
-                  alt={s.name}
-                  loading="lazy"
-                  decoding="async"
-                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-                <span
-                  className="absolute left-3 top-3 flex items-center gap-1 rounded-lg px-1.5 py-0.5 text-[11px] font-bold text-white"
-                  style={{ background: GREEN }}
-                >
-                  {s.rating} <Star size={9} fill="white" />
-                </span>
-                <Link
-                  to="/explore/$slug"
-                  params={{ slug: s.stateSlug }}
-                  className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-black/55 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur transition-colors hover:bg-black/75"
-                >
-                  <Rotate3d size={12} /> 360° area
-                </Link>
-              </div>
+              <Link to="/stays/$id" params={{ id: s.id }} className="block">
+                <div className="relative" style={{ aspectRatio: "16/10" }}>
+                  <img
+                    src={s.img}
+                    alt={s.name}
+                    loading="lazy"
+                    decoding="async"
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <span
+                    className="absolute left-3 top-3 flex items-center gap-1 rounded-lg px-1.5 py-0.5 text-[11px] font-bold text-white"
+                    style={{ background: GREEN }}
+                  >
+                    {s.rating} <Star size={9} fill="white" />
+                  </span>
+                </div>
+              </Link>
               <div className="p-4">
-                <p className="text-[16px] font-bold leading-snug tracking-tight">{s.name}</p>
-                <p className="mt-0.5 flex items-center gap-1 text-[12px] text-neutral-500">
-                  <MapPin size={11} /> {s.place}
-                </p>
+                <Link to="/stays/$id" params={{ id: s.id }}>
+                  <p className="text-[16px] font-bold leading-snug tracking-tight">{s.name}</p>
+                  <p className="mt-0.5 flex items-center gap-1 text-[12px] text-neutral-500">
+                    <MapPin size={11} /> {s.place}
+                  </p>
+                </Link>
                 <p className="mt-2 text-[12px] leading-relaxed text-neutral-500">{s.hostNote}</p>
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   {s.amenities.slice(0, 3).map((a) => (
@@ -133,21 +130,32 @@ function StaysPage() {
                       <span className="ml-1 text-[11px] font-medium text-neutral-400">/ night</span>
                     </p>
                   </div>
-                  <button
-                    onClick={() =>
-                      setDraft({
-                        kind: "stay",
-                        title: s.name,
-                        detail: `${s.place} · per-night rate`,
-                        unitPrice: s.pricePerNight,
-                        perPerson: false,
-                      })
-                    }
-                    className="rounded-full px-5 py-2 text-[13px] font-bold text-white transition-transform hover:scale-105"
-                    style={{ background: RED }}
-                  >
-                    Book
-                  </button>
+                  <div className="flex gap-2">
+                    <Link
+                      to="/stays/$id"
+                      params={{ id: s.id }}
+                      className="rounded-full border px-3 py-2 text-[12px] font-bold"
+                      style={{ borderColor: "rgba(0,0,0,0.12)" }}
+                    >
+                      View
+                    </Link>
+                    <button
+                      onClick={() =>
+                        setDraft({
+                          kind: "stay",
+                          title: s.name,
+                          detail: `${s.place} · per-night rate`,
+                          unitPrice: s.pricePerNight,
+                          perPerson: false,
+                          sourceId: s.id,
+                        })
+                      }
+                      className="rounded-full px-5 py-2 text-[13px] font-bold text-white transition-transform hover:scale-105"
+                      style={{ background: RED }}
+                    >
+                      Book
+                    </button>
+                  </div>
                 </div>
               </div>
             </article>

@@ -530,12 +530,20 @@ function SearchHub() {
   const [showPax, setShowPax] = useState(false);
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
+  const [routeCode, setRouteCode] = useState("");
   const cfg = tabConfig[tab];
   const swappable = tab === "flights" || tab === "trains" || tab === "cabs";
   const fromLabel = swapped && swappable ? cfg.to : cfg.from;
   const toLabel = swapped && swappable ? cfg.from : cfg.to;
   const fromValue = swapped && swappable ? cfg.toV : cfg.fromV;
   const toValue = swapped && swappable ? cfg.fromV : cfg.toV;
+
+  const loadByCode = (e: React.FormEvent) => {
+    e.preventDefault();
+    const code = routeCode.trim();
+    if (!code) return;
+    window.location.href = `/itinerary/${encodeURIComponent(code)}`;
+  };
 
   return (
     <section className="relative -mt-[22vh] md:-mt-[26vh]">
@@ -620,7 +628,7 @@ function SearchHub() {
         </div>
 
         {/* CTA — routes to the matching demo page */}
-        <div className="mt-4 flex justify-center">
+        <div className="mt-4 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
           <Link
             to={tabRoute[tab]}
             className="flex items-center gap-2 rounded-full px-12 py-3.5 text-[15px] font-bold text-white shadow-lg transition-all hover:scale-[1.02]"
@@ -630,6 +638,31 @@ function SearchHub() {
             {cfg.cta}
           </Link>
         </div>
+
+        {/* Instant load by published itinerary code */}
+        <form
+          onSubmit={loadByCode}
+          className="mt-4 flex flex-col gap-2 rounded-2xl border bg-neutral-50/80 p-3 sm:flex-row sm:items-center"
+          style={{ borderColor: "rgba(0,0,0,0.06)" }}
+        >
+          <p className="shrink-0 px-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
+            Or load by code
+          </p>
+          <input
+            value={routeCode}
+            onChange={(e) => setRouteCode(e.target.value)}
+            placeholder="NN-MEGH-804"
+            className="flex-1 rounded-xl border bg-white px-3 py-2 font-mono text-[13px] outline-none"
+            style={{ borderColor: "rgba(0,0,0,0.1)" }}
+          />
+          <button
+            type="submit"
+            className="rounded-full px-5 py-2 text-[12px] font-bold text-white"
+            style={{ background: GREEN }}
+          >
+            Load full route
+          </button>
+        </form>
       </div>
 
       {/* Trust chips */}
@@ -1071,6 +1104,7 @@ function VirtualToursSection() {
 function PackagesSection() {
   const packages = [
     {
+      id: "pkg-monsoon-trail",
       title: "Meghalaya Monsoon Trail",
       days: "5D · 4N",
       rating: "4.8",
@@ -1081,6 +1115,7 @@ function PackagesSection() {
       img: "https://images.unsplash.com/photo-1571089336682-9f8d6c1671da?w=700",
     },
     {
+      id: "pkg-tawang-circuit",
       title: "Tawang Alpine Circuit",
       days: "7D · 6N",
       rating: "4.7",
@@ -1091,6 +1126,7 @@ function PackagesSection() {
       img: "https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=700",
     },
     {
+      id: "pkg-ziro-festival",
       title: "Ziro Music Festival",
       days: "4D · 3N",
       rating: "4.5",
@@ -1171,11 +1207,12 @@ function PackagesSection() {
                   </p>
                 </div>
                 <Link
-                  to="/packages"
+                  to="/packages/$id"
+                  params={{ id: pk.id }}
                   className="rounded-full px-5 py-2 text-[13px] font-bold text-white transition-transform hover:scale-105"
                   style={{ background: RED }}
                 >
-                  Book
+                  View
                 </Link>
               </div>
             </div>
