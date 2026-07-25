@@ -76,6 +76,26 @@ import {
   type PlannerSettings,
   type ProfileOverride,
 } from "@/lib/demoCms";
+import {
+  appendActivity,
+  createEnquiry,
+  getDashSettings,
+  getListingPublishedFlag,
+  isUserSuspended,
+  listActivity,
+  listEnquiries,
+  listPlatformActivity,
+  listSuspendedUserIds,
+  markEnquiryRead,
+  replyToEnquiry,
+  setEnquiryStatus,
+  setListingPublishedFlag,
+  setUserSuspended,
+  updateDashSettings,
+  type ActivityEvent,
+  type DashSettings,
+  type Enquiry,
+} from "@/lib/demoOps";
 
 /* silence unused seed imports kept for parity / future catalog merges */
 void CREATOR_PLANS;
@@ -330,6 +350,9 @@ export type Booking = {
   publishCode?: string;
   userId?: string;
   hostId?: string;
+  notes?: string;
+  /** ISO date string for occupancy calendar demos */
+  stayDate?: string;
 };
 
 export type PermitApplication = {
@@ -362,7 +385,7 @@ export type CommissionEntry = {
 
 const KEYS = {
   user: "nn-demo-user-v2",
-  bookings: "nn-demo-bookings-v2",
+  bookings: "nn-demo-bookings-v3",
   permits: "nn-demo-permits",
   cart: "nn-demo-cart",
   savedItineraries: "nn-demo-saved-itins",
@@ -455,6 +478,13 @@ export function signInDemo(idOrEmail: string, password: string): Promise<DemoUse
     subdomain: merged.subdomain,
   };
   writeJson(KEYS.user, user);
+  appendActivity({
+    actorId: user.id,
+    actorName: user.name,
+    role: user.type,
+    action: "login",
+    summary: `Signed in as ${user.type}`,
+  });
   return simulate(user, 400);
 }
 
@@ -653,9 +683,52 @@ function ensureSeedBookings(): Booking[] {
       travellers: 3,
       createdAt: new Date(Date.now() - 86400000 * 6).toISOString(),
       status: "confirmed",
-      sourceId: "fp-seed",
+      sourceId: "fp-1",
       userId: "traveler2",
       publisherId: "planner1",
+      notes: "Corporate desk — 8 pax soft hold",
+    },
+    {
+      id: "NN-SEED06",
+      kind: "creator-plan",
+      title: "Root Bridge Film Route",
+      detail: "Customer booking on creator inventory",
+      amount: 15600,
+      travellers: 2,
+      createdAt: new Date(Date.now() - 86400000 * 6).toISOString(),
+      status: "confirmed",
+      sourceId: "cp-1",
+      userId: "traveler2",
+      publisherId: "creator1",
+      notes: "Ask about drone window",
+    },
+    {
+      id: "NN-SEED07",
+      kind: "creator-plan",
+      title: "Living Root Weekend",
+      detail: "Pending deposit",
+      amount: 9800,
+      travellers: 1,
+      createdAt: new Date(Date.now() - 86400000 * 1).toISOString(),
+      status: "pending",
+      sourceId: "cp-2",
+      userId: "traveler1",
+      publisherId: "creator1",
+    },
+    {
+      id: "NN-SEED08",
+      kind: "stay",
+      title: "Cloud Ridge · Fri–Sun hold",
+      detail: "Occupancy demo · weekend block",
+      amount: 8400,
+      travellers: 2,
+      createdAt: new Date(Date.now() - 86400000 * 3).toISOString(),
+      status: "confirmed",
+      sourceId: "hh-1",
+      userId: "traveler2",
+      hostId: "host1",
+      stayDate: new Date(Date.now() + 86400000 * 3).toISOString().slice(0, 10),
+      notes: "Home meals requested",
     },
   ];
   writeJson(KEYS.bookings, seed);
@@ -666,11 +739,15 @@ export function listBookings(filter?: {
   userId?: string;
   hostId?: string;
   kind?: Booking["kind"];
+  publisherId?: string;
+  status?: BookingStatus;
 }): Booking[] {
   let list = ensureSeedBookings();
   if (filter?.userId) list = list.filter((b) => !b.userId || b.userId === filter.userId);
   if (filter?.hostId) list = list.filter((b) => b.hostId === filter.hostId);
   if (filter?.kind) list = list.filter((b) => b.kind === filter.kind);
+  if (filter?.publisherId) list = list.filter((b) => b.publisherId === filter.publisherId);
+  if (filter?.status) list = list.filter((b) => b.status === filter.status);
   return list;
 }
 
@@ -697,6 +774,15 @@ export function setBookingStatus(bookingId: string, status: BookingStatus): Prom
   const next = [...list];
   next[idx] = updated;
   writeJson(KEYS.bookings, next);
+  const actor = getUser();
+  appendActivity({
+    actorId: actor?.id ?? updated.userId ?? "system",
+    actorName: actor?.name ?? "System",
+    role: actor?.type,
+    action: "status",
+    summary: `Booking ${updated.id} → ${status} · ${updated.title}`,
+    meta: { bookingId },
+  });
   if (status === "completed" && updated.publisherId && updated.publisherId !== getUser()?.id) {
     addCommission({
       beneficiaryId: updated.publisherId,
@@ -706,6 +792,26 @@ export function setBookingStatus(bookingId: string, status: BookingStatus): Prom
     });
   }
   return simulate(updated, 300);
+}
+
+export function updateBookingNotes(bookingId: string, notes: string): Booking {
+  const list = ensureSeedBookings();
+  const idx = list.findIndex((b) => b.id === bookingId);
+  if (idx < 0) throw new Error("Booking not found");
+  const updated = { ...list[idx], notes };
+  const next = [...list];
+  next[idx] = updated;
+  writeJson(KEYS.bookings, next);
+  const actor = getUser();
+  appendActivity({
+    actorId: actor?.id ?? "system",
+    actorName: actor?.name ?? "System",
+    role: actor?.type,
+    action: "edit",
+    summary: `Updated notes on booking ${bookingId}`,
+    meta: { bookingId },
+  });
+  return updated;
 }
 
 export function completeBooking(bookingId: string): Promise<Booking> {
@@ -1030,3 +1136,23 @@ export {
   upsertHostTrip,
 };
 export type { HostCityItem, PlannerSettings, ProfileOverride };
+
+/* Inbox / history / settings */
+export {
+  appendActivity,
+  createEnquiry,
+  getDashSettings,
+  getListingPublishedFlag,
+  isUserSuspended,
+  listActivity,
+  listEnquiries,
+  listPlatformActivity,
+  listSuspendedUserIds,
+  markEnquiryRead,
+  replyToEnquiry,
+  setEnquiryStatus,
+  setListingPublishedFlag,
+  setUserSuspended,
+  updateDashSettings,
+};
+export type { ActivityEvent, DashSettings, Enquiry };

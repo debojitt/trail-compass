@@ -5,26 +5,48 @@ import { PageHero, SiteShell } from "@/components/site/SiteShell";
 import { useDemoUser } from "@/components/site/useDemoUser";
 import {
   ActionBtn,
+  BookingsManager,
   CmsDrawer,
   CmsEmpty,
   CmsSection,
+  DashTabs,
+  EnquiriesInbox,
   Field,
+  HistoryTimeline,
   InventoryTable,
+  OverviewStats,
   StatusPill,
+  ToggleRow,
   fieldClass,
+  type DashTabId,
 } from "@/components/site/CmsKit";
 import type { CreatorPlan } from "@/data/demoUniverse";
 import {
   PLACE_CLIPS,
+  appendActivity,
   deleteCreatorPlan,
   fetchCreatorPlans,
   formatINR,
+  getDashSettings,
+  listActivity,
+  listBookings,
   listCommissions,
+  listEnquiries,
+  markEnquiryRead,
+  replyToEnquiry,
+  setBookingStatus,
   setCreatorPlanPublished,
+  setEnquiryStatus,
   subscribeDemoStore,
+  updateBookingNotes,
+  updateDashSettings,
   updateProfile,
   upsertCreatorPlan,
+  type ActivityEvent,
+  type Booking,
   type CommissionEntry,
+  type DashSettings,
+  type Enquiry,
 } from "@/lib/demoApi";
 import { GREEN, RED } from "@/lib/brand";
 import { toast } from "sonner";
@@ -65,10 +87,14 @@ const blankForm = (): PlanForm => ({
 
 function CreatorDashboard() {
   const user = useDemoUser();
+  const [tab, setTab] = useState<DashTabId>("overview");
   const [plans, setPlans] = useState<CreatorPlan[]>([]);
   const [comms, setComms] = useState<CommissionEntry[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
+  const [history, setHistory] = useState<ActivityEvent[]>([]);
+  const [settings, setSettings] = useState<DashSettings | null>(null);
   const [form, setForm] = useState<PlanForm | null>(null);
-  const [profileOpen, setProfileOpen] = useState(false);
   const [name, setName] = useState("");
   const [bio, setBio] = useState("");
   const [avatar, setAvatar] = useState("");
@@ -78,6 +104,10 @@ function CreatorDashboard() {
     if (!user) return;
     fetchCreatorPlans(user.id).then(setPlans);
     setComms(listCommissions(user.id));
+    setBookings(listBookings({ publisherId: user.id }));
+    setEnquiries(listEnquiries({ toUserId: user.id }));
+    setHistory(listActivity({ actorId: user.id }));
+    setSettings(getDashSettings(user.id));
     setName(user.name);
     setBio(user.bio ?? "");
     setAvatar(user.avatar);
@@ -171,6 +201,13 @@ function CreatorDashboard() {
       stops: stops.length ? stops : undefined,
       published: form.published,
     });
+    appendActivity({
+      actorId: user.id,
+      actorName: user.name,
+      role: "creator",
+      action: form.id ? "edit" : "create",
+      summary: `${form.id ? "Updated" : "Created"} itinerary · ${form.title.trim()}`,
+    });
     toast.success(form.id ? "Itinerary updated" : "Itinerary created");
     setForm(null);
     refresh();
@@ -179,121 +216,240 @@ function CreatorDashboard() {
   return (
     <SiteShell>
       <PageHero
-        eyebrow="Creator CMS"
+        eyebrow="Creator control panel"
         title={`${user.name} · verified`}
-        sub="Add, edit, publish, and unpublish itineraries. Inventory updates instantly on your public profile and /packages."
+        sub="Full itinerary CMS, bookings, enquiries, commission history, and publish toggles."
       />
-      <p className="mb-6 -mt-4 flex items-center gap-1.5 text-[13px] font-semibold" style={{ color: GREEN }}>
+      <p className="mb-4 -mt-4 flex items-center gap-1.5 text-[13px] font-semibold" style={{ color: GREEN }}>
         <BadgeCheck size={16} /> Verification badge active
       </p>
 
-      <div className="mb-6 flex flex-wrap gap-3">
-        {user.handle && (
-          <Link
-            to="/creator/$handle"
-            params={{ handle: user.handle }}
-            className="rounded-full px-5 py-2.5 text-[13px] font-bold text-white"
-            style={{ background: RED }}
-          >
-            Public profile preview
-          </Link>
-        )}
-        <ActionBtn onClick={() => setProfileOpen(true)}>Edit profile</ActionBtn>
-        <ActionBtn variant="primary" onClick={() => openEdit()}>
-          Add itinerary
-        </ActionBtn>
-      </div>
+      <DashTabs active={tab} onChange={setTab} />
 
-      <div className="mb-6 grid gap-4 sm:grid-cols-3">
-        <div className="rounded-3xl border p-4" style={{ borderColor: "rgba(0,0,0,0.07)" }}>
-          <p className="text-[11px] font-semibold uppercase text-neutral-400">Inventory</p>
-          <p className="mt-1 text-[28px] font-bold">{plans.length}</p>
-        </div>
-        <div className="rounded-3xl border p-4" style={{ borderColor: "rgba(0,0,0,0.07)" }}>
-          <p className="text-[11px] font-semibold uppercase text-neutral-400">Published</p>
-          <p className="mt-1 text-[28px] font-bold" style={{ color: GREEN }}>
-            {plans.filter((p) => p.published !== false).length}
-          </p>
-        </div>
-        <div className="rounded-3xl border p-4" style={{ borderColor: "rgba(0,0,0,0.07)" }}>
-          <p className="text-[11px] font-semibold uppercase text-neutral-400">Verification</p>
-          <p className="mt-1 flex items-center gap-1 text-[16px] font-bold" style={{ color: GREEN }}>
-            <BadgeCheck size={18} /> Verified badge
-          </p>
-        </div>
-      </div>
-
-      <CmsSection title="Itinerary inventory" sub="Table actions: Edit · Delete · Publish/Unpublish">
-        {plans.length === 0 ? (
-          <CmsEmpty label="No itineraries yet." cta="Add first itinerary" onClick={() => openEdit()} />
-        ) : (
-          <InventoryTable
-            headers={["Cover", "Title", "Status", "Likes", "Rating", "Price", "Actions"]}
-            rows={plans.map((p) => [
-              <img key="img" src={p.cover} alt="" className="h-12 w-16 rounded-lg object-cover" />,
-              <div key="t">
-                <p className="font-bold">{p.title}</p>
-                <p className="text-[11px] text-neutral-400">
-                  {p.days}D · {p.publishCode ?? "no code"}
-                </p>
-              </div>,
-              <StatusPill key="s" tone={p.published !== false ? "green" : "gray"}>
-                {p.published !== false ? "published" : "draft"}
-              </StatusPill>,
-              String(p.likes),
-              String(p.rating),
-              formatINR(p.priceFrom),
-              <div key="a" className="flex flex-wrap gap-1">
-                <ActionBtn onClick={() => openEdit(p)}>Edit</ActionBtn>
-                <ActionBtn
-                  onClick={() => {
-                    setCreatorPlanPublished(p.id, p.published === false);
-                    toast.success(p.published === false ? "Published" : "Unpublished");
-                    refresh();
-                  }}
-                >
-                  {p.published === false ? "Publish" : "Unpublish"}
-                </ActionBtn>
-                <ActionBtn
-                  variant="danger"
-                  onClick={() => {
-                    deleteCreatorPlan(p.id);
-                    toast.success("Deleted");
-                    refresh();
-                  }}
-                >
-                  Delete
-                </ActionBtn>
-                {user.handle && (
-                  <Link
-                    to="/creator/$handle/$planId"
-                    params={{ handle: user.handle, planId: p.id }}
-                    className="rounded-full border px-3 py-1.5 text-[11px] font-bold"
-                  >
-                    View
-                  </Link>
-                )}
-              </div>,
-            ])}
+      {tab === "overview" && (
+        <div className="space-y-6">
+          <OverviewStats
+            items={[
+              { label: "Inventory", value: plans.length },
+              {
+                label: "Published",
+                value: plans.filter((p) => p.published !== false).length,
+                tone: "green",
+              },
+              { label: "Bookings", value: bookings.length },
+              { label: "Open enquiries", value: enquiries.filter((e) => e.status === "open").length },
+            ]}
           />
-        )}
-      </CmsSection>
+          <div className="flex flex-wrap gap-3">
+            <ActionBtn variant="primary" onClick={() => { setTab("cms"); openEdit(); }}>
+              Add itinerary
+            </ActionBtn>
+            <ActionBtn onClick={() => setTab("bookings")}>Customer bookings</ActionBtn>
+            <ActionBtn onClick={() => setTab("enquiries")}>Enquiries</ActionBtn>
+            {user.handle && (
+              <Link
+                to="/creator/$handle"
+                params={{ handle: user.handle }}
+                className="rounded-full border px-5 py-2 text-[13px] font-bold"
+              >
+                Public profile
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
 
-      <div className="mt-6">
-        <CmsSection title="Commission earnings">
-          <ul className="space-y-2">
-            {comms.map((c) => (
-              <li key={c.id} className="flex justify-between rounded-2xl bg-neutral-50 px-3 py-2 text-[13px]">
-                <span>{c.title}</span>
-                <span className="font-bold" style={{ color: GREEN }}>
-                  +{formatINR(c.amount)}
-                </span>
-              </li>
-            ))}
-            {comms.length === 0 && <li className="text-[13px] text-neutral-400">No commissions yet</li>}
-          </ul>
+      {tab === "cms" && (
+        <CmsSection
+          title="Itinerary inventory CMS"
+          sub="Add / edit / delete · photo & video URLs · day plan · Publish On/Off"
+          action={
+            <ActionBtn variant="primary" onClick={() => openEdit()}>
+              Add itinerary
+            </ActionBtn>
+          }
+        >
+          {plans.length === 0 ? (
+            <CmsEmpty label="No itineraries yet." cta="Add first itinerary" onClick={() => openEdit()} />
+          ) : (
+            <InventoryTable
+              headers={["Cover", "Title", "Status", "Likes", "Price", "Actions"]}
+              rows={plans.map((p) => [
+                <img key="img" src={p.cover} alt="" className="h-12 w-16 rounded-lg object-cover" />,
+                <div key="t">
+                  <p className="font-bold">{p.title}</p>
+                  <p className="text-[11px] text-neutral-400">
+                    {p.days}D · {p.publishCode ?? "no code"}
+                  </p>
+                </div>,
+                <StatusPill key="s" tone={p.published !== false ? "green" : "gray"}>
+                  {p.published !== false ? "published" : "draft"}
+                </StatusPill>,
+                String(p.likes),
+                formatINR(p.priceFrom),
+                <div key="a" className="flex flex-wrap gap-1">
+                  <ActionBtn onClick={() => openEdit(p)}>Edit</ActionBtn>
+                  <ActionBtn
+                    onClick={() => {
+                      const next = p.published === false;
+                      setCreatorPlanPublished(p.id, next);
+                      appendActivity({
+                        actorId: user.id,
+                        actorName: user.name,
+                        role: "creator",
+                        action: next ? "publish" : "unlist",
+                        summary: `${next ? "Published" : "Unpublished"} · ${p.title}`,
+                      });
+                      toast.success(next ? "Published" : "Unpublished");
+                      refresh();
+                    }}
+                  >
+                    {p.published === false ? "Publish ON" : "Publish OFF"}
+                  </ActionBtn>
+                  <ActionBtn
+                    variant="danger"
+                    onClick={() => {
+                      deleteCreatorPlan(p.id);
+                      appendActivity({
+                        actorId: user.id,
+                        actorName: user.name,
+                        role: "creator",
+                        action: "delete",
+                        summary: `Deleted itinerary · ${p.title}`,
+                      });
+                      toast.success("Deleted");
+                      refresh();
+                    }}
+                  >
+                    Delete
+                  </ActionBtn>
+                </div>,
+              ])}
+            />
+          )}
         </CmsSection>
-      </div>
+      )}
+
+      {tab === "bookings" && (
+        <CmsSection title="Bookings of your itineraries" sub="Customers who booked your published plans">
+          <BookingsManager
+            bookings={bookings}
+            onStatus={async (id, status) => {
+              await setBookingStatus(id, status);
+              toast.success(`Status → ${status}`);
+              refresh();
+            }}
+            onNotes={(id, notes) => {
+              updateBookingNotes(id, notes);
+              toast.success("Notes saved");
+              refresh();
+            }}
+          />
+        </CmsSection>
+      )}
+
+      {tab === "enquiries" && (
+        <CmsSection title="Customer enquiries" sub="Inbox · mark read · reply · open/closed">
+          <EnquiriesInbox
+            items={enquiries}
+            onMarkRead={(id) => {
+              markEnquiryRead(id);
+              refresh();
+            }}
+            onReply={(id, reply) => {
+              replyToEnquiry(id, reply, { id: user.id, name: user.name });
+              toast.success("Reply sent");
+              refresh();
+            }}
+            onStatus={(id, status) => {
+              setEnquiryStatus(id, status);
+              refresh();
+            }}
+          />
+        </CmsSection>
+      )}
+
+      {tab === "history" && (
+        <div className="space-y-6">
+          <CmsSection title="Commission history">
+            <ul className="space-y-2">
+              {comms.map((c) => (
+                <li key={c.id} className="flex justify-between rounded-2xl bg-neutral-50 px-3 py-2 text-[13px]">
+                  <span>{c.title}</span>
+                  <span className="font-bold" style={{ color: GREEN }}>
+                    +{formatINR(c.amount)}
+                  </span>
+                </li>
+              ))}
+              {comms.length === 0 && <li className="text-[13px] text-neutral-400">No commissions yet</li>}
+            </ul>
+          </CmsSection>
+          <CmsSection title="Activity timeline">
+            <HistoryTimeline items={history} />
+          </CmsSection>
+        </div>
+      )}
+
+      {tab === "settings" && settings && (
+        <CmsSection title="Profile & toggles">
+          <div className="mb-4 space-y-2">
+            <ToggleRow
+              label="Accept bookings"
+              sub="Allow new customer bookings on published itineraries"
+              checked={settings.acceptBookings}
+              onChange={(v) => {
+                setSettings(updateDashSettings(user.id, { acceptBookings: v }, { name: user.name, role: "creator" }));
+                toast.success(v ? "Accept bookings ON" : "OFF");
+              }}
+            />
+            <ToggleRow
+              label="Notifications"
+              checked={settings.notifications}
+              onChange={(v) => {
+                setSettings(updateDashSettings(user.id, { notifications: v }, { name: user.name, role: "creator" }));
+                toast.success(v ? "Notifications ON" : "OFF");
+              }}
+            />
+            <ToggleRow
+              label="Public profile listed"
+              checked={settings.publicProfile}
+              onChange={(v) => {
+                setSettings(updateDashSettings(user.id, { publicProfile: v }, { name: user.name, role: "creator" }));
+                toast.success(v ? "Public profile ON" : "OFF");
+              }}
+            />
+          </div>
+          <Field label="Display name">
+            <input className={fieldClass} value={name} onChange={(e) => setName(e.target.value)} />
+          </Field>
+          <Field label="Bio">
+            <textarea className={fieldClass} rows={3} value={bio} onChange={(e) => setBio(e.target.value)} />
+          </Field>
+          <Field label="Avatar URL">
+            <input className={fieldClass} value={avatar} onChange={(e) => setAvatar(e.target.value)} />
+          </Field>
+          <Field label="Cover URL">
+            <input className={fieldClass} value={cover} onChange={(e) => setCover(e.target.value)} />
+          </Field>
+          <ActionBtn
+            variant="primary"
+            onClick={() => {
+              updateProfile(user.id, { name, bio, avatar, cover });
+              appendActivity({
+                actorId: user.id,
+                actorName: name,
+                role: "creator",
+                action: "edit",
+                summary: "Updated creator profile",
+              });
+              toast.success("Profile saved");
+              refresh();
+            }}
+          >
+            Save profile
+          </ActionBtn>
+        </CmsSection>
+      )}
 
       <CmsDrawer
         open={!!form}
@@ -343,48 +499,14 @@ function CreatorDashboard() {
             <Field label="Day plan (Day N: Place — note)">
               <textarea className={fieldClass} rows={4} value={form.dayPlan} onChange={(e) => setForm({ ...form, dayPlan: e.target.value })} />
             </Field>
-            <label className="flex items-center gap-2 text-[13px] font-semibold">
-              <input
-                type="checkbox"
-                checked={form.published}
-                onChange={(e) => setForm({ ...form, published: e.target.checked })}
-              />
-              Publish to public profile & packages
-            </label>
+            <ToggleRow
+              label="Publish On/Off"
+              sub="Show on public profile & packages"
+              checked={form.published}
+              onChange={(v) => setForm({ ...form, published: v })}
+            />
           </>
         )}
-      </CmsDrawer>
-
-      <CmsDrawer
-        open={profileOpen}
-        title="Edit creator profile"
-        onClose={() => setProfileOpen(false)}
-        footer={
-          <ActionBtn
-            variant="primary"
-            onClick={() => {
-              updateProfile(user.id, { name, bio, avatar, cover });
-              toast.success("Profile saved");
-              setProfileOpen(false);
-              refresh();
-            }}
-          >
-            Save profile
-          </ActionBtn>
-        }
-      >
-        <Field label="Display name">
-          <input className={fieldClass} value={name} onChange={(e) => setName(e.target.value)} />
-        </Field>
-        <Field label="Bio">
-          <textarea className={fieldClass} rows={3} value={bio} onChange={(e) => setBio(e.target.value)} />
-        </Field>
-        <Field label="Avatar URL">
-          <input className={fieldClass} value={avatar} onChange={(e) => setAvatar(e.target.value)} />
-        </Field>
-        <Field label="Cover URL">
-          <input className={fieldClass} value={cover} onChange={(e) => setCover(e.target.value)} />
-        </Field>
       </CmsDrawer>
     </SiteShell>
   );

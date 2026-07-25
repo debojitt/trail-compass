@@ -1,6 +1,8 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { X } from "lucide-react";
 import { GREEN, GREEN_LIGHT, RED } from "@/lib/brand";
+import type { ActivityEvent, Booking, BookingStatus, Enquiry } from "@/lib/demoApi";
+import { formatINR } from "@/lib/demoApi";
 
 export function CmsSection({
   title,
@@ -189,6 +191,320 @@ export function InventoryTable({
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+export type DashTabId = "overview" | "cms" | "bookings" | "enquiries" | "history" | "settings";
+
+export const DEFAULT_DASH_TABS: { id: DashTabId; label: string }[] = [
+  { id: "overview", label: "Overview" },
+  { id: "cms", label: "Inventory / CMS" },
+  { id: "bookings", label: "Bookings" },
+  { id: "enquiries", label: "Enquiries" },
+  { id: "history", label: "History" },
+  { id: "settings", label: "Settings" },
+];
+
+export function DashTabs({
+  tabs = DEFAULT_DASH_TABS,
+  active,
+  onChange,
+}: {
+  tabs?: { id: DashTabId; label: string }[];
+  active: DashTabId;
+  onChange: (id: DashTabId) => void;
+}) {
+  return (
+    <div
+      className="mb-6 flex flex-wrap gap-1.5 rounded-2xl border bg-neutral-50 p-1.5"
+      style={{ borderColor: "rgba(0,0,0,0.06)" }}
+      role="tablist"
+    >
+      {tabs.map((t) => {
+        const on = t.id === active;
+        return (
+          <button
+            key={t.id}
+            type="button"
+            role="tab"
+            aria-selected={on}
+            onClick={() => onChange(t.id)}
+            className="rounded-xl px-3.5 py-2 text-[12px] font-bold transition"
+            style={
+              on
+                ? { background: "#111", color: "#fff" }
+                : { background: "transparent", color: "#555" }
+            }
+          >
+            {t.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+export function ToggleRow({
+  label,
+  sub,
+  checked,
+  onChange,
+}: {
+  label: string;
+  sub?: string;
+  checked: boolean;
+  onChange: (next: boolean) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4 rounded-2xl bg-neutral-50 px-4 py-3">
+      <div>
+        <p className="text-[13px] font-bold">{label}</p>
+        {sub && <p className="text-[11px] text-neutral-500">{sub}</p>}
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        onClick={() => onChange(!checked)}
+        className="relative h-7 w-12 shrink-0 rounded-full transition"
+        style={{ background: checked ? GREEN : "#D4D4D4" }}
+      >
+        <span
+          className="absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition"
+          style={{ left: checked ? 22 : 2 }}
+        />
+      </button>
+    </div>
+  );
+}
+
+export function HistoryTimeline({ items }: { items: ActivityEvent[] }) {
+  if (items.length === 0) {
+    return <p className="text-[13px] text-neutral-400">No activity yet — actions will appear here.</p>;
+  }
+  return (
+    <ol className="relative space-y-0 border-l-2 pl-5" style={{ borderColor: "rgba(0,0,0,0.08)" }}>
+      {items.map((ev) => (
+        <li key={ev.id} className="relative pb-5">
+          <span
+            className="absolute -left-[1.4rem] top-1 h-3 w-3 rounded-full border-2 border-white"
+            style={{ background: RED }}
+          />
+          <p className="text-[13px] font-semibold">{ev.summary}</p>
+          <p className="text-[11px] text-neutral-500">
+            {ev.actorName}
+            {ev.role ? ` · ${ev.role}` : ""} · {ev.action} ·{" "}
+            {new Date(ev.createdAt).toLocaleString()}
+          </p>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+export function BookingsManager({
+  bookings,
+  onStatus,
+  onNotes,
+  emptyCta,
+  onEmpty,
+}: {
+  bookings: Booking[];
+  onStatus: (id: string, status: BookingStatus) => void;
+  onNotes?: (id: string, notes: string) => void;
+  emptyCta?: string;
+  onEmpty?: () => void;
+}) {
+  const statuses: Array<BookingStatus | "all"> = ["all", "pending", "confirmed", "completed", "cancelled"];
+  const [filter, setFilter] = useState<BookingStatus | "all">("all");
+  const filtered = filter === "all" ? bookings : bookings.filter((b) => b.status === filter);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap gap-1.5">
+        {statuses.map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => setFilter(s)}
+            className="rounded-full px-3 py-1 text-[11px] font-bold capitalize"
+            style={
+              filter === s
+                ? { background: "#111", color: "#fff" }
+                : { background: "#F5F5F5", color: "#555" }
+            }
+          >
+            {s}
+          </button>
+        ))}
+      </div>
+      {filtered.length === 0 ? (
+        emptyCta && onEmpty ? (
+          <CmsEmpty label="No bookings in this filter." cta={emptyCta} onClick={onEmpty} />
+        ) : (
+          <p className="text-[13px] text-neutral-400">No bookings in this filter.</p>
+        )
+      ) : (
+        <ul className="space-y-3">
+          {filtered.map((b) => (
+            <li key={b.id} className="rounded-2xl border p-4" style={{ borderColor: "rgba(0,0,0,0.06)" }}>
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-[14px] font-bold">{b.title}</p>
+                  <p className="text-[12px] text-neutral-500">
+                    {b.id} · {b.detail} · {formatINR(b.amount)}
+                    {b.stayDate ? ` · stay ${b.stayDate}` : ""}
+                  </p>
+                  <div className="mt-2">
+                    <StatusPill
+                      tone={
+                        b.status === "completed"
+                          ? "green"
+                          : b.status === "pending"
+                            ? "amber"
+                            : b.status === "cancelled"
+                              ? "red"
+                              : "gray"
+                      }
+                    >
+                      {b.status}
+                    </StatusPill>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {(["pending", "confirmed", "completed", "cancelled"] as BookingStatus[]).map((st) => (
+                    <ActionBtn key={st} disabled={b.status === st} onClick={() => onStatus(b.id, st)}>
+                      {st}
+                    </ActionBtn>
+                  ))}
+                </div>
+              </div>
+              {onNotes && (
+                <div className="mt-3">
+                  <Field label="Internal notes">
+                    <textarea
+                      className={fieldClass}
+                      rows={2}
+                      defaultValue={b.notes ?? ""}
+                      key={`${b.id}-${b.notes ?? ""}`}
+                      onBlur={(e) => {
+                        if (e.target.value !== (b.notes ?? "")) onNotes(b.id, e.target.value);
+                      }}
+                    />
+                  </Field>
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+export function EnquiriesInbox({
+  items,
+  onMarkRead,
+  onReply,
+  onStatus,
+  allowCompose,
+  onCompose,
+}: {
+  items: Enquiry[];
+  onMarkRead: (id: string) => void;
+  onReply: (id: string, reply: string) => void;
+  onStatus: (id: string, status: "open" | "closed") => void;
+  allowCompose?: boolean;
+  onCompose?: () => void;
+}) {
+  const [replyDraft, setReplyDraft] = useState<Record<string, string>>({});
+
+  if (items.length === 0) {
+    return (
+      <CmsEmpty
+        label="Inbox empty."
+        cta={allowCompose ? "Send enquiry" : "Refresh later"}
+        onClick={() => (allowCompose && onCompose ? onCompose() : undefined)}
+      />
+    );
+  }
+
+  return (
+    <ul className="space-y-3">
+      {items.map((e) => (
+        <li
+          key={e.id}
+          className="rounded-2xl border p-4"
+          style={{
+            borderColor: e.read ? "rgba(0,0,0,0.06)" : "rgba(226,55,68,0.35)",
+            background: e.read ? "#fff" : "#FFF8F8",
+          }}
+        >
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <p className="text-[14px] font-bold">{e.subject}</p>
+              <p className="text-[11px] text-neutral-500">
+                From {e.fromName} · {e.fromEmail} · {new Date(e.createdAt).toLocaleString()}
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              <StatusPill tone={e.status === "open" ? "amber" : "gray"}>{e.status}</StatusPill>
+              {!e.read && <ActionBtn onClick={() => onMarkRead(e.id)}>Mark read</ActionBtn>}
+              <ActionBtn onClick={() => onStatus(e.id, e.status === "open" ? "closed" : "open")}>
+                {e.status === "open" ? "Close" : "Reopen"}
+              </ActionBtn>
+            </div>
+          </div>
+          <p className="mt-2 text-[13px] text-neutral-700">{e.message}</p>
+          {e.reply && (
+            <p className="mt-2 rounded-xl bg-neutral-50 px-3 py-2 text-[12px]">
+              <strong>Reply:</strong> {e.reply}
+            </p>
+          )}
+          <div className="mt-3 flex flex-wrap gap-2">
+            <input
+              className={`${fieldClass} max-w-md`}
+              placeholder="Type a demo reply…"
+              value={replyDraft[e.id] ?? ""}
+              onChange={(ev) => setReplyDraft((d) => ({ ...d, [e.id]: ev.target.value }))}
+            />
+            <ActionBtn
+              variant="primary"
+              onClick={() => {
+                const text = (replyDraft[e.id] ?? "").trim();
+                if (!text) return;
+                onReply(e.id, text);
+                setReplyDraft((d) => ({ ...d, [e.id]: "" }));
+              }}
+            >
+              Send reply
+            </ActionBtn>
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export function OverviewStats({
+  items,
+}: {
+  items: { label: string; value: string | number; tone?: "green" | "default" }[];
+}) {
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {items.map((s) => (
+        <div key={s.label} className="rounded-3xl border p-4" style={{ borderColor: "rgba(0,0,0,0.07)" }}>
+          <p className="text-[11px] font-semibold uppercase text-neutral-400">{s.label}</p>
+          <p
+            className="mt-1 text-[26px] font-bold"
+            style={{ color: s.tone === "green" ? GREEN : undefined }}
+          >
+            {s.value}
+          </p>
+        </div>
+      ))}
     </div>
   );
 }
