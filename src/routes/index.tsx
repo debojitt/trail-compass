@@ -1,5 +1,7 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import { NortheastMap } from "@/components/site/NortheastMap";
+import type { NeStateId } from "@/data/neIndiaPaths";
 import {
   Home,
   Plane,
@@ -1195,11 +1197,34 @@ function CultureCardFace({
 /* ============ DESTINATIONS: curved 3D places carousel ============ */
 
 function StatesGrid() {
+  const navigate = useNavigate();
   const n = destinations.length;
   const [index, setIndex] = useState(0);
   const [dragPx, setDragPx] = useState(0);
   const [dragging, setDragging] = useState(false);
   const [hovering, setHovering] = useState(false);
+  const [mapHover, setMapHover] = useState<NeStateId | null>(null);
+  const [barHover, setBarHover] = useState<string | null>(null);
+
+  const liftSlug = mapHover ?? barHover ?? destinations[index]?.slug ?? null;
+  const previewSlug = mapHover ?? barHover;
+
+  const openPlaceExplore = (slug: NeStateId) => {
+    const i = destinations.findIndex((d) => d.slug === slug);
+    if (i >= 0) setIndex(i);
+    void navigate({ to: "/explore/$slug", params: { slug } });
+  };
+
+  const handleMapHover = (slug: NeStateId | null) => {
+    setMapHover(slug);
+    if (slug) {
+      setHovering(true);
+      const i = destinations.findIndex((d) => d.slug === slug);
+      if (i >= 0) setIndex(i);
+    } else if (!barHover) {
+      setHovering(false);
+    }
+  };
   const dragRef = useRef<{
     active: boolean;
     pointerId: number | null;
@@ -1278,13 +1303,24 @@ function StatesGrid() {
         endDrag(dragRef.current.lastX);
       }}
     >
-      <div className="mx-auto mb-8 max-w-[1200px] px-4 text-center md:px-6">
+      <div className="mx-auto mb-6 max-w-[1200px] px-4 text-center md:mb-8 md:px-6">
         <p className="text-[12px] font-semibold uppercase tracking-[0.25em]" style={{ color: RED }}>
           Places we operate
         </p>
         <h2 className="mt-2 text-[26px] font-bold tracking-tight md:text-[36px]">
           Eight sisters. Pick your first.
         </h2>
+      </div>
+
+      <div className="mx-auto mb-6 max-w-[1200px] px-3 md:mb-8 md:px-6 sm:px-4">
+        <div className="nn-ne-map-panel mx-auto overflow-visible rounded-[16px] bg-white px-2 py-3 sm:rounded-[20px] sm:px-3 sm:py-4 md:px-6 md:py-6">
+          <NortheastMap
+            liftSlug={liftSlug}
+            previewSlug={previewSlug}
+            onHover={handleMapHover}
+            onSelect={openPlaceExplore}
+          />
+        </div>
       </div>
 
       <div
@@ -1358,6 +1394,14 @@ function StatesGrid() {
                 key={s.slug}
                 to="/explore/$slug"
                 params={{ slug: s.slug }}
+                onMouseEnter={() => {
+                  setBarHover(s.slug);
+                  setHovering(true);
+                }}
+                onMouseLeave={() => {
+                  setBarHover(null);
+                  if (!mapHover) setHovering(false);
+                }}
                 onClick={(e) => {
                   if (dragRef.current.moved) {
                     e.preventDefault();
@@ -1378,6 +1422,10 @@ function StatesGrid() {
                   transition: dragging
                     ? "none"
                     : "transform 520ms cubic-bezier(0.22, 1, 0.36, 1), opacity 420ms ease",
+                  boxShadow:
+                    liftSlug === s.slug
+                      ? "0 22px 48px rgba(226, 55, 68, 0.28), 0 0 0 2px rgba(226, 55, 68, 0.85)"
+                      : "0 18px 40px rgba(0, 0, 0, 0.18)",
                 }}
                 aria-label={s.name}
               >
