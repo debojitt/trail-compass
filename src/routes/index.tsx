@@ -1205,14 +1205,20 @@ function StatesGrid() {
   const [hovering, setHovering] = useState(false);
   const [mapHover, setMapHover] = useState<NeStateId | null>(null);
   const [barHover, setBarHover] = useState<string | null>(null);
+  const [popSlug, setPopSlug] = useState<string | null>(null);
 
   const liftSlug = mapHover ?? barHover ?? destinations[index]?.slug ?? null;
-  const previewSlug = mapHover ?? barHover;
 
-  const openPlaceExplore = (slug: NeStateId) => {
+  const selectCarouselPlace = (slug: NeStateId, opts?: { navigate?: boolean }) => {
     const i = destinations.findIndex((d) => d.slug === slug);
-    if (i >= 0) setIndex(i);
-    void navigate({ to: "/explore/$slug", params: { slug } });
+    if (i < 0) return;
+    setIndex(i);
+    setHovering(true);
+    setPopSlug(slug);
+    window.setTimeout(() => setPopSlug((cur) => (cur === slug ? null : cur)), 520);
+    if (opts?.navigate) {
+      void navigate({ to: "/explore/$slug", params: { slug } });
+    }
   };
 
   const handleMapHover = (slug: NeStateId | null) => {
@@ -1220,7 +1226,12 @@ function StatesGrid() {
     if (slug) {
       setHovering(true);
       const i = destinations.findIndex((d) => d.slug === slug);
-      if (i >= 0) setIndex(i);
+      if (i < 0) return;
+      if (i !== index) {
+        setIndex(i);
+        setPopSlug(slug);
+        window.setTimeout(() => setPopSlug((cur) => (cur === slug ? null : cur)), 520);
+      }
     } else if (!barHover) {
       setHovering(false);
     }
@@ -1313,13 +1324,60 @@ function StatesGrid() {
       </div>
 
       <div className="mx-auto mb-6 max-w-[1200px] px-3 md:mb-8 md:px-6 sm:px-4">
-        <div className="nn-ne-map-panel mx-auto overflow-visible rounded-[16px] bg-white px-2 py-3 sm:rounded-[20px] sm:px-3 sm:py-4 md:px-6 md:py-6">
-          <NortheastMap
-            liftSlug={liftSlug}
-            previewSlug={previewSlug}
-            onHover={handleMapHover}
-            onSelect={openPlaceExplore}
-          />
+        <div className="nn-ne-map-panel mx-auto overflow-visible rounded-[16px] bg-white px-2 py-3 sm:rounded-[20px] sm:px-4 sm:py-4 md:px-6 md:py-6">
+          <div className="nn-ne-map-row">
+            <div className="nn-ne-map-col">
+              <NortheastMap
+                liftSlug={liftSlug}
+                onHover={handleMapHover}
+                onSelect={(slug) => {
+                  /* Phone: select + show side card; open explore from the side/carousel card */
+                  const coarse =
+                    typeof window !== "undefined" &&
+                    window.matchMedia("(hover: none), (pointer: coarse)").matches;
+                  selectCarouselPlace(slug, { navigate: !coarse });
+                }}
+              />
+            </div>
+            <div className="nn-ne-side-slot" aria-live="polite">
+              {(() => {
+                const featured =
+                  destinations.find((d) => d.slug === liftSlug) ?? destinations[index];
+                if (!featured) return null;
+                return (
+                  <Link
+                    key={featured.slug}
+                    to="/explore/$slug"
+                    params={{ slug: featured.slug }}
+                    className="nn-ne-side-card group"
+                    aria-label={`Open ${featured.name}`}
+                  >
+                    <img
+                      src={featured.heroImg}
+                      alt={featured.name}
+                      draggable={false}
+                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
+                    <div className="absolute inset-x-0 bottom-0 p-2 sm:p-3 md:p-4">
+                      <p className="text-[12px] font-bold tracking-tight text-white sm:text-[15px] md:text-[17px]">
+                        {featured.name}
+                      </p>
+                      <p className="mt-0.5 line-clamp-2 text-[9px] text-white/75 sm:text-[10px] md:text-[11px]">
+                        {featured.tag}
+                      </p>
+                      <span
+                        className="mt-1.5 inline-block rounded-full px-2 py-0.5 text-[9px] font-bold text-white sm:mt-2 sm:text-[10px]"
+                        style={{ background: GREEN }}
+                      >
+                        {featured.stays}
+                      </span>
+                    </div>
+                  </Link>
+                );
+              })()}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1388,6 +1446,8 @@ function StatesGrid() {
             const scale = 1 - Math.min(abs, 3) * 0.06;
             const opacity = abs > 2.6 ? Math.max(0, 1 - (abs - 2.6) * 2) : 1;
             const active = abs < 0.45;
+            /* Mild lift in the row; the readable card sits beside the map */
+            const y = active ? -8 : 0;
 
             return (
               <Link
@@ -1410,24 +1470,25 @@ function StatesGrid() {
                   if (!active) {
                     e.preventDefault();
                     setIndex(i);
+                    setPopSlug(s.slug);
+                    window.setTimeout(() => setPopSlug((cur) => (cur === s.slug ? null : cur)), 520);
                   }
                 }}
-                className="nn-places-card group"
+                className={`nn-places-card group${active ? " is-front" : ""}${popSlug === s.slug ? " is-pop" : ""}`}
                 style={{
-                  /* Y locked at 0 — no vertical drift while swiping */
-                  transform: `translate3d(${x}px, 0, ${z}px) rotateY(${rotateY}deg) scale(${scale})`,
-                  WebkitTransform: `translate3d(${x}px, 0, ${z}px) rotateY(${rotateY}deg) scale(${scale})`,
+                  transform: `translate3d(${x}px, ${y}px, ${z}px) rotateY(${rotateY}deg) scale(${scale})`,
+                  WebkitTransform: `translate3d(${x}px, ${y}px, ${z}px) rotateY(${rotateY}deg) scale(${scale})`,
                   opacity,
-                  zIndex: Math.round(40 - abs * 10),
+                  zIndex: Math.round(40 - abs * 10) + (active ? 8 : 0),
                   transition: dragging
                     ? "none"
-                    : "transform 520ms cubic-bezier(0.22, 1, 0.36, 1), opacity 420ms ease",
-                  boxShadow:
-                    liftSlug === s.slug
-                      ? "0 22px 48px rgba(226, 55, 68, 0.28), 0 0 0 2px rgba(226, 55, 68, 0.85)"
-                      : "0 18px 40px rgba(0, 0, 0, 0.18)",
+                    : "transform 520ms cubic-bezier(0.22, 1, 0.36, 1), opacity 420ms ease, box-shadow 320ms ease",
+                  boxShadow: active
+                    ? "0 24px 48px rgba(0, 0, 0, 0.26), 0 0 0 2px rgba(226, 55, 68, 0.75)"
+                    : "0 18px 40px rgba(0, 0, 0, 0.18)",
                 }}
                 aria-label={s.name}
+                aria-current={active ? "true" : undefined}
               >
                 <img
                   src={s.heroImg}
